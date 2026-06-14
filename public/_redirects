@@ -1,0 +1,6 @@
+# Cloudflare Pages redirects. Friendly aliases -> canonical pages.
+/models               /can-i-run            301
+/devices              /best-llm-for         301
+/model                /can-i-run            301
+/llms-full            /llms-full.txt        301
+/llms                 /llms.txt             301

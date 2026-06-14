@@ -1,0 +1,107 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Command from "@/components/Command.astro";
+import Sources from "@/components/Sources.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { tools, platformLabel, dedupeSources, meta } from "@/lib/data";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+const path = "/tools";
+const title = "Best tools to run LLMs locally, by platform · localmodel.run";
+const description = truncate(
+  "The right local-AI runtime for each platform: MLX and Ollama on Mac, CUDA on Windows, vLLM for serving on Linux, Apple Foundation Models and PocketPal on phones. With versions and commands.",
+);
+
+const faqs: FaqItem[] = [
+  { q: "Is vLLM good for Mac?", a: "No. vLLM is a CUDA/Linux serving engine built for throughput across many requests. On Apple Silicon use MLX (mlx-lm) or Ollama/LM Studio instead." },
+  { q: "Ollama or LM Studio?", a: "LM Studio is the friendliest GUI and ships MLX on Apple Silicon. Ollama is a scriptable CLI/server that is great for integrating local models into tools. Both wrap llama.cpp." },
+  { q: "What is the fastest way to run a model on Apple Silicon?", a: "mlx-lm. Same model, same quant, consistently higher tokens per second than Ollama's llama.cpp backend on M-series chips. LM Studio can use the same MLX backend if you want a GUI." },
+];
+
+const sources = dedupeSources(...tools.map((t) => t.sources));
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Tools", url: path }], Astro.site!.href),
+  techArticleLd({ headline: "Best tool to run LLMs locally, per platform", description, url: path, origin: Astro.site!.href, dateModified: meta.updated, sources }),
+  faqLd(faqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogType="article">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Tools", url: path }]} />
+    <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Best tool to run LLMs locally</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      The runtime that is fastest on a Mac will fail to start on Windows. Here is what to install, who each tool is actually for, and the one mistake people make on each platform.
+    </p>
+
+    <nav class="mt-6 flex flex-wrap gap-2">
+      {tools.map((t) => (
+        <a href={`#${t.platform}`} class="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">{platformLabel(t.platform)}</a>
+      ))}
+    </nav>
+
+    <div class="mt-8 space-y-10">
+      {tools.map((t) => (
+        <section id={t.platform} class="scroll-mt-20">
+          <h2 class="flex items-center gap-1.5 text-2xl font-bold tracking-tight">
+            <EntityIcon os={t.platform} size={14} />
+            {platformLabel(t.platform)}
+          </h2>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-xl border border-[color-mix(in_oklch,var(--color-brand)_35%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)] p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-[var(--color-brand)]">Beginner pick</div>
+              <div class="mt-1 text-lg font-semibold">{t.beginner.name}</div>
+              <p class="mt-1 text-sm text-muted-foreground">{t.beginner.why}</p>
+            </div>
+            <div class="rounded-xl border border-border bg-card p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Power user</div>
+              <div class="mt-1 text-lg font-semibold">{t.power.name}</div>
+              <p class="mt-1 text-sm text-muted-foreground">{t.power.why}</p>
+            </div>
+          </div>
+
+          {(t.power.command || t.beginner.command) && (
+            <div class="mt-3"><Command code={(t.power.command || t.beginner.command)!} /></div>
+          )}
+
+          <div class="mt-4 overflow-hidden rounded-xl border border-border">
+            <table class="w-full text-sm">
+              <thead class="bg-card text-left text-xs uppercase text-muted-foreground">
+                <tr><th class="px-4 py-2 font-medium">Runtime</th><th class="px-4 py-2 font-medium">What it is</th><th class="px-4 py-2 font-medium">Status</th></tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                {t.runtimes.map((r) => (
+                  <tr>
+                    <td class="px-4 py-2.5"><a href={r.url} rel="noopener nofollow" class="font-medium text-foreground hover:underline">{r.name}</a></td>
+                    <td class="px-4 py-2.5 text-muted-foreground">{r.what}</td>
+                    <td class="px-4 py-2.5 text-muted-foreground">{r.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-3 rounded-lg border border-[color-mix(in_oklch,var(--color-verdict-tight)_35%,transparent)] bg-[color-mix(in_oklch,var(--color-verdict-tight)_8%,transparent)] p-3 text-sm">
+            <strong class="text-foreground">Gotcha:</strong> <span class="text-muted-foreground">{t.gotcha}</span>
+          </div>
+          <p class="mt-2 text-sm text-muted-foreground"><strong class="text-foreground">Realistic ceiling:</strong> {t.ceiling}</p>
+        </section>
+      ))}
+    </div>
+
+    <section class="mt-12">
+      <h2 class="text-lg font-semibold">FAQ</h2>
+      <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <Sources urls={sources} />
+  </div>
+</Base>

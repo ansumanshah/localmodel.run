@@ -1,0 +1,445 @@
+[
+  {
+    "id": "apple-m1-8gb",
+    "name": "Apple M1 (8GB)",
+    "category": "mac",
+    "memory_gb": 8,
+    "memory_type": "unified",
+    "usable_memory_gb": 5.5,
+    "best_runtime": "Ollama (llama.cpp Metal backend)",
+    "sources": [
+      "https://support.apple.com/en-us/111883",
+      "https://developer.apple.com/forums/thread/732035",
+      "https://blog.peddals.com/en/fine-tune-vram-size-of-mac-for-llm/"
+    ],
+    "notes": "Base MacBook Air M1 config. recommendedMaxWorkingSetSize ~66% of RAM for <64GB configs = ~5.3–5.5GB usable for model weights. macOS needs ~2–3GB for OS overhead on top. Practical limit: 3–4B parameter models at Q4_K_M."
+  },
+  {
+    "id": "apple-m2-16gb",
+    "name": "Apple M2 (16GB)",
+    "category": "mac",
+    "memory_gb": 16,
+    "memory_type": "unified",
+    "usable_memory_gb": 10.5,
+    "best_runtime": "Ollama (llama.cpp Metal backend) / MLX",
+    "sources": [
+      "https://support.apple.com/en-us/111869",
+      "https://developer.apple.com/forums/thread/732035",
+      "https://stencel.io/posts/apple-silicon-limitations-with-usage-on-local-llm%20.html"
+    ],
+    "notes": "Available in MacBook Pro 13-inch M2 (2022) and MacBook Air M2. recommendedMaxWorkingSetSize ~66% for <64GB = ~10.5GB. Fits 7–8B models at Q4_K_M comfortably."
+  },
+  {
+    "id": "apple-m3-18gb",
+    "name": "Apple M3 Pro (18GB)",
+    "category": "mac",
+    "memory_gb": 18,
+    "memory_type": "unified",
+    "usable_memory_gb": 12,
+    "best_runtime": "Ollama (llama.cpp Metal backend) / MLX",
+    "sources": [
+      "https://support.apple.com/en-us/117736",
+      "https://developer.apple.com/forums/thread/732035",
+      "https://blog.peddals.com/en/fine-tune-vram-size-of-mac-for-llm/"
+    ],
+    "notes": "Base M3 Pro config in MacBook Pro 14/16-inch 2023. recommendedMaxWorkingSetSize ~66% for <64GB = ~12GB. Fits 13B models at Q4_K_M, 7B with headroom."
+  },
+  {
+    "id": "apple-m4-16gb",
+    "name": "Apple M4 (16GB)",
+    "category": "mac",
+    "memory_gb": 16,
+    "memory_type": "unified",
+    "usable_memory_gb": 10.5,
+    "best_runtime": "Ollama (MLX backend, preview) / MLX direct",
+    "sources": [
+      "https://support.apple.com/en-us/121555",
+      "https://support.apple.com/en-us/121552",
+      "https://developer.apple.com/forums/thread/732035"
+    ],
+    "notes": "Base Mac mini M4 (2024) and MacBook Pro 14-inch M4 config. recommendedMaxWorkingSetSize ~66% for <64GB = ~10.5GB. MLX backend now available in Ollama. Fits 7–8B models at Q4_K_M."
+  },
+  {
+    "id": "apple-m4-24gb",
+    "name": "Apple M4 (24GB)",
+    "category": "mac",
+    "memory_gb": 24,
+    "memory_type": "unified",
+    "usable_memory_gb": 16,
+    "best_runtime": "Ollama (MLX backend, preview) / MLX direct",
+    "sources": [
+      "https://support.apple.com/en-us/121555",
+      "https://developer.apple.com/forums/thread/732035",
+      "https://stencel.io/posts/apple-silicon-limitations-with-usage-on-local-llm%20.html"
+    ],
+    "notes": "Configurable Mac mini M4 (2024). recommendedMaxWorkingSetSize ~66% for <64GB = ~16GB. Fits 13B models at Q4_K_M comfortably."
+  },
+  {
+    "id": "apple-m4-pro-24gb",
+    "name": "Apple M4 Pro (24GB)",
+    "category": "mac",
+    "memory_gb": 24,
+    "memory_type": "unified",
+    "usable_memory_gb": 16,
+    "best_runtime": "Ollama (MLX backend, preview) / MLX direct",
+    "sources": [
+      "https://support.apple.com/en-us/121553",
+      "https://support.apple.com/en-us/121555",
+      "https://developer.apple.com/forums/thread/732035"
+    ],
+    "notes": "Base M4 Pro config in Mac mini and MacBook Pro 14/16-inch 2024. Same 66% rule applies for <64GB = ~16GB. Higher memory bandwidth than base M4 chip benefits throughput."
+  },
+  {
+    "id": "apple-m4-pro-48gb",
+    "name": "Apple M4 Pro (48GB)",
+    "category": "mac",
+    "memory_gb": 48,
+    "memory_type": "unified",
+    "usable_memory_gb": 32,
+    "best_runtime": "Ollama (MLX backend) / MLX direct",
+    "sources": [
+      "https://support.apple.com/en-us/121553",
+      "https://support.apple.com/en-us/121555",
+      "https://blog.peddals.com/en/fine-tune-vram-size-of-mac-for-llm/"
+    ],
+    "notes": "Top M4 Pro config in MacBook Pro 14/16-inch 2024 and Mac mini. recommendedMaxWorkingSetSize ~66% for <64GB = ~32GB. Fits 34B models at Q4_K_M. Strong sweet-spot for local LLM."
+  },
+  {
+    "id": "apple-m4-max-64gb",
+    "name": "Apple M4 Max (64GB)",
+    "category": "mac",
+    "memory_gb": 64,
+    "memory_type": "unified",
+    "usable_memory_gb": 48,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://support.apple.com/en-us/121553",
+      "https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/",
+      "https://developer.apple.com/forums/thread/732035"
+    ],
+    "notes": "Base M4 Max config. At 64GB, rule shifts to ~75% (per Apple Metal docs) = ~48GB usable. 546GB/s memory bandwidth. Comfortably fits 34B models; 70B at lower quant."
+  },
+  {
+    "id": "apple-m4-max-128gb",
+    "name": "Apple M4 Max (128GB)",
+    "category": "mac",
+    "memory_gb": 128,
+    "memory_type": "unified",
+    "usable_memory_gb": 96,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://support.apple.com/en-us/121553",
+      "https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/",
+      "https://stencel.io/posts/apple-silicon-limitations-with-usage-on-local-llm%20.html"
+    ],
+    "notes": "Top M4 Max config. 75% rule at ≥64GB = 96GB confirmed usable (matches 128GB M1 Ultra precedent from stencel.io). Fits 70B models at full precision or Q8; handles 405B at lower quants."
+  },
+  {
+    "id": "apple-m3-ultra-256gb",
+    "name": "Apple M3 Ultra (256GB)",
+    "category": "mac",
+    "memory_gb": 256,
+    "memory_type": "unified",
+    "usable_memory_gb": 192,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://support.apple.com/en-us/122211",
+      "https://www.apple.com/newsroom/2025/03/apple-reveals-m3-ultra-taking-apple-silicon-to-a-new-extreme/",
+      "https://stencel.io/posts/apple-silicon-limitations-with-usage-on-local-llm%20.html"
+    ],
+    "notes": "Max config Mac Studio M3 Ultra (2025). 75% rule at ≥64GB = 192GB usable. The 512GB config was discontinued in March 2026; 256GB remains available. Supports the largest open-weight models (405B+) at reasonable quants."
+  },
+  {
+    "id": "nvidia-rtx-3060-12gb",
+    "name": "Nvidia GeForce RTX 3060 (12GB)",
+    "category": "nvidia",
+    "memory_gb": 12,
+    "memory_type": "vram",
+    "usable_memory_gb": 11,
+    "best_runtime": "Ollama (CUDA) / llama.cpp CUDA",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3060-3060ti/",
+      "https://marketplace.nvidia.com/en-us/consumer/graphics-cards/msi-gaming-geforce-rtx-3060-12gb-15-gbps-gdrr6-192-bit-hdmi-dp-pcie-4-torx-twin-fan-ampere-oc-graphics-card/"
+    ],
+    "notes": "12GB GDDR6 on 192-bit bus. Unusually high VRAM for its tier. ~1GB reserved for driver/OS = ~11GB usable. Fits 7B Q4_K_M (4.1GB) and 13B Q4_K_M (7.4GB) with room. CUDA support via Ampere architecture."
+  },
+  {
+    "id": "nvidia-rtx-4060-ti-16gb",
+    "name": "Nvidia GeForce RTX 4060 Ti (16GB)",
+    "category": "nvidia",
+    "memory_gb": 16,
+    "memory_type": "vram",
+    "usable_memory_gb": 15,
+    "best_runtime": "Ollama (CUDA) / llama.cpp CUDA",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+      "https://www.techspot.com/specs/gpu/280961-nvidia-geforce-rtx-4060-ti-16gb.html"
+    ],
+    "notes": "16GB GDDR6 on 128-bit bus (narrow bandwidth: 288 GB/s). ~1GB reserved = ~15GB usable. Bandwidth bottleneck limits throughput vs wider-bus alternatives. Fits 13B Q4_K_M easily; 34B at low quant."
+  },
+  {
+    "id": "nvidia-rtx-4070-12gb",
+    "name": "Nvidia GeForce RTX 4070 (12GB)",
+    "category": "nvidia",
+    "memory_gb": 12,
+    "memory_type": "vram",
+    "usable_memory_gb": 11,
+    "best_runtime": "Ollama (CUDA) / vLLM (Linux)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070/",
+      "https://www.nvidia.com/en-us/geforce/news/rtx-40-series-vram-video-memory-explained/"
+    ],
+    "notes": "12GB GDDR6X on 192-bit bus (~504 GB/s). ~1GB reserved = ~11GB usable. Better bandwidth than 4060 Ti 16GB despite less VRAM. Fits 7B comfortably, 13B Q4 squeezed."
+  },
+  {
+    "id": "nvidia-rtx-4080-16gb",
+    "name": "Nvidia GeForce RTX 4080 (16GB)",
+    "category": "nvidia",
+    "memory_gb": 16,
+    "memory_type": "vram",
+    "usable_memory_gb": 15,
+    "best_runtime": "vLLM (Linux) / Ollama (CUDA)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080/",
+      "https://www.nvidia.com/en-us/geforce/news/rtx-40-series-vram-video-memory-explained/"
+    ],
+    "notes": "16GB GDDR6X on 256-bit bus (~716 GB/s). ~1GB reserved = ~15GB usable. Good bandwidth for 13B models; 34B models require offloading. Strong for inference throughput."
+  },
+  {
+    "id": "nvidia-rtx-4090-24gb",
+    "name": "Nvidia GeForce RTX 4090 (24GB)",
+    "category": "nvidia",
+    "memory_gb": 24,
+    "memory_type": "vram",
+    "usable_memory_gb": 23,
+    "best_runtime": "vLLM (Linux) / Ollama (CUDA)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+      "https://www.nvidia.com/en-us/geforce/news/rtx-40-series-vram-video-memory-explained/"
+    ],
+    "notes": "24GB GDDR6X on 384-bit bus (~1008 GB/s). ~1GB reserved = ~23GB usable. Flagship Ada Lovelace. Fits 34B Q4_K_M (19GB); 70B requires offloading or very low quant. Best single-GPU consumer option for throughput."
+  },
+  {
+    "id": "nvidia-rtx-5090-32gb",
+    "name": "Nvidia GeForce RTX 5090 (32GB)",
+    "category": "nvidia",
+    "memory_gb": 32,
+    "memory_type": "vram",
+    "usable_memory_gb": 31,
+    "best_runtime": "vLLM (Linux) / Ollama (CUDA)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/",
+      "https://www.spheron.network/blog/nvidia-rtx-5090-specs/"
+    ],
+    "notes": "32GB GDDR7 on 512-bit bus (~1792 GB/s). ~1GB reserved = ~31GB usable. Blackwell architecture. Fits 34B Q8 and pushes toward 70B Q4_K_M (~35–38GB, tight). Best single-GPU consumer option as of 2026."
+  },
+  {
+    "id": "nvidia-rtx-3090-24gb",
+    "name": "Nvidia GeForce RTX 3090 (24GB)",
+    "category": "nvidia",
+    "memory_gb": 24,
+    "memory_type": "vram",
+    "usable_memory_gb": 23,
+    "best_runtime": "vLLM (Linux) / Ollama (CUDA)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3090/",
+      "https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-3090/"
+    ],
+    "notes": "24GB GDDR6X on 384-bit bus (~936 GB/s). ~1GB reserved = ~23GB usable. Ampere architecture. Excellent value-per-GB for LLM inference; same VRAM ceiling as RTX 4090 at lower bandwidth. Fits 34B Q4_K_M."
+  },
+  {
+    "id": "amd-rx-7900-xtx-24gb",
+    "name": "AMD Radeon RX 7900 XTX (24GB)",
+    "category": "amd",
+    "memory_gb": 24,
+    "memory_type": "vram",
+    "usable_memory_gb": 23,
+    "best_runtime": "Ollama (ROCm) / llama.cpp ROCm (Linux)",
+    "sources": [
+      "https://www.notebookcheck.net/AMD-Radeon-RX-7900-XTX-with-24-GB-VRAM-review-Already-available-for-less-than-1000-Euros.810630.0.html",
+      "https://www.asus.com/us/motherboards-components/graphics-cards/asus/rx7900xtx-24g/techspec/",
+      "https://bestgpuforllm.com/articles/nvidia-vs-amd-for-llm/"
+    ],
+    "notes": "24GB GDDR6 on 384-bit bus (~960 GB/s). ~1GB reserved = ~23GB usable. RDNA 3 architecture. ROCm support on Linux; ROCm on Windows is experimental/limited. LLM inference quality behind CUDA in software maturity. Fits 34B Q4_K_M. Windows users typically prefer llama.cpp with ROCm or DirectML backend."
+  },
+  {
+    "id": "laptop-8gb",
+    "name": "8GB RAM Laptop (CPU/iGPU only)",
+    "category": "laptop",
+    "memory_gb": 8,
+    "memory_type": "ram",
+    "usable_memory_gb": 5,
+    "best_runtime": "Ollama (llama.cpp backend)",
+    "sources": [
+      "https://ollama.com/library/llama3.2:1b",
+      "https://ollama.com/library/phi3:mini",
+      "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF"
+    ],
+    "notes": "OS overhead ~2-3GB (Windows/macOS), leaving ~5GB usable. Practical ceiling is 1B-3B Q4_K_M models. Llama 3.2 1B Q4_K_M ~0.8GB file, needs ~1.2GB at runtime. Phi-3 Mini 3.8B Q4_K_M ~2.4GB file, needs ~3.6GB at runtime, fits. 7B+ models will OOM. Usable figure is community estimate, not vendor spec."
+  },
+  {
+    "id": "laptop-16gb",
+    "name": "16GB RAM Laptop (CPU/iGPU only)",
+    "category": "laptop",
+    "memory_gb": 16,
+    "memory_type": "ram",
+    "usable_memory_gb": 12,
+    "best_runtime": "Ollama (llama.cpp backend)",
+    "sources": [
+      "https://ollama.com/library/llama3.1:8b",
+      "https://ollama.com/library/mistral:7b",
+      "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF"
+    ],
+    "notes": "OS overhead ~2-4GB, leaving ~12GB usable. Practical ceiling is 7B-8B Q4_K_M models. Llama 3.1 8B Q4_K_M ~4.7GB file, needs ~7GB at runtime. Mistral 7B Q4_K_M ~4.1GB file, needs ~6GB at runtime. 13B models are marginal and will be slow. Usable figure is community estimate, not vendor spec."
+  },
+  {
+    "id": "laptop-32gb",
+    "name": "32GB RAM Laptop (CPU/iGPU only)",
+    "category": "laptop",
+    "memory_gb": 32,
+    "memory_type": "ram",
+    "usable_memory_gb": 28,
+    "best_runtime": "Ollama (llama.cpp backend)",
+    "sources": [
+      "https://ollama.com/library/llama3.1:70b",
+      "https://ollama.com/library/mixtral:8x7b",
+      "https://huggingface.co/bartowski/Meta-Llama-3.1-70B-Instruct-GGUF"
+    ],
+    "notes": "OS overhead ~2-4GB, leaving ~28GB usable. Practical ceiling is 13B-34B Q4_K_M models comfortably; 70B at Q2_K (lossy) marginally fits (~28GB). Llama 3.1 13B Q4_K_M ~7.8GB file, needs ~11.7GB. Llama 3.3 70B Q4_K_M ~43GB, does NOT fit; Q2_K ~24GB fits but quality degraded. Usable figure is community estimate, not vendor spec."
+  },
+  {
+    "id": "iphone-15-pro",
+    "name": "iPhone 15 Pro",
+    "category": "iphone",
+    "memory_gb": 8,
+    "memory_type": "unified",
+    "usable_memory_gb": 4.5,
+    "best_runtime": "llama.cpp + Metal (via PocketPal or Off Grid app)",
+    "sources": [
+      "https://www.gsmarena.com/apple_iphone_15_pro-12178.php",
+      "https://wccftech.com/iphone-15-pro-ram-type-lpddr5-confirmed/",
+      "https://www.techinsights.com/blog/apple-iphone-15-pro-teardown"
+    ],
+    "notes": "8GB LPDDR5 unified memory confirmed via TechInsights teardown (Micron D1b LPDDR5 chips) and GSMArena. iOS reserves ~3-4GB for OS+system, leaving ~4-4.5GB usable for model weights (community estimate). Practical ceiling 1B-3B Q4_K_M on-device; Apple Intelligence models (Llama 3B class) run at ~3-4GB. CoreML path most memory-efficient but slowest gen speed; llama.cpp+Metal gives best throughput. Benchmarks for on-device LLM cite iPhone 15 Pro achieving ~20-30 tok/s on 3B Q4 models."
+  },
+  {
+    "id": "iphone-16",
+    "name": "iPhone 16",
+    "category": "iphone",
+    "memory_gb": 8,
+    "memory_type": "unified",
+    "usable_memory_gb": 4.5,
+    "best_runtime": "llama.cpp + Metal (via PocketPal or Off Grid app)",
+    "sources": [
+      "https://www.gsmarena.com/apple_iphone_16-12557.php",
+      "https://www.macrumors.com/2024/09/09/all-iphone-16-models-equipped-with-8gb-of-ram/",
+      "https://www.apple.com/iphone-16/specs/"
+    ],
+    "notes": "All iPhone 16 models confirmed 8GB RAM per MacRumors (Sep 2024, citing Apple Intelligence requirement). Apple specs page confirms 8GB. Unified memory architecture; iOS reserves ~3-4GB, leaving ~4-4.5GB usable (community estimate). Identical LLM capability envelope to iPhone 15 Pro. On-device model ceiling: 1B-3B Q4_K_M class. Apple Intelligence on-device model is ~3B parameter class."
+  },
+  {
+    "id": "iphone-16-pro",
+    "name": "iPhone 16 Pro",
+    "category": "iphone",
+    "memory_gb": 8,
+    "memory_type": "unified",
+    "usable_memory_gb": 4.5,
+    "best_runtime": "llama.cpp + Metal (via PocketPal or Off Grid app)",
+    "sources": [
+      "https://www.gsmarena.com/apple_iphone_16_pro-12560.php",
+      "https://www.macrumors.com/2024/09/09/all-iphone-16-models-equipped-with-8gb-of-ram/",
+      "https://www.apple.com/iphone-16-pro/specs/"
+    ],
+    "notes": "8GB unified memory confirmed (same MacRumors source as iPhone 16, all 4 iPhone 16 models have 8GB). A18 Pro chip with 6-core GPU gives higher inference throughput vs A16/A17 but same memory envelope. iOS overhead ~3-4GB; usable ~4.5GB (community estimate). Practical ceiling 1B-4B Q4_K_M. Off Grid app (llama.cpp+Metal) and PocketPal are primary consumer runtimes. Apple Intelligence 3B on-device model fits comfortably."
+  },
+  {
+    "id": "ipad-pro-m4-16gb",
+    "name": "iPad Pro M4 (16GB, 1TB/2TB config)",
+    "category": "iphone",
+    "memory_gb": 16,
+    "memory_type": "unified",
+    "usable_memory_gb": 12,
+    "best_runtime": "MLX (via Python or Swift; mlx-lm package)",
+    "sources": [
+      "https://support.apple.com/en-us/119891",
+      "https://www.apple.com/ipad-pro/specs/",
+      "https://www.gsmarena.com/apple_ipad_pro_13_(2024)-12342.php"
+    ],
+    "notes": "iPad, not iPhone, categorized as 'iphone' due to schema enum limitation. 16GB unified memory only available on 1TB and 2TB storage configurations per Apple Support KB article (support.apple.com/en-us/119891). 256GB/512GB configs ship with 8GB. M4 chip with 10-core GPU. iPadOS overhead ~3-4GB; ~12GB usable for model weights (community estimate, ~75% of total per Apple Silicon architecture). MLX framework (Apple's ML framework for Apple Silicon) achieves ~61 tok/s on Llama 3.2 3B. Practical ceiling: 7B-13B Q4_K_M models fit; 30B Q4_K_M (~19GB) also fits with headroom."
+  },
+  {
+    "id": "pixel-9-pro",
+    "name": "Google Pixel 9 Pro",
+    "category": "android",
+    "memory_gb": 16,
+    "memory_type": "ram",
+    "usable_memory_gb": 10.5,
+    "best_runtime": "llama.cpp (PocketPal) or MLC-LLM (Adreno GPU path)",
+    "sources": [
+      "https://www.gsmarena.com/google_pixel_9_pro-12424.php",
+      "https://www.androidpolice.com/google-pixel-9-pro-ram-partition-gemini/",
+      "https://mlc.ai/blog/2024/05/08/mlc-llm-android"
+    ],
+    "notes": "16GB LPDDR5X confirmed via GSMArena. Android Police investigation confirmed 2.6GB hardware-partitioned for Google Gemini/on-device ML features, not available to apps. Android OS overhead ~3-4GB additional; usable estimate ~10-10.5GB (community estimate). Practical ceiling: 7B Q4_K_M fits (~7GB runtime); 13B Q4_K_M tight (~11.7GB) may OOM. MLC-LLM leverages Adreno GPU for faster inference vs CPU-only path. Tensor G4 chip handles 1B-4B models well natively via Google AI Edge."
+  },
+  {
+    "id": "samsung-s24-ultra",
+    "name": "Samsung Galaxy S24 Ultra",
+    "category": "android",
+    "memory_gb": 12,
+    "memory_type": "ram",
+    "usable_memory_gb": 8.5,
+    "best_runtime": "llama.cpp (PocketPal) or MLC-LLM (Adreno GPU path)",
+    "sources": [
+      "https://www.gsmarena.com/samsung_galaxy_s24_ultra-12419.php",
+      "https://www.gsmarena.com/samsung_galaxy_s24_ultra-review-2754p5.php",
+      "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF"
+    ],
+    "notes": "12GB LPDDR5X at 4800MHz confirmed via GSMArena review page (explicitly states RAM type and speed). All S24 Ultra configs are 12GB (no 16GB tier unlike S25 Ultra). Snapdragon 8 Gen 3 (US). Android OS overhead ~3-4GB; usable ~8-8.5GB (community estimate). Practical ceiling: 7B Q4_K_M (~7GB runtime) fits; 13B Q4_K_M (~11.7GB) will OOM. MLC-LLM uses Adreno 750 GPU for faster inference. Samsung Galaxy AI on-device features use 1B-3B class models."
+  },
+  {
+    "id": "samsung-s25-ultra-16gb",
+    "name": "Samsung Galaxy S25 Ultra (16GB, 1TB config only)",
+    "category": "android",
+    "memory_gb": 16,
+    "memory_type": "ram",
+    "usable_memory_gb": 12,
+    "best_runtime": "llama.cpp (PocketPal) or MLC-LLM (Adreno GPU path)",
+    "sources": [
+      "https://www.gsmarena.com/samsung_galaxy_s25_ultra-12750.php",
+      "https://www.sammyfans.com/2025/01/22/galaxy-s25-ultra-ram-lpddr5x-micron/",
+      "https://www.sammyguru.com/samsung-galaxy-s25-ultra-ram-specs-confirmed/"
+    ],
+    "notes": "16GB LPDDR5X (Micron, 12nm process) confirmed via SammyFans and SammyGuru. CRITICAL: 16GB RAM is ONLY available on the 1TB storage configuration. 256GB and 512GB configs ship with 12GB RAM. Android OS overhead ~3-4GB; usable ~12GB (community estimate). Snapdragon 8 Elite. Practical ceiling: 7B-13B Q4_K_M. Llama 3.1 8B Q4_K_M (~7GB runtime) fits with headroom; 13B Q4_K_M (~11.7GB) marginal. MLC-LLM + Adreno 830 GPU recommended for best throughput."
+  },
+  {
+    "id": "android-generic-8gb",
+    "name": "Generic Android Phone (8GB RAM)",
+    "category": "android",
+    "memory_gb": 8,
+    "memory_type": "ram",
+    "usable_memory_gb": 4.5,
+    "best_runtime": "llama.cpp (PocketPal or SmolChat)",
+    "sources": [
+      "https://ollama.com/library/llama3.2:1b",
+      "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF",
+      "https://github.com/a-ghorbani/pocketpal-ai"
+    ],
+    "notes": "Representative of mid-range Android devices (e.g., Pixel 8a, OnePlus 12R, Samsung A55). RAM type varies (LPDDR4X on lower-end, LPDDR5 on higher-end). Android OS overhead ~3-4GB; usable ~4-4.5GB (community estimate). Practical ceiling: 1B-3B Q4_K_M only. Llama 3.2 1B Q4_K_M (~1.2GB runtime) fits well. Phi-3 Mini 3.8B Q4_K_M (~3.6GB runtime) fits with minimal headroom. 7B+ models will reliably OOM. PocketPal (llama.cpp backend) is the recommended consumer app for CPU inference on Android."
+  },
+  {
+    "id": "android-generic-12gb",
+    "name": "Generic Android Phone (12GB RAM)",
+    "category": "android",
+    "memory_gb": 12,
+    "memory_type": "ram",
+    "usable_memory_gb": 8.5,
+    "best_runtime": "llama.cpp (PocketPal) or MLC-LLM",
+    "sources": [
+      "https://ollama.com/library/llama3.1:8b",
+      "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF",
+      "https://github.com/a-ghorbani/pocketpal-ai"
+    ],
+    "notes": "Representative of upper-mid and flagship Android devices (e.g., OnePlus 12, Pixel 9, Samsung S24+). LPDDR5 or LPDDR5X depending on SoC. Android OS overhead ~3-4GB; usable ~8-8.5GB (community estimate). Practical ceiling: 7B Q4_K_M models. Llama 3.1 8B Q4_K_M (~7GB runtime) fits with ~1.5GB headroom. 13B Q4_K_M (~11.7GB) will OOM. MLC-LLM leverages GPU (Adreno or Mali) for faster inference if supported. CPU-only inference on 7B is slow (~3-8 tok/s); GPU path via MLC-LLM can reach ~15-25 tok/s on flagship Adreno."
+  }
+]

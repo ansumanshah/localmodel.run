@@ -1,0 +1,84 @@
+---
+import Base from "@/layouts/Base.astro";
+import Detector from "@/components/Detector.tsx";
+import { models, devices, meta } from "@/lib/data";
+import { useTranslations } from "@/i18n/utils";
+import { faqLd, softwareAppLd, truncate, type FaqItem } from "@/lib/seo";
+
+const t = useTranslations("es");
+const path = "/es";
+const title = "¿Puedo ejecutar este modelo de IA en local? Comprueba tu Mac, PC o móvil · localmodel.run";
+const description = truncate(
+  `Comprueba al instante si tu ordenador o móvil puede ejecutar un modelo de IA local como Llama, DeepSeek, Qwen o Gemma, y qué herramienta usar en Mac, Windows, Linux, iOS o Android. Gratis, sin registro. ${models.length} modelos, ${devices.length} dispositivos, datos validados.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: "¿Cómo sé si mi ordenador puede ejecutar un LLM en local?",
+    a: `Compara la memoria que necesita el modelo con tu memoria utilizable. Un modelo de 7-8B en Q4_K_M necesita unos 6-7 GB, así que funciona en un Mac de 16 GB o una GPU de 12 GB. localmodel.run hace ese cálculo para ${models.length} modelos en ${devices.length} dispositivos.`,
+  },
+  {
+    q: "¿Puedo ejecutar modelos de IA en local en un Mac?",
+    a: "Sí. Apple Silicon comparte memoria unificada, así que un Mac de 16 GB ejecuta modelos de 7-8B y uno de 64 GB+ ejecuta 70B. Usa LM Studio (que incluye MLX) o mlx-lm para máxima velocidad. vLLM no es para Mac, es un motor de servidor para Linux/CUDA.",
+  },
+  {
+    q: "¿Puedo ejecutar un LLM en el móvil?",
+    a: "Sí, con límites. Los iPhone y los Android tope de gama ejecutan de forma realista modelos de 1B-4B. En iOS 26 usa los Foundation Models de Apple o PocketPal AI; en Android, PocketPal AI o Google AI Edge.",
+  },
+];
+
+const jsonLd = [softwareAppLd(Astro.site!.href), faqLd(faqs)];
+
+const steps = [
+  { n: "1", t: "Tamaños reales", d: "Los tamaños por cuantización vienen de Ollama y HuggingFace, no de suposiciones. Cada número tiene su fuente." },
+  { n: "2", t: "Cálculo de memoria honesto", d: "Sumamos la caché KV y el overhead, y usamos memoria utilizable realista (Apple unificada ~70%, VRAM menos el driver)." },
+  { n: "3", t: "La herramienta adecuada", d: "Por plataforma: MLX/Ollama en Mac, CUDA en Windows, vLLM en Linux, PocketPal en el móvil." },
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]} ogTitle="¿Puedo ejecutar este modelo de IA en local?">
+  <section class="relative overflow-hidden border-b border-border/60">
+    <div class="pointer-events-none absolute inset-0 -z-10 opacity-60 [background:radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--color-brand)_18%,transparent),transparent)]"></div>
+    <div class="mx-auto max-w-4xl px-4 pb-12 pt-14 text-center sm:pt-20">
+      <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
+        <span class="h-1.5 w-1.5 rounded-full bg-[var(--color-brand)]"></span>
+        {t("hero.badge", { models: models.length, devices: devices.length, date: meta.updated })}
+      </div>
+      <h1 class="text-balance text-4xl font-bold tracking-tight sm:text-6xl">
+        {t("hero.title1")} {t("hero.title2")} <span class="text-[var(--color-brand)]">{t("hero.locally")}</span>
+      </h1>
+      <p class="mx-auto mt-5 max-w-2xl text-pretty text-lg text-muted-foreground">{t("hero.sub")}</p>
+      <div class="mx-auto mt-8 max-w-2xl text-left">
+        <Detector client:load />
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-4 py-12">
+    <h2 class="text-2xl font-bold tracking-tight">{t("home.howItWorks")}</h2>
+    <div class="mt-5 grid gap-4 sm:grid-cols-3">
+      {steps.map((s) => (
+        <div class="rounded-xl border border-border bg-card p-5">
+          <div class="grid h-8 w-8 place-items-center rounded-lg bg-[var(--color-brand)] font-bold text-[oklch(0.18_0.01_270)]">{s.n}</div>
+          <h3 class="mt-3 font-semibold">{s.t}</h3>
+          <p class="mt-1 text-sm text-muted-foreground">{s.d}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-4 py-12">
+    <h2 class="text-2xl font-bold tracking-tight">{t("home.faq")}</h2>
+    <div class="mt-5 divide-y divide-border rounded-xl border border-border bg-card">
+      {faqs.map((f) => (
+        <details class="group p-5">
+          <summary class="cursor-pointer list-none font-medium [&::-webkit-details-marker]:hidden">{f.q}</summary>
+          <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+        </details>
+      ))}
+    </div>
+    <p class="mt-6 text-center text-sm text-muted-foreground">
+      Más herramientas y dispositivos en la <a href="/" class="text-[var(--color-brand)] hover:underline">versión completa en inglés →</a>
+    </p>
+  </section>
+</Base>

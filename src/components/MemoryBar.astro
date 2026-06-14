@@ -1,0 +1,25 @@
+---
+interface Props {
+  neededGb: number;
+  usableGb: number;
+  fits: boolean;
+}
+const { neededGb, usableGb, fits } = Astro.props;
+const max = Math.max(neededGb, usableGb) * 1.08;
+const needPct = Math.min(100, (neededGb / max) * 100);
+const usablePct = Math.min(100, (usableGb / max) * 100);
+const fill = fits ? "var(--color-verdict-yes)" : "var(--color-verdict-no)";
+---
+
+<div class="space-y-2">
+  <div class="relative h-7 w-full overflow-hidden rounded-md bg-muted">
+    <div class="h-full rounded-md transition-all" style={`width:${needPct}%;background:color-mix(in oklch, ${fill} 75%, transparent)`}></div>
+    <div class="absolute inset-y-0 w-px bg-foreground/70" style={`left:${usablePct}%`} title="Usable memory">
+      <span class="absolute -top-0.5 left-1 whitespace-nowrap text-[10px] font-medium text-foreground/80">usable ~{usableGb} GB</span>
+    </div>
+  </div>
+  <div class="flex justify-between text-xs text-muted-foreground">
+    <span>Needs <span class="font-medium text-foreground">~{neededGb} GB</span></span>
+    <span>Device usable <span class="font-medium text-foreground">~{usableGb} GB</span></span>
+  </div>
+</div>

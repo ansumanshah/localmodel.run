@@ -1,0 +1,115 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { devices, meta } from "@/lib/data";
+import { rigScore, GRADE_BLURB, GRADE_COLOR, type Grade } from "@/lib/rig";
+import { breadcrumbLd, itemListLd, techArticleLd, truncate } from "@/lib/seo";
+
+const path = "/rig";
+const title = "Rig score: rate your hardware for local AI · localmodel.run";
+const description = truncate(
+  "See how 30 devices score for running local LLMs. Each rig grade is based on how many popular models it can run and the biggest it can handle.",
+);
+
+
+const scored = devices.map((d) => ({ device: d, score: rigScore(d) }));
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Rig scores", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  itemListLd({
+    name: "Local AI rig scores by device",
+    items: devices.map((d) => ({ name: d.name, url: `/rig/${d.id}` })),
+    origin: Astro.site!.href,
+  }),
+  techArticleLd({
+    headline: "Rig score: how good is your hardware for local AI?",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+  }),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogType="website"
+  ogImageAlt="Rig scores for 30 devices: how many local LLMs each one can run"
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Rig scores", url: path },
+      ]}
+    />
+
+    <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Rig score: how good is your hardware for local AI?
+    </h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Each score grades a device on how many of {devices.length > 0 ? scored[0]?.score.total : 0} tracked local LLMs it can run and
+      the largest model it can load. Pick your device to share your score.
+    </p>
+
+    <div class="mt-8 grid gap-3 sm:grid-cols-2">
+      {scored.map(({ device, score }) => (
+        <a
+          href={`/rig/${device.id}`}
+          class="flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30"
+        >
+          <div
+            class="grid h-12 w-12 shrink-0 place-items-center rounded-xl border"
+            style={`border-color:${GRADE_COLOR[score.grade]};background:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 12%, transparent)`}
+          >
+            <span class="text-xl font-bold leading-none" style={`color:${GRADE_COLOR[score.grade]}`}>
+              {score.grade}
+            </span>
+          </div>
+          <div class="flex min-w-0 items-center gap-2">
+            <EntityIcon device={device.category} size={18} class="text-muted-foreground shrink-0" />
+            <div class="min-w-0">
+              <div class="truncate text-sm font-medium">{device.name}</div>
+              <div class="text-xs text-muted-foreground">
+                runs {score.runnable} of {score.total} models
+              </div>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">Grade key</h2>
+      <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+        {(Object.entries(GRADE_BLURB) as [Grade, string][]).map(([grade, blurb]) => (
+          <div class="flex items-start gap-4 p-4">
+            <span
+              class="mt-0.5 text-lg font-bold"
+              style={`color:${GRADE_COLOR[grade]}`}
+            >
+              {grade}
+            </span>
+            <p class="text-sm text-muted-foreground">{blurb}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-8 text-xs text-muted-foreground">
+      Scores based on coverage of {scored[0]?.score.total ?? 0} tracked models, estimated with our{" "}
+      <a href="/methodology" class="underline">memory methodology</a>. Data validated {meta.updated}.
+    </p>
+  </div>
+</Base>

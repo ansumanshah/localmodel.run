@@ -1,0 +1,124 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { devices, modelsBySize, meta } from "@/lib/data";
+import { canRun } from "@/lib/compute";
+import { rigScore, GRADE_BLURB, GRADE_COLOR } from "@/lib/rig";
+import { breadcrumbLd, techArticleLd, faqLd, truncate, type FaqItem } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return devices.map((device) => ({ params: { device: device.id }, props: { device } }));
+}
+
+const { device } = Astro.props;
+const score = rigScore(device);
+const site = Astro.site ?? new URL("https://localmodel.run");
+const path = `/rig/${device.id}`;
+const pageUrl = new URL(path, site).href;
+
+
+const top = modelsBySize
+  .map((m) => ({ m, r: canRun(m, device) }))
+  .filter((x) => x.r.verdict !== "no")
+  .sort((a, b) => b.m.params_b - a.m.params_b)
+  .slice(0, 6);
+
+const title = `${device.name} Rig Score: ${score.grade} · localmodel.run`;
+const description = truncate(
+  `${device.name} scores ${score.grade} for local AI: runs ${score.runnable} of ${score.total} models (${score.pct}%). Biggest it can run: ${score.biggest?.name ?? "-"}. Check your rig.`,
+);
+const shareText = `My rig scores ${score.grade} on localmodel.run, runs ${score.runnable} of ${score.total} local AI models (${score.pct}%). What's yours?`;
+const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`;
+const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(pageUrl)}&title=${encodeURIComponent(shareText)}`;
+
+const rigFaqs: FaqItem[] = [
+  {
+    q: `What local AI rig score does ${device.name} get?`,
+    a: `${device.name} scores ${score.grade}: it runs ${score.runnable} of ${score.total} tracked local LLMs (${score.pct}%). The biggest it can run is ${score.biggest?.name ?? "none in the tracked set"}.`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Rig scores", url: "/rig" },
+      { name: device.name, url: path },
+    ],
+    site.href,
+  ),
+  techArticleLd({
+    headline: `${device.name} local AI rig score: ${score.grade}`,
+    description,
+    url: path,
+    origin: site.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources: device.sources,
+  }),
+  faqLd(rigFaqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogImage={`/og/rig/${device.id}.png`} ogTitle={`${device.name} Rig Score: ${score.grade}`} ogType="article" articleModified={meta.updated} ogImageAlt={`${device.name} rig score: ${score.grade}, runs ${score.runnable} of ${score.total} local LLMs`}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Rig scores", url: "/rig" }, { name: device.name, url: path }]} />
+
+    <div class="rounded-2xl border border-border bg-card/60 p-6 sm:p-8">
+      <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
+        <div
+          class="grid h-36 w-36 shrink-0 place-items-center rounded-3xl border-2"
+          style={`border-color:${GRADE_COLOR[score.grade]};background:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 8%, transparent)`}
+        >
+          <div class="text-center">
+            <div class="text-xs uppercase tracking-wide text-muted-foreground">Rig Score</div>
+            <div class="text-7xl font-bold leading-none" style={`color:${GRADE_COLOR[score.grade]}`}>{score.grade}</div>
+          </div>
+        </div>
+        <div class="text-center sm:text-left">
+          <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
+            <EntityIcon device={device.category} size={28} class="text-muted-foreground" />
+            <span>{device.name}</span>
+          </h1>
+          <p class="mt-2 text-lg text-muted-foreground">
+            Runs <strong class="text-foreground">{score.runnable} of {score.total}</strong> models ({score.pct}%)
+          </p>
+          <p class="mt-1 text-sm text-muted-foreground">{GRADE_BLURB[score.grade]}</p>
+          {score.biggest && (
+            <p class="mt-1 text-sm text-muted-foreground">Biggest it can run: <strong class="text-foreground">{score.biggest.name}</strong></p>
+          )}
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap justify-center gap-3 sm:justify-start">
+        <a href={xUrl} rel="noopener" target="_blank" class="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-[oklch(0.18_0.01_270)]">Share on X</a>
+        <a href={redditUrl} rel="noopener" target="_blank" class="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-accent">Share on Reddit</a>
+        <a href={`/best-llm-for/${device.id}`} class="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-accent">Best models →</a>
+      </div>
+    </div>
+
+    <section class="mt-8">
+      <h2 class="text-lg font-semibold">Top models on {device.name}</h2>
+      <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+        {top.map((x) => (
+          <li>
+            <a href={`/can-i-run/${x.m.id}/${device.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 transition-colors hover:border-foreground/30">
+              <span class="flex min-w-0 items-center gap-2 text-sm font-medium">
+                <EntityIcon maker={x.m.family} size={18} class="text-muted-foreground" />
+                <span class="truncate">{x.m.name}</span>
+              </span>
+              <VerdictBadge verdict={x.r.verdict} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <p class="mt-8 text-center text-sm text-muted-foreground">
+      Want your own? <a href="/" class="text-[var(--color-brand)] hover:underline">Check your rig on the homepage →</a>
+    </p>
+    <p class="mt-2 text-center text-xs text-muted-foreground">Score from coverage of {score.total} tracked models, estimated with our <a href="/methodology" class="underline">memory methodology</a>. Data validated {meta.updated} from Ollama, HuggingFace and vendor specs.</p>
+  </div>
+</Base>

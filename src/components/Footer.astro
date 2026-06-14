@@ -1,0 +1,59 @@
+---
+import { meta } from "@/lib/data";
+import { getLangFromUrl, useTranslations } from "@/i18n/utils";
+interface Props {
+  year: number;
+}
+const { year } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const cols = [
+  {
+    title: "Check",
+    links: [
+      { href: "/can-i-run", label: "All models" },
+      { href: "/best-llm-for", label: "All devices" },
+      { href: "/tools", label: "Tools by platform" },
+      { href: "/leaderboard", label: "Leaderboard" },
+    ],
+  },
+  {
+    title: "Learn",
+    links: [
+      { href: "/methodology", label: "How we calculate" },
+      { href: "/methodology#sources", label: "Data sources" },
+      { href: "/developers", label: "API & agents" },
+      { href: "/llms.txt", label: "llms.txt" },
+      { href: "/about", label: "About" },
+    ],
+  },
+];
+---
+
+<footer class="border-t border-border/60 bg-card/30">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[2fr_1fr_1fr]">
+    <div>
+      <div class="font-semibold">localmodel<span class="text-muted-foreground">.run</span></div>
+      <p class="mt-2 max-w-xs text-sm text-muted-foreground">{t("footer.tagline")}</p>
+      <p class="mt-3 text-xs text-muted-foreground">{t("footer.dataNote", { date: meta.updated })}</p>
+    </div>
+    {cols.map((c) => (
+      <div>
+        <div class="text-sm font-medium">{c.title}</div>
+        <ul class="mt-2 space-y-1.5">
+          {c.links.map((l) => (
+            <li>
+              <a href={l.href} class="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+  <div class="border-t border-border/60">
+    <div class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <span>&copy; {year} localmodel.run. Estimates, not guarantees, always verify before a large download.</span>
+      <span>Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline hover:text-foreground">Ansuman Shah</a>. <a href="/about" class="underline hover:text-foreground">About</a>. <a href="/privacy" class="underline hover:text-foreground">Privacy</a>.</span>
+    </div>
+  </div>
+</footer>

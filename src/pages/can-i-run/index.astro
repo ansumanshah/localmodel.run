@@ -1,0 +1,93 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { models, modelsBySize, imageModels, videoModels, audioModels, allModels, devices, meta } from "@/lib/data";
+import { modalityNeed } from "@/lib/compute-mm";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const mediaSections = [
+  { title: "Image generation", list: imageModels },
+  { title: "Video generation", list: videoModels },
+  { title: "Audio & voice", list: audioModels },
+].filter((s) => s.list.length > 0);
+
+const byFamily = new Map<string, typeof models>();
+for (const m of [...modelsBySize].sort((a, b) => a.family.localeCompare(b.family))) {
+  const key = m.family;
+  byFamily.set(key, [...(byFamily.get(key) ?? []), m]);
+}
+
+const path = "/can-i-run";
+const title = "Can I run this AI model locally? LLMs, image, video, audio · localmodel.run";
+const description = truncate(
+  `Pick from ${allModels.length} local AI models: ${models.length} text LLMs (Llama, Qwen, DeepSeek, Gemma) plus image (FLUX, SDXL), video (Wan, LTX) and audio (Whisper, Kokoro). See which Mac, PC GPU or phone runs each, with sizes and the right tool.`,
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Models", url: path }], Astro.site!.href),
+  itemListLd({ name: "Local AI models", items: allModels.map((m) => ({ name: m.name, url: `/model/${m.id}` })), origin: Astro.site!.href }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-4xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Models", url: path }]} />
+    <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Can I run this AI model locally?</h1>
+    <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
+      {allModels.length} local AI models across text, image, video and audio, each validated against vendor specs, Ollama and HuggingFace ({meta.updated}). Pick one to see its requirements and which of {devices.length} devices can run it.
+    </p>
+
+    <div class="mt-8 space-y-8">
+      {[...byFamily.entries()].map(([family, list]) => (
+        <section>
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{family}</h2>
+          <ul class="grid gap-2 sm:grid-cols-2">
+            {list.map((m) => (
+              <li>
+                <a href={`/model/${m.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30">
+                  <div class="flex min-w-0 items-center gap-2.5">
+                    <EntityIcon maker={m.family} size={20} class="text-muted-foreground" />
+                    <div class="min-w-0">
+                      <div class="truncate text-sm font-medium">{m.name}</div>
+                      <div class="text-xs text-muted-foreground">{m.params_b}B{m.is_moe ? ` MoE` : ""} · {m.q4_k_m_gb ?? "?"} GB Q4</div>
+                    </div>
+                  </div>
+                  <span class="text-muted-foreground">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      {mediaSections.map((section) => (
+        <section>
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{section.title}</h2>
+          <ul class="grid gap-2 sm:grid-cols-2">
+            {section.list.map((m) => {
+              const need = modalityNeed(m);
+              const params = m.params_b < 1 ? `${Math.round(m.params_b * 1000)}M` : `${m.params_b}B`;
+              const sub = m.audio
+                ? `${m.audio.task} · ${params} · ~${need?.neededGb} GB`
+                : `${params} ${(m.image ?? m.video)?.arch.toUpperCase()} · ~${need?.neededGb} GB at ${need?.quantLabel}`;
+              return (
+                <li>
+                  <a href={`/model/${m.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30">
+                    <div class="flex min-w-0 items-center gap-2.5">
+                      <EntityIcon maker={m.family} size={20} class="text-muted-foreground" />
+                      <div class="min-w-0">
+                        <div class="truncate text-sm font-medium">{m.name}</div>
+                        <div class="text-xs text-muted-foreground">{sub}</div>
+                      </div>
+                    </div>
+                    <span class="text-muted-foreground">→</span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</Base>

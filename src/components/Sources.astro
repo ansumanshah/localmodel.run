@@ -1,0 +1,44 @@
+---
+interface Props {
+  urls: string[];
+  title?: string;
+  compact?: boolean;
+}
+const { urls, title = "Sources", compact = false } = Astro.props;
+const seen = new Set<string>();
+const items = urls
+  .filter((u) => (seen.has(u) ? false : (seen.add(u), true)))
+  .map((u) => {
+    let host = u;
+    try {
+      host = new URL(u).hostname.replace(/^www\./, "");
+    } catch (_e: unknown) {
+      /* keep the raw string as the host label */
+    }
+    return { url: u, host };
+  });
+---
+
+{items.length > 0 && (
+  <section class={compact ? "" : "mt-8"} aria-label={title}>
+    {!compact && <h2 id="sources" class="text-sm font-semibold text-muted-foreground">{title}</h2>}
+    <ul class={`flex flex-wrap gap-2 ${compact ? "" : "mt-3"}`}>
+      {items.map((it) => (
+        <li>
+          <a
+            href={it.url}
+            rel="noopener nofollow"
+            aria-label={`Source: ${it.host}`}
+            class="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 opacity-70">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"></path>
+            </svg>
+            {it.host}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

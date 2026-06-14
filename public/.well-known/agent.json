@@ -1,0 +1,49 @@
+{
+  "schema_version": "v1",
+  "version": "1",
+  "last_updated": "2026-06-14",
+  "name": "localmodel.run",
+  "description": "Check whether a computer or phone can run a given local LLM, and which tool to use, across macOS, Windows, Linux, iOS and Android.",
+  "url": "https://localmodel.run",
+  "contact": "https://github.com/ansumanshah/localmodel/issues",
+  "capabilities": [
+    {
+      "name": "check_compatibility",
+      "description": "Given a model id and a device id, return whether the device can run the model, the recommended quantization, estimated memory, and the install command.",
+      "method": "GET",
+      "url_template": "https://localmodel.run/api/can-i-run/{model}/{device}.json",
+      "parameters": {
+        "model": {
+          "description": "Model slug (e.g. llama-3.1-8b). See values_url for the full list.",
+          "values_url": "https://localmodel.run/api/models.json"
+        },
+        "device": {
+          "description": "Device slug (e.g. macbook-pro-m3-16gb). See values_url for the full list.",
+          "values_url": "https://localmodel.run/api/devices.json"
+        }
+      }
+    },
+    {
+      "name": "list_models",
+      "description": "List all tracked local LLMs with parameter counts and GGUF quant sizes.",
+      "method": "GET",
+      "url": "https://localmodel.run/api/models.json"
+    },
+    {
+      "name": "list_devices",
+      "description": "List all tracked devices with memory and usable-memory figures.",
+      "method": "GET",
+      "url": "https://localmodel.run/api/devices.json"
+    }
+  ],
+  "discovery": {
+    "api_catalog": "https://localmodel.run/api/index.json",
+    "llms_txt": "https://localmodel.run/llms.txt",
+    "llms_full_txt": "https://localmodel.run/llms-full.txt",
+    "sitemap": "https://localmodel.run/sitemap-index.xml"
+  },
+  "auth": "none",
+  "pricing": "free",
+  "data_license": "CC BY 4.0 with attribution to localmodel.run",
+  "disclaimer": "Memory figures are estimates. See https://localmodel.run/methodology"
+}

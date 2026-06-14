@@ -1,0 +1,294 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import Command from "@/components/Command.astro";
+import Sources from "@/components/Sources.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import ImageModelProfile from "@/components/ImageModelProfile.astro";
+import VideoModelProfile from "@/components/VideoModelProfile.astro";
+import AudioModelProfile from "@/components/AudioModelProfile.astro";
+import {
+  allModels,
+  devices,
+  devicesByMemory,
+  categoryDevices,
+  CATEGORY_LABEL,
+  dedupeSources,
+  installCommands,
+  modelModality,
+  meta,
+} from "@/lib/data";
+import { canRun, estimateMemory, quantLadderSizes } from "@/lib/compute";
+import { canRunModality, modalityNeed, modalitySpec } from "@/lib/compute-mm";
+import {
+  breadcrumbLd,
+  faqLd,
+  techArticleLd,
+  truncate,
+  type FaqItem,
+} from "@/lib/seo";
+
+export function getStaticPaths() {
+  return allModels.map((model) => ({ params: { model: model.id }, props: { model } }));
+}
+
+const { model } = Astro.props;
+const modality = modelModality(model);
+const isText = modality === "text";
+const path = `/model/${model.id}`;
+const NonTextProfile =
+  modality === "image" ? ImageModelProfile : modality === "video" ? VideoModelProfile : AudioModelProfile;
+---
+{
+  isText ? (
+    (() => {
+      const q4 = estimateMemory(model, "q4_k_m");
+      const q8 = estimateMemory(model, "q8_0");
+      const runnable = devicesByMemory.filter((d) => canRun(model, d).verdict !== "no");
+      const minDevice = runnable[0];
+      const groups = categoryDevices();
+      const ladder = quantLadderSizes(model);
+      const commands = installCommands(model, "linux");
+      const title = `${model.name}: RAM, VRAM & how to run locally · localmodel.run`;
+      const description = truncate(
+        `${model.name} (${model.params_b}B${model.is_moe ? ` MoE, ${model.active_params_b}B active` : ""}) needs ~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M. Minimum to run: ${minDevice ? minDevice.name : "high-memory hardware"}. Sizes, the exact Ollama command, and which of 30 devices can run it.`,
+      );
+      const faqs: FaqItem[] = [
+        {
+          q: `How much VRAM or RAM does ${model.name} need?`,
+          a: `At Q4_K_M, ${model.name} needs about ${q4.totalGb} GB (weights ~${model.q4_k_m_gb ?? q4.weightsGb} GB + KV cache + overhead) at a 4k context. At Q8_0 budget ~${q8.totalGb} GB.`,
+        },
+        {
+          q: `Can ${model.name} run on a laptop?`,
+          a: `${model.params_b <= 8 ? `Yes, ${model.name} fits on a 16 GB machine at Q4_K_M and runs on Apple Silicon or a 12 GB+ GPU comfortably.` : `${model.name} is large; you need ${q4.totalGb > 24 ? "a high-memory Mac or multi-GPU setup" : "a 24 GB+ GPU or a 32-48 GB Mac"} at Q4_K_M.`}`,
+        },
+        ...(model.is_moe
+          ? [
+              {
+                q: `Is ${model.name} cheaper to run because it is a MoE model?`,
+                a: `It is faster, not lighter. ${model.name} activates only ${model.active_params_b}B of ${model.params_b}B params per token (so it runs quickly), but all experts must stay in memory, so it still needs memory for the full ${model.params_b}B.`,
+              },
+            ]
+          : []),
+      ];
+      const sources = dedupeSources(model.sources);
+      const jsonLd = [
+        breadcrumbLd(
+          [
+            { name: "Home", url: "/" },
+            { name: "Models", url: "/can-i-run" },
+            { name: model.name, url: path },
+          ],
+          Astro.site!.href,
+        ),
+        techArticleLd({
+          headline: `${model.name} system requirements`,
+          description,
+          url: path,
+          origin: Astro.site!.href,
+          dateModified: meta.updated,
+          datePublished: meta.launched,
+          sources,
+        }),
+        faqLd(faqs),
+      ];
+      return (
+        <Base title={title} description={description} path={path} jsonLd={jsonLd} ogImage={`/og/model/${model.id}.png`} mdPath={`/model/${model.id}.md`} ogTitle={`${model.name} requirements`} ogType="article" articleModified={meta.updated} ogImageAlt={`${model.name} memory requirements`}>
+          <div class="mx-auto max-w-3xl px-4 py-8">
+            <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Models", url: "/can-i-run" }, { name: model.name, url: path }]} />
+
+            <h1 class="flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+              <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
+              <span>{model.name} requirements</span>
+            </h1>
+            <p class="mt-4 text-pretty text-lg text-muted-foreground">
+              {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active)` : ""}{model.release ? ` · released ${model.release}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
+              Minimum to run at Q4_K_M: <strong class="text-foreground">{minDevice ? minDevice.name : "high-memory hardware"}</strong>.
+            </p>
+
+            <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { k: "Q4_K_M", v: `${model.q4_k_m_gb ?? q4.weightsGb} GB` },
+                { k: "Q8_0", v: model.q8_0_gb ? `${model.q8_0_gb} GB` : "-" },
+                { k: "Total @ Q4 (4k)", v: `~${q4.totalGb} GB` },
+                { k: "Context", v: `${model.default_context_k}k` },
+              ].map((s) => (
+                <div class="rounded-xl border border-border bg-card p-4">
+                  <div class="text-xs text-muted-foreground">{s.k}</div>
+                  <div class="mt-1 text-lg font-semibold">{s.v}</div>
+                </div>
+              ))}
+            </section>
+
+            <section class="mt-8 grid gap-6 sm:grid-cols-2">
+              <div>
+                <h2 class="mb-3 text-lg font-semibold">Quantization sizes</h2>
+                <div class="overflow-hidden rounded-xl border border-border">
+                  <table class="w-full text-sm">
+                    <tbody class="divide-y divide-border">
+                      {ladder.map((q) => (
+                        <tr class={q.label === "Q4_K_M" ? "bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)]" : ""}>
+                          <td class="px-4 py-2 font-medium">{q.label}{q.label === "Q4_K_M" ? " (default)" : ""}</td>
+                          <td class="px-4 py-2 text-right text-muted-foreground">{q.gb} GB{q.measured ? "" : " est"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p class="mt-2 text-xs text-muted-foreground">Lower quant = smaller and faster, slightly lower quality. Q4_K_M is the common default.</p>
+              </div>
+              <div>
+                <h2 class="mb-3 text-lg font-semibold">Run it</h2>
+                {commands.length > 0 ? (
+                  <div class="space-y-2.5">
+                    {commands.map((c) => <Command code={c.cmd} label={c.tool} />)}
+                  </div>
+                ) : (
+                  <p class="text-sm text-muted-foreground">Run with a GGUF-compatible app such as PocketPal AI on mobile.</p>
+                )}
+              </div>
+            </section>
+
+            <section class="mt-8">
+              <h2 class="text-lg font-semibold">Which devices can run {model.name}?</h2>
+              <div class="mt-3 space-y-5">
+                {Object.entries(groups).map(([cat, list]) => (
+                  <div>
+                    <h3 class="mb-2 text-sm font-semibold text-muted-foreground">{CATEGORY_LABEL[cat] ?? cat}</h3>
+                    <ul class="grid gap-2 sm:grid-cols-2">
+                      {list.map((d) => {
+                        const r = canRun(model, d);
+                        return (
+                          <li>
+                            <a href={`/can-i-run/${model.id}/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-foreground/30">
+                              <span class="flex min-w-0 items-center gap-2 text-sm">
+                                <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
+                                <span class="truncate">{d.name}</span>
+                              </span>
+                              <VerdictBadge verdict={r.verdict} />
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section class="mt-10">
+              <h2 class="text-lg font-semibold">FAQ</h2>
+              <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+                {faqs.map((f) => (
+                  <div class="p-4">
+                    <p class="font-medium">{f.q}</p>
+                    <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {model.notes && <p class="mt-8 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">{model.notes}</p>}
+
+            <Sources urls={sources} />
+
+            <p class="mt-6 text-xs text-muted-foreground">
+              Memory figures are estimates (formula v{meta.formula_version}, data validated {meta.updated}). See <a href="/methodology" class="underline">methodology</a>.
+            </p>
+          </div>
+        </Base>
+      );
+    })()
+  ) : (
+    (() => {
+      const need = modalityNeed(model)!;
+      const spec = modalitySpec(model);
+      const comps = spec && "components" in spec ? spec.components : [];
+      const hasOffloadedEncoder = comps.some((c) => c.offloaded);
+      const archLabel = spec && "arch" in spec ? `${spec.arch.toUpperCase()} ` : "";
+      const kindWord =
+        modality === "image" ? "image model" : modality === "video" ? "video model" : (model.audio?.task ?? "audio model");
+      const memWord = modality === "audio" ? "memory" : "VRAM";
+      const runnable = devices.filter((d) => canRunModality(model, d).verdict !== "no");
+      const minDevice = [...runnable].sort((a, b) => a.memory_gb - b.memory_gb)[0];
+      const title = `${model.name}: ${memWord} & how to run locally · localmodel.run`;
+      const desc = truncate(
+        `${model.name} (${model.params_b}B ${archLabel}${kindWord}) needs ~${need.neededGb} GB ${memWord} at ${need.quantLabel}. Minimum to run: ${minDevice ? minDevice.name : "capable hardware"}. Sizes, the tools, and which devices can run it.`,
+      );
+      const commercialAnswer =
+        model.commercial_use === "yes"
+          ? `Yes. ${model.name} is licensed ${model.license}, which permits commercial use.`
+          : model.commercial_use === "conditional"
+            ? `Conditionally. ${model.license}: ${model.license_note ?? "check the terms."}`
+            : `No. ${model.license}: ${model.license_note ?? "the weights are non-commercial."}`;
+      const faqs: FaqItem[] =
+        modality === "audio"
+          ? [
+              {
+                q: `How much memory does ${model.name} need?`,
+                a: `At ${need.quantLabel} it consumes ~${need.neededGb} GB. ${model.audio?.cpu_ok ? "It runs on CPU, so a GPU is optional." : "It needs a GPU or Apple Silicon."}`,
+              },
+              {
+                q: `Can ${model.name} run on a phone or CPU?`,
+                a: model.audio?.cpu_ok
+                  ? `Yes for CPU; the smaller tiers are light enough for real-time use, and several have on-device phone runtimes.`
+                  : `Not practically. ${model.name} expects a GPU; CPU inference is too slow for real use.`,
+              },
+              { q: `Can I use ${model.name} commercially?`, a: commercialAnswer },
+            ]
+          : [
+              {
+                q: `How much VRAM does ${model.name} need?`,
+                a: `At ${need.quantLabel} the realistic peak is ~${need.neededGb} GB${need.noOffloadGb ? `, versus ~${need.noOffloadGb} GB with every component resident` : ""}. ${need.offloadFloorGb != null ? `With aggressive CPU offload it drops to ~${need.offloadFloorGb} GB, much slower.` : ""}`,
+              },
+              {
+                q: `Why is peak VRAM lower than the sum of the files?`,
+                a: hasOffloadedEncoder
+                  ? `The text encoder is run once to encode your prompt, then offloaded to CPU before the ${modality === "video" ? "frames are generated" : "denoising steps"}, so it is not resident at the memory peak.`
+                  : `The pipeline moves each stage off the GPU between passes (sequential CPU offload), so peak VRAM stays near the active stage rather than the sum of every file.`,
+              },
+              { q: `Can I use ${model.name} commercially?`, a: commercialAnswer },
+            ];
+      const sources = dedupeSources(model.sources, [need.source]);
+      const jsonLd = [
+        breadcrumbLd(
+          [
+            { name: "Home", url: "/" },
+            { name: "Models", url: "/can-i-run" },
+            { name: model.name, url: path },
+          ],
+          Astro.site!.href,
+        ),
+        techArticleLd({
+          headline: `${model.name} system requirements`,
+          description: desc,
+          url: path,
+          origin: Astro.site!.href,
+          dateModified: meta.updated,
+          datePublished: meta.launched,
+          sources,
+        }),
+        faqLd(faqs),
+      ];
+      return (
+        <Base title={title} description={desc} path={path} jsonLd={jsonLd} ogImage={`/og/model/${model.id}.png`} mdPath={`/model/${model.id}.md`} ogTitle={`${model.name} requirements`} ogType="article" articleModified={meta.updated} ogImageAlt={`${model.name} ${memWord} requirements`}>
+          <NonTextProfile model={model}>
+            <Breadcrumbs slot="breadcrumbs" items={[{ name: "Home", url: "/" }, { name: "Models", url: "/can-i-run" }, { name: model.name, url: path }]} />
+            <section class="mt-10">
+              <h2 class="text-lg font-semibold">FAQ</h2>
+              <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+                {faqs.map((f) => (
+                  <div class="p-4">
+                    <p class="font-medium">{f.q}</p>
+                    <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </NonTextProfile>
+        </Base>
+      );
+    })()
+  )
+}

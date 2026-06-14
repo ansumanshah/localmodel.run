@@ -1,0 +1,361 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import MemoryBar from "@/components/MemoryBar.astro";
+import Command from "@/components/Command.astro";
+import Sources from "@/components/Sources.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import {
+  devices,
+  modelsBySize,
+  imageModels,
+  videoModels,
+  audioModels,
+  getTool,
+  devicePlatform,
+  platformLabel,
+  dedupeSources,
+  installCommands,
+  modalityPairs,
+  modelModality,
+  meta,
+} from "@/lib/data";
+import { estimateMemory, usableGb, QUANT_LABEL } from "@/lib/compute";
+import { canRunModality, modalitySpec } from "@/lib/compute-mm";
+import {
+  breadcrumbLd,
+  faqLd,
+  howToLd,
+  techArticleLd,
+  truncate,
+  type FaqItem,
+  type JsonLd,
+} from "@/lib/seo";
+
+export function getStaticPaths() {
+  return modalityPairs().map(({ model, device }) => ({
+    params: { model: model.id, device: device.id },
+    props: { model, device },
+  }));
+}
+
+const { model, device } = Astro.props;
+const modality = modelModality(model);
+const isText = modality === "text";
+const result = canRunModality(model, device);
+const usable = usableGb(device);
+const platform = devicePlatform(device);
+const tool = getTool(platform);
+const fits = result.verdict !== "no";
+
+// Memory needed for the bar: text uses the estimator total, non-text uses the
+// sourced peak-VRAM anchor.
+const q4 = estimateMemory(model, "q4_k_m");
+const spec = isText ? null : modalitySpec(model);
+const neededGb = isText ? q4.totalGb : (result.neededGb ?? 0);
+
+const speedWord: Record<string, string> = isText
+  ? {
+      fast: "fast (GPU/Apple-Silicon accelerated)",
+      ok: "usable, moderate speed",
+      slow: "slow, expect low tokens/sec",
+      none: "would not load",
+    }
+  : {
+      fast: "fast on this GPU",
+      ok: "moderate speed",
+      slow: "slow; expect heavy offloading",
+      none: "would not load",
+    };
+
+// Install commands (text desktop only). Image models run in a GUI app, not a CLI.
+const canOllama = isText && (platform === "mac" || platform === "windows" || platform === "linux") && model.ollama_tag;
+const command = canOllama ? `ollama run ${model.ollama_tag}` : null;
+const commands = isText ? installCommands(model, platform) : [];
+
+// Alternatives + other devices, scoped to the SAME modality so an image page
+// recommends other image models, not 8B text LLMs.
+const pool = isText
+  ? modelsBySize
+  : modality === "image"
+    ? imageModels
+    : modality === "video"
+      ? videoModels
+      : audioModels;
+const alternatives = [...pool]
+  .filter((m) => m.id !== model.id && modelModality(m) === modality && canRunModality(m, device).verdict !== "no")
+  .sort((a, b) => b.params_b - a.params_b)
+  .slice(0, 5);
+
+const otherDevices = devices
+  .filter((d) => d.id !== device.id && canRunModality(model, d).verdict !== "no")
+  .sort((a, b) => a.memory_gb - b.memory_gb)
+  .slice(0, 6);
+
+const path = `/can-i-run/${model.id}/${device.id}`;
+const titleBase = `Can I run ${model.name} on ${device.name}?`;
+const title = titleBase.length <= 48 ? `${titleBase} · localmodel.run` : titleBase;
+
+const verdictText = isText
+  ? fits
+    ? `Yes. ${model.name} runs on ${device.name} at ${result.quant ? QUANT_LABEL[result.quant] : "Q4_K_M"} (~${result.estimate?.totalGb} GB of ~${usable} GB usable).`
+    : `No. ${model.name} needs ~${q4.totalGb} GB even at Q4_K_M, but ${device.name} only has ~${usable} GB usable.`
+  : fits
+    ? `Yes. ${model.name} runs on ${device.name} at ${result.quantLabel} (~${neededGb} GB of ~${usable} GB usable).`
+    : result.reason;
+
+const description = truncate(
+  verdictText + ` ${isText ? "Memory math, the exact command," : "Peak VRAM, the tools to use,"} ${tool && isText ? `best ${platformLabel(platform)} tool (${tool.beginner.name}), ` : ""}and alternatives.`,
+);
+
+const memoryAnswerOpener =
+  result.verdict === "yes"
+    ? `${device.name} has room to spare.`
+    : result.verdict === "tight"
+      ? `It is a tight fit on ${device.name}.`
+      : result.noRuntime
+        ? `There is no local runtime for this on ${device.name}.`
+        : `${device.name} does not have enough memory.`;
+
+const toolAnswerText =
+  platform === "ios"
+    ? tool
+      ? `On iPhone and iPad, ${tool.beginner.name} (${tool.beginner.why}) is the standard choice. ${tool.gotcha}`
+      : `Use a GGUF-compatible iOS app such as PocketPal AI or LLM Farm.`
+    : platform === "android"
+      ? tool
+        ? `On Android, ${tool.beginner.name} (${tool.beginner.why}) is the go-to option. ${tool.gotcha}`
+        : `Use a GGUF-compatible Android app such as PocketPal AI or MNN.`
+      : tool
+        ? `${tool.beginner.name} for a simple setup; ${tool.power.name} for the most speed. ${tool.gotcha}`
+        : `Use a GGUF-compatible runtime such as Ollama or llama.cpp.`;
+
+const isDiffusion = modality === "image" || modality === "video";
+const memWord = modality === "audio" ? "memory" : "VRAM";
+const archLabel = spec && "arch" in spec ? spec.arch.toUpperCase() : "";
+const paramLabel = model.params_b < 1 ? `${Math.round(model.params_b * 1000)}M` : `${model.params_b}B`;
+const resolution = !spec
+  ? null
+  : "native_resolution" in spec
+    ? spec.native_resolution
+    : "default_resolution" in spec
+      ? spec.default_resolution
+      : null;
+const comps = spec && "components" in spec ? spec.components : [];
+const hasOffloadedEncoder = comps.some((c) => c.offloaded);
+const encoderWord = hasOffloadedEncoder ? "text encoder" : "image encoder";
+const toolAnswerNonText = spec
+  ? isDiffusion
+    ? `${model.name} runs in ${spec.tools.slice(0, 2).join(" or ")}${spec.tools.length > 2 ? " (among others)" : ""}. It loads as a ${modality === "video" ? "video diffusion" : "diffusion"} checkpoint plus its ${encoderWord} and VAE, not a single chat command.`
+    : `${model.name} runs in ${spec.tools.slice(0, 2).join(" or ")}${spec.tools.length > 2 ? " (among others)" : ""}.${model.audio?.cpu_ok ? " It runs on CPU, so no GPU is required." : " It needs a GPU."}`
+  : "";
+
+// FAQs, varied by modality.
+const faqs: FaqItem[] = isText
+  ? [
+      { q: `Can ${device.name} run ${model.name}?`, a: verdictText },
+      {
+        q: `How much memory does ${model.name} need?`,
+        a: `${memoryAnswerOpener} At Q4_K_M the weights are ~${model.q4_k_m_gb ?? q4.weightsGb} GB; with KV cache and runtime overhead, budget ~${q4.totalGb} GB at a 4k context. ${model.is_moe ? `It is a Mixture-of-Experts model (${model.params_b}B total / ${model.active_params_b}B active), so all experts must stay in memory; memory tracks total params, not active params.` : ""}`,
+      },
+      { q: `What is the best tool to run ${model.name} on ${platformLabel(platform)}?`, a: toolAnswerText },
+    ]
+  : [
+      { q: `Can ${device.name} run ${model.name}?`, a: verdictText },
+      {
+        q: `How much ${memWord} does ${model.name} need?`,
+        a: `${memoryAnswerOpener} At ${result.quantLabel} the realistic peak is ~${neededGb} GB of ${memWord}${spec && "no_offload_gb" in spec && spec.no_offload_gb ? `, versus ~${spec.no_offload_gb} GB with every component kept resident (no offload)` : ""}.${result.offloadFloorGb != null ? ` With aggressive CPU offload it drops to ~${result.offloadFloorGb} GB, much slower.` : ""}`,
+      },
+      { q: `What do I use to run ${model.name} locally?`, a: toolAnswerNonText },
+    ];
+
+const sources = dedupeSources(model.sources, device.sources, tool?.sources ?? []);
+const jsonLd: JsonLd[] = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Can I run", url: "/can-i-run" },
+      { name: model.name, url: `/can-i-run/${model.id}` },
+      { name: device.name, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `Can I run ${model.name} on ${device.name}?`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources,
+    speakableSelector: [".verdict-text"],
+  }),
+  faqLd(faqs),
+];
+if (fits && commands.length > 0) {
+  jsonLd.push(
+    howToLd({
+      name: `How to run ${model.name} on ${device.name}`,
+      description: `Commands to load ${model.name} at ${result.quant ? QUANT_LABEL[result.quant] : "Q4_K_M"} on ${device.name}.`,
+      url: path,
+      origin: Astro.site!.href,
+      steps: commands.map((c) => ({ name: `Run with ${c.tool}`, text: c.cmd })),
+    }),
+  );
+}
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogImage={`/og/model/${model.id}.png`} mdPath={`/can-i-run/${model.id}/${device.id}.md`} ogTitle={`Can I run ${model.name} on ${device.name}?`} ogType="article" articleModified={meta.updated} ogImageAlt={`Can ${device.name} run ${model.name}? Memory compatibility card.`}>
+  <article class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Models", url: "/can-i-run" },
+        { name: model.name, url: `/can-i-run/${model.id}` },
+        { name: device.name, url: path },
+      ]}
+    />
+
+    <h1 class="flex flex-wrap items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
+      <span>Can I run {model.name}</span>
+      <span class="flex items-center gap-2">on <EntityIcon device={device.category} size={28} class="text-muted-foreground" /> <span>{device.name}</span>?</span>
+    </h1>
+
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <VerdictBadge verdict={result.verdict} size="lg" />
+      <span class="text-sm text-muted-foreground">{speedWord[result.speed]}</span>
+    </div>
+
+    <p class="verdict-text mt-4 text-pretty text-lg text-muted-foreground">{verdictText}</p>
+
+    {!result.noRuntime && (
+      <div class="mt-6 rounded-xl border border-border bg-card p-5">
+        <MemoryBar neededGb={neededGb} usableGb={usable} fits={fits} />
+        <p class="mt-3 text-sm text-muted-foreground">{result.reason}</p>
+      </div>
+    )}
+    {result.noRuntime && (
+      <div class="mt-6 rounded-xl border border-border bg-card p-5">
+        <p class="text-sm text-muted-foreground">{result.reason} {spec && `Where it does run (${spec.tools.slice(0, 2).join(", ")}), it needs ~${neededGb} GB of VRAM at ${result.quantLabel}.`}</p>
+      </div>
+    )}
+
+    {isText && fits && commands.length > 0 && (
+      <section class="mt-8">
+        <h2 class="mb-3 text-lg font-semibold">Run it</h2>
+        <p class="mb-3 text-sm text-muted-foreground">Pick your tool. All three load the same Q4_K_M weights.</p>
+        <div class="space-y-3">
+          {commands.map((c) => <Command code={c.cmd} label={c.tool} />)}
+        </div>
+        {tool?.gotcha && <p class="mt-3 text-xs text-muted-foreground">{tool.gotcha}</p>}
+      </section>
+    )}
+
+    {isText && !command && tool && (
+      <section class="mt-8 rounded-xl border border-border bg-card p-5">
+        <h2 class="text-lg font-semibold">How to run it on {platformLabel(platform)}</h2>
+        <p class="mt-2 text-sm text-muted-foreground">
+          On {platformLabel(platform)} use <strong class="text-foreground">{tool.beginner.name}</strong> ({tool.beginner.why}).
+          {tool.gotcha}
+        </p>
+      </section>
+    )}
+
+    {!isText && spec && fits && (
+      <section class="mt-8 rounded-xl border border-border bg-card p-5">
+        <h2 class="text-lg font-semibold">How to run it</h2>
+        <p class="mt-2 text-sm text-muted-foreground">
+          Use <strong class="text-foreground">{spec.tools[0]}</strong>{spec.tools[1] ? <> or <strong class="text-foreground">{spec.tools[1]}</strong></> : null} at {result.quantLabel}. {isDiffusion ? (hasOffloadedEncoder ? "The big text encoder is loaded to encode your prompt, then offloaded before generation, which is why peak VRAM stays near the backbone size rather than the sum of every file." : "It conditions on an image, not a text prompt; the pipeline offloads each stage off the GPU between passes, keeping peak VRAM near the active stage.") : model.audio?.cpu_ok ? "It is light enough to run on CPU; a GPU just makes it faster." : "It loads as a single model and runs on a GPU."}
+        </p>
+      </section>
+    )}
+
+    <section class="mt-8 grid gap-4 sm:grid-cols-2">
+      <div class="rounded-xl border border-border bg-card p-5">
+        <h2 class="text-sm font-semibold text-muted-foreground">Model</h2>
+        {isText ? (
+          <dl class="mt-3 space-y-1.5 text-sm">
+            <div class="flex justify-between"><dt class="text-muted-foreground">Parameters</dt><dd>{model.params_b}B{model.is_moe ? ` (MoE, ${model.active_params_b}B active)` : ""}</dd></div>
+            <div class="flex justify-between"><dt class="text-muted-foreground">Q4_K_M size</dt><dd>{model.q4_k_m_gb ?? q4.weightsGb} GB</dd></div>
+            {model.q8_0_gb && <div class="flex justify-between"><dt class="text-muted-foreground">Q8_0 size</dt><dd>{model.q8_0_gb} GB</dd></div>}
+            <div class="flex justify-between"><dt class="text-muted-foreground">Context</dt><dd>{model.default_context_k}k</dd></div>
+            {model.ollama_tag && <div class="flex justify-between"><dt class="text-muted-foreground">Ollama tag</dt><dd class="font-mono text-xs">{model.ollama_tag}</dd></div>}
+          </dl>
+        ) : (
+          <dl class="mt-3 space-y-1.5 text-sm">
+            <div class="flex justify-between"><dt class="text-muted-foreground">Type</dt><dd>{modality === "audio" ? model.audio?.task : `${modality} (${archLabel})`}</dd></div>
+            <div class="flex justify-between"><dt class="text-muted-foreground">Parameters</dt><dd>{paramLabel}{model.is_moe ? ` (MoE, ${model.active_params_b}B active)` : ""}</dd></div>
+            <div class="flex justify-between"><dt class="text-muted-foreground">Peak {memWord}</dt><dd>~{neededGb} GB at {result.quantLabel}</dd></div>
+            {resolution && <div class="flex justify-between"><dt class="text-muted-foreground">Resolution</dt><dd>{resolution}</dd></div>}
+            {model.license && <div class="flex justify-between"><dt class="text-muted-foreground">License</dt><dd class="text-right">{model.license}</dd></div>}
+          </dl>
+        )}
+        <a href={`/model/${model.id}`} class="mt-3 inline-block text-sm text-[var(--color-brand)] hover:underline">Full {model.name} requirements →</a>
+      </div>
+      <div class="rounded-xl border border-border bg-card p-5">
+        <h2 class="text-sm font-semibold text-muted-foreground">Device</h2>
+        <dl class="mt-3 space-y-1.5 text-sm">
+          <div class="flex justify-between"><dt class="text-muted-foreground">Memory</dt><dd>{device.memory_gb} GB {device.memory_type}</dd></div>
+          <div class="flex justify-between"><dt class="text-muted-foreground">Usable for weights</dt><dd>~{usable} GB</dd></div>
+          {device.best_runtime && <div class="flex justify-between"><dt class="text-muted-foreground">Best runtime</dt><dd class="text-right">{device.best_runtime}</dd></div>}
+        </dl>
+        <a href={`/best-llm-for/${device.id}`} class="mt-3 inline-block text-sm text-[var(--color-brand)] hover:underline">Best models for {device.name} →</a>
+      </div>
+    </section>
+
+    {alternatives.length > 0 && (
+      <section class="mt-8">
+        <h2 class="text-lg font-semibold">{fits ? "You could also run" : "What you can run instead"}</h2>
+        <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+          {alternatives.map((m) => {
+            const r = canRunModality(m, device);
+            return (
+              <li>
+                <a href={`/can-i-run/${m.id}/${device.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 transition-colors hover:border-foreground/30">
+                  <span class="flex min-w-0 items-center gap-2 text-sm font-medium">
+                    <EntityIcon maker={m.family} size={18} class="text-muted-foreground" />
+                    <span class="truncate">{m.name}</span>
+                  </span>
+                  <VerdictBadge verdict={r.verdict} />
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    )}
+
+    {otherDevices.length > 0 && (
+      <section class="mt-8">
+        <h2 class="text-lg font-semibold">Run {model.name} on other hardware</h2>
+        <div class="mt-3 flex flex-wrap gap-2">
+          {otherDevices.map((d) => (
+            <a href={`/can-i-run/${model.id}/${d.id}`} class="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">{d.name}</a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">FAQ</h2>
+      <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      {isText
+        ? `Memory figures are estimates (formula v${meta.formula_version}, data validated ${meta.updated}).`
+        : `VRAM figures are sourced peak-usage anchors at the noted quant, validated ${meta.updated}.`} See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </article>
+</Base>

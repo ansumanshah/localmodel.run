@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+/*
+  Design system: shadcn/ui "new-york" tokens in OKLCH, dark-first.
+  Static Astro components consume these via Tailwind utilities; the React
+  detector island reuses the exact same variables for visual parity.
+*/
+
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SF Mono", "Cascadia Code",
+    Menlo, monospace;
+
+  --radius: 0.75rem;
+
+  /* Brand + verdict accents */
+  --color-brand: oklch(0.71 0.13 280); /* indigo brand mark, kept distinct from the green/amber/red verdict colors */
+  --color-verdict-yes: oklch(0.72 0.17 152);
+  --color-verdict-tight: oklch(0.78 0.16 86); /* amber */
+  --color-verdict-no: oklch(0.64 0.21 25); /* red */
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.18 0.01 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.01 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.01 270);
+  --primary: oklch(0.21 0.02 270);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.96 0.005 270);
+  --secondary-foreground: oklch(0.21 0.02 270);
+  --muted: oklch(0.96 0.005 270);
+  --muted-foreground: oklch(0.45 0.015 270);
+  --accent: oklch(0.96 0.005 270);
+  --accent-foreground: oklch(0.21 0.02 270);
+  --border: oklch(0.91 0.005 270);
+  --input: oklch(0.91 0.005 270);
+  --ring: oklch(0.71 0.13 280);
+  /* Verdict colors as TEXT on a light surface: darkened to meet WCAG AA 4.5:1.
+     The lighter --color-verdict-* values stay for fills/borders. */
+  --verdict-yes-fg: oklch(0.48 0.15 152);
+  --verdict-tight-fg: oklch(0.46 0.13 86);
+  --verdict-no-fg: oklch(0.52 0.21 25);
+}
+
+.dark {
+  --background: oklch(0.16 0.008 270);
+  --foreground: oklch(0.97 0.003 270);
+  --card: oklch(0.2 0.01 270);
+  --card-foreground: oklch(0.97 0.003 270);
+  --popover: oklch(0.2 0.01 270);
+  --popover-foreground: oklch(0.97 0.003 270);
+  --primary: oklch(0.97 0.003 270);
+  --primary-foreground: oklch(0.21 0.02 270);
+  --secondary: oklch(0.27 0.01 270);
+  --secondary-foreground: oklch(0.97 0.003 270);
+  --muted: oklch(0.27 0.01 270);
+  --muted-foreground: oklch(0.74 0.012 270);
+  --accent: oklch(0.3 0.012 270);
+  --accent-foreground: oklch(0.97 0.003 270);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.71 0.13 280);
+  /* Lighter verdict text for dark surfaces. */
+  --verdict-yes-fg: oklch(0.8 0.16 152);
+  --verdict-tight-fg: oklch(0.84 0.15 86);
+  --verdict-no-fg: oklch(0.72 0.19 25);
+}
+
+/* Map tokens into Tailwind's color space so utilities like bg-card work. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    color-scheme: light dark;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: oklch(0.71 0.13 280 / 25%);
+  }
+}
+
+/* Default to dark; respects an explicit light toggle later. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: oklch(0.16 0.008 270);
+    --foreground: oklch(0.97 0.003 270);
+    --card: oklch(0.2 0.01 270);
+    --card-foreground: oklch(0.97 0.003 270);
+    --primary: oklch(0.97 0.003 270);
+    --primary-foreground: oklch(0.21 0.02 270);
+    --secondary: oklch(0.27 0.01 270);
+    --secondary-foreground: oklch(0.97 0.003 270);
+    --muted: oklch(0.27 0.01 270);
+    --muted-foreground: oklch(0.74 0.012 270);
+    --accent: oklch(0.3 0.012 270);
+    --accent-foreground: oklch(0.97 0.003 270);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 12%);
+    --verdict-yes-fg: oklch(0.8 0.16 152);
+    --verdict-tight-fg: oklch(0.84 0.15 86);
+    --verdict-no-fg: oklch(0.72 0.19 25);
+  }
+}

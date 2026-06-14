@@ -1,0 +1,166 @@
+---
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
+import "@/styles/global.css";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import { getLangFromUrl, localizedPath, stripLocale } from "@/i18n/utils";
+import type { Lang } from "@/i18n/ui";
+import { organizationLd, websiteLd, safeJsonLd, type JsonLd } from "@/lib/seo";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Path only, e.g. "/can-i-run/llama-3.1-8b/apple-m4-16gb". */
+  path: string;
+  jsonLd?: JsonLd[];
+  noindex?: boolean;
+  ogTitle?: string;
+  /** Path to a per-page OG PNG; defaults to the home card. */
+  ogImage?: string;
+  /** Alt text for the OG/Twitter image (accessibility + OG debuggers). */
+  ogImageAlt?: string;
+  /** "article" on content pages, "website" on hubs/landing. */
+  ogType?: "website" | "article";
+  /** ISO date for article:modified_time when ogType is "article". */
+  articleModified?: string;
+  /** Path to a Markdown alternate of this page (agent-ready). */
+  mdPath?: string;
+  /** Locales this page is translated into (emits hreflang). Omit for English-only pages. */
+  altLocales?: Lang[];
+}
+
+const {
+  title,
+  description,
+  path,
+  jsonLd = [],
+  noindex = false,
+  ogTitle,
+  ogImage: ogImagePath = "/og/home.png",
+  ogImageAlt = "localmodel.run, check whether you can run an AI model locally",
+  ogType = "website",
+  articleModified,
+  mdPath,
+  altLocales,
+} = Astro.props;
+const site = Astro.site ?? new URL("https://localmodel.run");
+const canonical = new URL(path, site).href;
+const ogImage = new URL(ogImagePath, site).href;
+const year = new Date().getFullYear();
+const lang = getLangFromUrl(Astro.url);
+const enPath = stripLocale(path);
+const hreflangs = (altLocales ?? []).map((l) => ({ lang: l, href: new URL(localizedPath(enPath, l), site).href }));
+// Optional GSC verification (set GSC_VERIFICATION at build time). Backup to the
+// DNS TXT domain-property method.
+const gscVerification = import.meta.env.GSC_VERIFICATION;
+// Optional Cloudflare Web Analytics. Cookieless, no consent banner needed. Set
+// CF_BEACON_TOKEN at build time (Cloudflare Pages env) to the Web Analytics site
+// token. Unset = no script emitted. See /privacy.
+const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
+---
+
+<!doctype html>
+<html lang={lang} class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {hreflangs.map((h) => <link rel="alternate" hreflang={h.lang} href={h.href} />)}
+    {hreflangs.length > 0 && <link rel="alternate" hreflang="x-default" href={new URL(enPath, site).href} />}
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    {gscVerification && <meta name="google-site-verification" content={gscVerification} />}
+    <meta name="theme-color" content="#16181d" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content={ogType} />
+    {ogType === "article" && articleModified && <meta property="article:modified_time" content={articleModified} />}
+    <meta property="og:site_name" content="localmodel.run" />
+    <meta property="og:title" content={ogTitle ?? title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@AnsumanShah" />
+    <meta name="twitter:creator" content="@AnsumanShah" />
+    <meta name="twitter:title" content={ogTitle ?? title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Newly added models" href="/rss.xml" />
+
+    <!-- LLM / agent-friendly discovery -->
+    <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
+    <link rel="alternate" type="application/json" title="Agent card" href="/.well-known/agent.json" />
+    {mdPath && <link rel="alternate" type="text/markdown" title="Markdown" href={mdPath} />}
+
+    <!-- Fonts are self-hosted via @fontsource-variable (imported in the frontmatter
+         and bundled at build); no third-party font CDN, no visitor-IP leak. -->
+
+    <script is:inline>
+      // Set theme before paint to avoid flash. Defaults to dark.
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          var root = document.documentElement;
+          if (t === "light") {
+            root.classList.remove("dark");
+            root.classList.add("light");
+          } else {
+            root.classList.add("dark");
+          }
+        } catch (_e) {
+          /* localStorage unavailable; fall back to default dark theme */
+        }
+      })();
+    </script>
+
+    {jsonLd.map((obj) => (
+      <script type="application/ld+json" set:html={safeJsonLd(obj)} />
+    ))}
+    <script type="application/ld+json" set:html={safeJsonLd(organizationLd(site.href))} />
+    <script type="application/ld+json" set:html={safeJsonLd(websiteLd(site.href))} />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <Header />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer year={year} />
+    <script is:inline>
+      // Delegated copy-to-clipboard for [data-copy] buttons.
+      document.addEventListener("click", function (e) {
+        var t = e.target;
+        if (!(t instanceof Element)) return;
+        var btn = t.closest("[data-copy]");
+        if (!btn) return;
+        var text = btn.getAttribute("data-copy") || "";
+        navigator.clipboard?.writeText(text).then(function () {
+          var prev = btn.textContent;
+          btn.textContent = "Copied";
+          setTimeout(function () {
+            btn.textContent = prev;
+          }, 1400);
+        });
+      });
+    </script>
+
+    {cfBeaconToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+      ></script>
+    )}
+  </body>
+</html>

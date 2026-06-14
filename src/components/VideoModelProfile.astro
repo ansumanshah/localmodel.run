@@ -1,0 +1,181 @@
+---
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import { devices, categoryDevices, CATEGORY_LABEL, dedupeSources, meta } from "@/lib/data";
+import { canRunModality, modalityNeed } from "@/lib/compute-mm";
+import type { ModelRow, VideoSpec } from "@/data/types";
+
+interface Props {
+  model: ModelRow;
+}
+const { model } = Astro.props;
+const spec = model.video as VideoSpec;
+const need = modalityNeed(model)!;
+
+const COMMERCIAL: Record<string, { label: string; cls: string }> = {
+  yes: { label: "Commercial use OK", cls: "text-[var(--verdict-yes-fg)]" },
+  conditional: { label: "Commercial use: conditional", cls: "text-[var(--verdict-tight-fg)]" },
+  no: { label: "Non-commercial", cls: "text-[var(--verdict-no-fg)]" },
+};
+const commercial = model.commercial_use ? COMMERCIAL[model.commercial_use] : null;
+
+const PREC: { key: keyof VideoSpec["backbone_gb"]; label: string }[] = [
+  { key: "fp16", label: "fp16 / bf16" },
+  { key: "fp8", label: "fp8" },
+  { key: "q8", label: "Q8 GGUF" },
+  { key: "q4", label: "Q4 GGUF" },
+  { key: "q2", label: "Q2 GGUF" },
+];
+const backboneRows = PREC.map((p) => ({ label: p.label, gb: spec.backbone_gb[p.key] ?? null })).filter(
+  (r) => r.gb != null,
+);
+
+const groups = categoryDevices();
+const runnable = devices.filter((d) => canRunModality(model, d).verdict !== "no");
+const minDevice = [...runnable].sort((a, b) => a.memory_gb - b.memory_gb)[0];
+const clip = `${spec.default_resolution}, ${spec.default_frames}f (~${spec.default_seconds}s)`;
+const sources = dedupeSources(model.sources, [need.source]);
+---
+
+<div class="mx-auto max-w-3xl px-4 py-8">
+  <slot name="breadcrumbs" />
+
+  <h1 class="flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+    <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
+    <span>{model.name} requirements</span>
+  </h1>
+  <p class="mt-4 text-pretty text-lg text-muted-foreground">
+    {spec.arch.toUpperCase()} video model · {model.params_b}B params{model.is_moe ? ` (MoE, ${model.active_params_b}B active)` : ""} · {clip}{model.release ? ` · released ${model.release}` : ""}.
+    Realistic minimum to run: <strong class="text-foreground">{minDevice ? minDevice.name : "a 24 GB GPU"}</strong> at {need.quantLabel}.
+  </p>
+
+  {(model.license || commercial) && (
+    <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
+      {model.license && <span class="rounded-full border border-border bg-card px-3 py-1">{model.license}</span>}
+      {commercial && <span class={`rounded-full border border-border bg-card px-3 py-1 font-medium ${commercial.cls}`}>{commercial.label}</span>}
+    </div>
+  )}
+  {model.license_note && <p class="mt-2 text-xs text-muted-foreground">{model.license_note}</p>}
+
+  <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {[
+      { k: `Peak VRAM (${need.quantLabel})`, v: `~${need.neededGb} GB` },
+      { k: "All resident", v: need.noOffloadGb ? `~${need.noOffloadGb} GB` : "-" },
+      { k: "Offload floor", v: need.offloadFloorGb ? `~${need.offloadFloorGb} GB` : "-" },
+      { k: "Clip", v: `${spec.default_frames}f / ~${spec.default_seconds}s` },
+    ].map((s) => (
+      <dl class="rounded-xl border border-border bg-card p-4">
+        <dt class="text-xs text-muted-foreground">{s.k}</dt>
+        <dd class="mt-1 text-lg font-semibold">{s.v}</dd>
+      </dl>
+    ))}
+  </section>
+
+  <section class="mt-8 grid gap-6 sm:grid-cols-2">
+    <div>
+      <h2 class="mb-3 text-lg font-semibold">Backbone size by precision</h2>
+      <div class="overflow-hidden rounded-xl border border-border">
+        <table class="w-full text-sm">
+          <thead class="sr-only"><tr><th scope="col">Precision</th><th scope="col">Size</th></tr></thead>
+          <tbody class="divide-y divide-border">
+            {backboneRows.map((r) => {
+              const isRec = need.quantLabel.toLowerCase().startsWith(r.label.split(" ")[0].toLowerCase());
+              return (
+                <tr class={isRec ? "bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)]" : ""}>
+                  <th scope="row" class="px-4 py-2 text-left font-medium">{r.label}{isRec ? <span class="sr-only"> (recommended)</span> : null}</th>
+                  <td class="px-4 py-2 text-right text-muted-foreground">{r.gb} GB</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Backbone weights only. Peak VRAM is dominated by the activation memory for {spec.default_frames} frames at {spec.default_resolution}, not the file size.</p>
+    </div>
+    <div>
+      <h2 class="mb-3 text-lg font-semibold">Pipeline components</h2>
+      <div class="overflow-hidden rounded-xl border border-border">
+        <table class="w-full text-sm">
+          <thead class="sr-only"><tr><th scope="col">Component</th><th scope="col">Size</th></tr></thead>
+          <tbody class="divide-y divide-border">
+            {spec.components.map((c) => (
+              <tr>
+                <td class="px-4 py-2 font-medium">
+                  {c.name}
+                  {c.offloaded && <span class="ml-1.5 text-xs text-muted-foreground">offloaded</span>}
+                </td>
+                <td class="px-4 py-2 text-right text-muted-foreground">
+                  {c.q4_gb ? `${c.q4_gb}` : c.fp8_gb ? `${c.fp8_gb}` : c.fp16_gb ? `${c.fp16_gb}` : "-"} GB
+                </td>
+              </tr>
+            ))}
+            {spec.vae_gb > 0 && (
+              <tr>
+                <td class="px-4 py-2 font-medium">VAE (3D)</td>
+                <td class="px-4 py-2 text-right text-muted-foreground">{spec.vae_gb} GB</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Video VAEs are larger than image VAEs because they decode a temporal stack of frames.</p>
+    </div>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="text-lg font-semibold">Run it</h2>
+    <p class="mt-2 text-sm text-muted-foreground">
+      {model.name} runs in {spec.tools.slice(0, -1).join(", ")}{spec.tools.length > 1 ? ` or ${spec.tools[spec.tools.length - 1]}` : spec.tools[0]}. Generating more frames or higher resolution raises peak VRAM sharply; the {need.quantLabel} figure is for the default {spec.default_frames}-frame clip.
+    </p>
+    <div class="mt-3 flex flex-wrap gap-2">
+      {spec.tools.map((t) => (
+        <span class="rounded-lg border border-border bg-card px-3 py-1.5 text-sm">{t}</span>
+      ))}
+    </div>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="text-lg font-semibold">Which devices can run {model.name}?</h2>
+    <div class="mt-3 space-y-5">
+      {Object.entries(groups).map(([cat, list]) => {
+        const supported = list.length > 0 && spec.device_classes.includes(list[0].category);
+        return (
+          <div>
+            <h3 class="mb-2 text-sm font-semibold text-muted-foreground">{CATEGORY_LABEL[cat] ?? cat}</h3>
+            {supported ? (
+              <ul class="grid gap-2 sm:grid-cols-2">
+                {list.map((d) => {
+                  const r = canRunModality(model, d);
+                  return (
+                    <li>
+                      <a href={`/can-i-run/${model.id}/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-foreground/30">
+                        <span class="flex min-w-0 items-center gap-2 text-sm">
+                          <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
+                          <span class="truncate">{d.name}</span>
+                        </span>
+                        <VerdictBadge verdict={r.verdict} />
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p class="text-sm text-muted-foreground">No mainstream local runtime for a {model.params_b}B video model on {CATEGORY_LABEL[cat] ?? cat} yet.</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <slot />
+
+  {model.notes && <p class="mt-8 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">{model.notes}</p>}
+
+  <Sources urls={sources} />
+
+  <p class="mt-6 text-xs text-muted-foreground">
+    VRAM is a sourced peak-usage anchor at {need.quantLabel}{need.synthesis ? " (composed from component sizes, not a single measurement)" : ""} for the default clip length, validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+  </p>
+</div>

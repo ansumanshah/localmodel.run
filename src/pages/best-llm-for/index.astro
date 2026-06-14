@@ -1,0 +1,53 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { devices, categoryDevices, CATEGORY_LABEL, meta } from "@/lib/data";
+import { usableGb } from "@/lib/compute";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const groups = categoryDevices();
+const path = "/best-llm-for";
+const title = "Best local LLM for your device, Mac, GPU, laptop, phone · localmodel.run";
+const description = truncate(
+  `Find the best local LLM for your exact hardware: ${devices.length} devices from 8 GB Macs to RTX 4090s to iPhones, each with a ranked model list, usable memory and the right tool.`,
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Devices", url: path }], Astro.site!.href),
+  itemListLd({ name: "Devices", items: devices.map((d) => ({ name: d.name, url: `/best-llm-for/${d.id}` })), origin: Astro.site!.href }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-4xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Devices", url: path }]} />
+    <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Best local LLM for your device</h1>
+    <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
+      Pick your hardware to get a ranked list of models it can actually run, with the right tool per platform. Validated {meta.updated}.
+    </p>
+
+    <div class="mt-8 space-y-8">
+      {Object.entries(groups).map(([cat, list]) => (
+        <section>
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{CATEGORY_LABEL[cat] ?? cat}</h2>
+          <ul class="grid gap-2 sm:grid-cols-2">
+            {list.map((d) => (
+              <li>
+                <a href={`/best-llm-for/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <EntityIcon device={d.category} size={18} class="text-muted-foreground shrink-0" />
+                    <div class="min-w-0">
+                      <div class="truncate text-sm font-medium">{d.name}</div>
+                      <div class="text-xs text-muted-foreground">{d.memory_gb} GB {d.memory_type} · ~{usableGb(d)} GB usable</div>
+                    </div>
+                  </div>
+                  <span class="text-muted-foreground">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</Base>

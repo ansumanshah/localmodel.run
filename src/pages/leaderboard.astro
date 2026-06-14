@@ -1,0 +1,64 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { modelsByArena, meta } from "@/lib/data";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const path = "/leaderboard";
+const title = "Local LLM quality leaderboard (LMArena Elo) · localmodel.run";
+const description = truncate(
+  `The open models you can run locally, ranked by LMArena (Chatbot Arena) text Elo. ${modelsByArena.length} tracked local models with arena scores, each linked to its hardware requirements.`,
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Leaderboard", url: path }], Astro.site!.href),
+  itemListLd({
+    name: "Local LLMs ranked by LMArena Elo",
+    items: modelsByArena.map((m) => ({ name: m.name, url: `/model/${m.id}` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Leaderboard", url: path }]} />
+    <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Local LLM quality leaderboard</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Open models you can run locally, ranked by <a href="https://lmarena.ai" rel="noopener nofollow" class="underline">LMArena</a> text Elo as of {meta.updated}. Higher is better. Only models present on the arena are listed, so many small and distilled models are absent. Scores drift over time.
+    </p>
+
+    <div class="mt-6 overflow-hidden rounded-xl border border-border">
+      <table class="w-full text-sm">
+        <thead class="bg-card text-left text-xs uppercase text-muted-foreground">
+          <tr>
+            <th class="px-4 py-2.5 font-medium">#</th>
+            <th class="px-4 py-2.5 font-medium">Model</th>
+            <th class="px-4 py-2.5 text-right font-medium">Params</th>
+            <th class="px-4 py-2.5 text-right font-medium">Elo</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {modelsByArena.map((m, i) => (
+            <tr class="transition-colors hover:bg-accent/40">
+              <td class="px-4 py-2.5 text-muted-foreground">{i + 1}</td>
+              <td class="px-4 py-2.5">
+                <div class="flex min-w-0 items-center gap-2">
+                  <EntityIcon maker={m.family} size={18} class="text-muted-foreground shrink-0" />
+                  <a href={`/model/${m.id}`} class="truncate font-medium hover:underline">{m.name}</a>
+                  {m.is_moe && <span class="ml-1.5 text-xs text-muted-foreground">MoE</span>}
+                </div>
+              </td>
+              <td class="px-4 py-2.5 text-right text-muted-foreground">{m.params_b}B</td>
+              <td class="px-4 py-2.5 text-right font-semibold">{m.arena_elo}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-4 text-xs text-muted-foreground">
+      Source: LMArena text leaderboard, snapshot around {meta.updated}. Elo measures human preference in blind pairwise chats, not local speed. Pick the highest-Elo model your hardware can run on the <a href="/best-llm-for" class="underline">device pages</a>.
+    </p>
+  </div>
+</Base>

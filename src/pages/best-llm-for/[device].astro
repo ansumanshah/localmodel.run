@@ -1,0 +1,177 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import Sources from "@/components/Sources.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import {
+  devices,
+  modelsBySize,
+  getTool,
+  devicePlatform,
+  platformLabel,
+  dedupeSources,
+  meta,
+} from "@/lib/data";
+import { canRun, usableGb, QUANT_LABEL } from "@/lib/compute";
+import {
+  breadcrumbLd,
+  faqLd,
+  itemListLd,
+  techArticleLd,
+  truncate,
+  type FaqItem,
+} from "@/lib/seo";
+
+export function getStaticPaths() {
+  return devices.map((device) => ({ params: { device: device.id }, props: { device } }));
+}
+
+const { device } = Astro.props;
+const usable = usableGb(device);
+const platform = devicePlatform(device);
+const tool = getTool(platform);
+
+const ranked = modelsBySize
+  .map((m) => ({ model: m, result: canRun(m, device) }))
+  .sort((a, b) => b.model.params_b - a.model.params_b);
+const fitting = ranked.filter((r) => r.result.verdict !== "no");
+const notFitting = ranked.filter((r) => r.result.verdict === "no");
+const topPick = fitting.find((r) => r.result.speed === "fast" || r.result.speed === "ok") ?? fitting[0];
+
+const path = `/best-llm-for/${device.id}`;
+const year = new Date(meta.updated).getFullYear();
+const title = `Best local LLMs for ${device.name} (${year}) · localmodel.run`;
+const description = truncate(
+  `${device.name} has ~${usable} GB usable and runs ${fitting.length} of ${ranked.length} popular models locally.${topPick ? ` Top pick: ${topPick.model.name}.` : ""} Best tool: ${tool?.beginner.name ?? "Ollama"}. Ranked list with sizes and commands.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `What is the best local LLM for ${device.name}?`,
+    a: topPick
+      ? `${topPick.model.name} is the strongest model that runs comfortably, using ~${topPick.result.estimate?.totalGb} GB at ${topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"} of the ~${usable} GB usable on ${device.name}.`
+      : `${device.name} has limited memory; stick to 1B-4B models at Q4_K_M.`,
+  },
+  {
+    q: `How much of ${device.name}'s memory can I use for a model?`,
+    a: `About ${usable} GB. ${device.memory_type === "unified" && device.category === "mac" ? "Apple Silicon shares one unified memory pool; roughly 66-75% is available to the GPU for model weights, the rest is reserved for macOS." : device.memory_type === "vram" ? "On a discrete GPU, leave ~1 GB of VRAM for the driver and display." : "On a CPU-only machine, leave headroom for the OS and apps."}`,
+  },
+  {
+    q: `Which tool should I use on ${platformLabel(platform)}?`,
+    a: tool ? `${tool.beginner.name} (${tool.beginner.why}) or ${tool.power.name} for speed. ${tool.gotcha}` : "Ollama or LM Studio.",
+  },
+];
+
+const sources = dedupeSources(device.sources, tool?.sources ?? [], topPick?.model.sources ?? []);
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Devices", url: "/best-llm-for" },
+      { name: device.name, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `Best local LLMs for ${device.name}`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources,
+    speakableSelector: [".verdict-text"],
+  }),
+  itemListLd({
+    name: `Local LLMs ranked for ${device.name}`,
+    items: fitting.map((r) => ({ name: r.model.name, url: `/can-i-run/${r.model.id}/${device.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogImage={`/og/rig/${device.id}.png`} mdPath={`/best-llm-for/${device.id}.md`} ogTitle={`Best local LLMs for ${device.name}`} ogType="article" articleModified={meta.updated} ogImageAlt={`Best local LLMs for ${device.name} ranked by compatibility`}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Devices", url: "/best-llm-for" }, { name: device.name, url: path }]} />
+
+    <h1 class="flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      <EntityIcon device={device.category} size={28} class="text-muted-foreground" />
+      <span>Best local LLMs for {device.name}</span>
+    </h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      {device.name} has <strong class="text-foreground">~{usable} GB</strong> usable for model weights and runs
+      <strong class="text-foreground">{fitting.length}</strong> of {ranked.length} popular models.
+      {tool && <> Best tool: <strong class="text-foreground">{tool.beginner.name}</strong>.</>}
+    </p>
+
+    {topPick && (
+      <div class="mt-6 rounded-xl border border-[color-mix(in_oklch,var(--color-brand)_40%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)] p-5">
+        <div class="text-xs font-semibold uppercase tracking-wide text-[var(--color-brand)]">Top pick</div>
+        <div class="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <a href={`/can-i-run/${topPick.model.id}/${device.id}`} class="text-xl font-bold hover:underline">{topPick.model.name}</a>
+          <VerdictBadge verdict={topPick.result.verdict} />
+        </div>
+        <p class="verdict-text mt-1 text-sm text-muted-foreground">{topPick.result.reason}</p>
+      </div>
+    )}
+
+    <section class="mt-8">
+      <h2 class="text-lg font-semibold">Runs on {device.name}</h2>
+      <ul class="mt-3 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+        {fitting.map((r) => (
+          <li>
+            <a href={`/can-i-run/${r.model.id}/${device.id}`} class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/40">
+              <EntityIcon maker={r.model.family} size={18} class="text-muted-foreground shrink-0" />
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-sm font-medium">{r.model.name}</div>
+                <div class="text-xs text-muted-foreground">{r.model.params_b}B{r.model.is_moe ? ` MoE` : ""} · ~{r.result.estimate?.totalGb} GB at {r.result.quant ? QUANT_LABEL[r.result.quant] : "Q4_K_M"}</div>
+              </div>
+              <VerdictBadge verdict={r.result.verdict} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    {notFitting.length > 0 && (
+      <section class="mt-8">
+        <h2 class="text-lg font-semibold text-muted-foreground">Too big for this device</h2>
+        <div class="mt-3 flex flex-wrap gap-2">
+          {notFitting.map((r) => (
+            <a href={`/can-i-run/${r.model.id}/${device.id}`} class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">{r.model.name}</a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {tool && (
+      <section class="mt-8 rounded-xl border border-border bg-card p-5">
+        <h2 class="text-lg font-semibold">Best way to run models on {platformLabel(platform)}</h2>
+        <p class="mt-2 text-sm text-muted-foreground"><strong class="text-foreground">Beginner:</strong> {tool.beginner.name}, {tool.beginner.why}</p>
+        <p class="mt-1.5 text-sm text-muted-foreground"><strong class="text-foreground">Power user:</strong> {tool.power.name}, {tool.power.why}</p>
+        <p class="mt-1.5 text-sm text-muted-foreground">{tool.gotcha}</p>
+        <a href={`/tools#${platform}`} class="mt-3 inline-block text-sm text-[var(--color-brand)] hover:underline">Full {platformLabel(platform)} tool guide →</a>
+      </section>
+    )}
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">FAQ</h2>
+      <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Memory figures are estimates (formula v{meta.formula_version}, data validated {meta.updated}). See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

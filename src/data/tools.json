@@ -1,0 +1,68 @@
+[
+  {
+    "platform": "mac",
+    "beginner": { "name": "LM Studio", "why": "Polished GUI, ships MLX on Apple Silicon, one-click model downloads.", "command": null },
+    "power": { "name": "mlx-lm", "why": "Apple's MLX framework, usually the fastest on Apple Silicon for the same quant.", "command": "pip install mlx-lm && mlx_lm.generate --model mlx-community/Llama-3.1-8B-Instruct-4bit" },
+    "runtimes": [
+      { "name": "MLX / mlx-lm", "what": "Apple-native inference, usually fastest on M-series", "status": "stable", "url": "https://github.com/ml-explore/mlx-lm" },
+      { "name": "LM Studio", "what": "GUI app, MLX + GGUF backends", "status": "stable", "url": "https://lmstudio.ai" },
+      { "name": "Ollama", "what": "CLI/server, simple ollama run UX", "status": "stable", "url": "https://ollama.com" },
+      { "name": "llama.cpp (Metal)", "what": "Reference cross-platform engine", "status": "stable", "url": "https://github.com/ggml-org/llama.cpp" }
+    ],
+    "gotcha": "vLLM is NOT a Mac tool, it is a CUDA/Linux serving engine. Unified memory is not a fixed VRAM slice; ~70% is usable for weights.",
+    "ceiling": "M-series with 16GB runs up to ~8B comfortably; 64GB+ runs 70B at Q4.",
+    "sources": ["https://github.com/ml-explore/mlx-lm", "https://lmstudio.ai"]
+  },
+  {
+    "platform": "windows",
+    "beginner": { "name": "LM Studio", "why": "Best GUI on Windows, auto-detects CUDA/Vulkan backends.", "command": null },
+    "power": { "name": "Ollama (CUDA)", "why": "Scriptable server; CUDA path is fastest on NVIDIA.", "command": "ollama run llama3.1:8b" },
+    "runtimes": [
+      { "name": "LM Studio", "what": "GUI, CUDA/Vulkan/ROCm", "status": "stable", "url": "https://lmstudio.ai" },
+      { "name": "Ollama", "what": "CLI/server", "status": "stable", "url": "https://ollama.com" },
+      { "name": "llama.cpp", "what": "Reference engine", "status": "stable", "url": "https://github.com/ggml-org/llama.cpp" }
+    ],
+    "gotcha": "AMD GPUs run via Vulkan/ROCm at roughly half CUDA throughput. NVIDIA is the smooth path on Windows.",
+    "ceiling": "12GB VRAM runs up to ~14B at Q4; 24GB runs 32B at Q4.",
+    "sources": ["https://lmstudio.ai", "https://ollama.com"]
+  },
+  {
+    "platform": "linux",
+    "beginner": { "name": "Ollama", "why": "One-line install, simple single-user UX.", "command": "curl -fsSL https://ollama.com/install.sh | sh && ollama run llama3.1:8b" },
+    "power": { "name": "vLLM", "why": "Highest throughput for serving many requests; PagedAttention + continuous batching.", "command": "pip install vllm && vllm serve meta-llama/Llama-3.1-8B-Instruct" },
+    "runtimes": [
+      { "name": "vLLM", "what": "OpenAI-compatible serving engine", "status": "stable", "url": "https://github.com/vllm-project/vllm" },
+      { "name": "Ollama", "what": "CLI/server", "status": "stable", "url": "https://ollama.com" },
+      { "name": "llama.cpp", "what": "Reference engine", "status": "stable", "url": "https://github.com/ggml-org/llama.cpp" }
+    ],
+    "gotcha": "vLLM shines for multi-user serving/throughput. For a single local chat, Ollama or llama.cpp is simpler and lighter.",
+    "ceiling": "Scales with VRAM; multi-GPU for 70B+ at higher precision.",
+    "sources": ["https://github.com/vllm-project/vllm", "https://ollama.com"]
+  },
+  {
+    "platform": "ios",
+    "beginner": { "name": "Apple Foundation Models", "why": "Built into iOS 26, ~3B on-device model, zero download, fully private.", "command": null },
+    "power": { "name": "PocketPal AI", "why": "Run any GGUF from HuggingFace fully offline.", "command": null },
+    "runtimes": [
+      { "name": "Apple Foundation Models", "what": "On-device ~3B model API (iOS 26+)", "status": "stable", "url": "https://developer.apple.com/documentation/foundationmodels" },
+      { "name": "PocketPal AI", "what": "llama.cpp wrapper app", "status": "stable", "url": "https://github.com/a-ghorbani/pocketpal-ai" },
+      { "name": "LLM Farm", "what": "Open-source on-device runner", "status": "stable", "url": "https://github.com/guinmoon/LLMFarm" }
+    ],
+    "gotcha": "Phones realistically run 1B-4B class models. Anything larger thermally throttles or OOMs.",
+    "ceiling": "1B-4B at Q4 on 8GB iPhones; iPad Pro M4 (16GB) handles more.",
+    "sources": ["https://developer.apple.com/documentation/foundationmodels", "https://github.com/a-ghorbani/pocketpal-ai"]
+  },
+  {
+    "platform": "android",
+    "beginner": { "name": "PocketPal AI", "why": "Polished app, download GGUF and run offline.", "command": null },
+    "power": { "name": "MLC LLM / LiteRT-LM", "why": "GPU/NPU acceleration paths for supported chips.", "command": null },
+    "runtimes": [
+      { "name": "PocketPal AI", "what": "llama.cpp/llama.rn app", "status": "stable", "url": "https://github.com/a-ghorbani/pocketpal-ai" },
+      { "name": "MLC LLM", "what": "Compiled on-device inference", "status": "stable", "url": "https://github.com/mlc-ai/mlc-llm" },
+      { "name": "Google AI Edge / LiteRT-LM", "what": "On-device LLM runtime for Gemma", "status": "stable", "url": "https://ai.google.dev/edge" }
+    ],
+    "gotcha": "NPU acceleration is limited and chip-specific; most apps run on CPU. Expect 1B-4B class.",
+    "ceiling": "1B-4B at Q4 on 8-16GB phones.",
+    "sources": ["https://github.com/a-ghorbani/pocketpal-ai", "https://github.com/mlc-ai/mlc-llm"]
+  }
+]

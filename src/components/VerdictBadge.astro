@@ -1,0 +1,36 @@
+---
+import type { Verdict } from "@/data/types";
+import { verdictLabel } from "@/lib/compute";
+
+interface Props {
+  verdict: Verdict;
+  size?: "sm" | "lg";
+  class?: string;
+}
+const { verdict, size = "sm", class: cls = "" } = Astro.props;
+
+// Fill/border use the vivid verdict color; TEXT uses the WCAG-AA-tuned
+// foreground token (darker on light surfaces, lighter on dark).
+const color: Record<Verdict, string> = {
+  yes: "var(--color-verdict-yes)",
+  tight: "var(--color-verdict-tight)",
+  no: "var(--color-verdict-no)",
+  unknown: "var(--muted-foreground)",
+};
+const textColor: Record<Verdict, string> = {
+  yes: "var(--verdict-yes-fg)",
+  tight: "var(--verdict-tight-fg)",
+  no: "var(--verdict-no-fg)",
+  unknown: "var(--muted-foreground)",
+};
+const icon: Record<Verdict, string> = { yes: "✓", tight: "≈", no: "✕", unknown: "?" };
+const pad = size === "lg" ? "px-3.5 py-1.5 text-sm" : "px-2.5 py-0.5 text-xs";
+---
+
+<span
+  class={`inline-flex items-center gap-1.5 rounded-full border font-medium ${pad} ${cls}`}
+  style={`color:${textColor[verdict]};border-color:color-mix(in oklch, ${color[verdict]} 40%, transparent);background:color-mix(in oklch, ${color[verdict]} 12%, transparent)`}
+>
+  <span aria-hidden="true">{icon[verdict]}</span>
+  <span>{verdictLabel(verdict)}</span>
+</span>
