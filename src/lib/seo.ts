@@ -202,7 +202,13 @@ export function datasetLd(opts: {
 }
 
 export function truncate(s: string, n = 158): string {
-  return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + "…";
+  if (s.length <= n) return s;
+  // Cut at the last word boundary before the limit (never mid-word), and drop
+  // any trailing punctuation/space before the ellipsis so the result reads clean.
+  const slice = s.slice(0, n - 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  const base = lastSpace > n * 0.6 ? slice.slice(0, lastSpace) : slice;
+  return base.replace(/[\s,;:.–—]+$/, "") + "…";
 }
 
 /**

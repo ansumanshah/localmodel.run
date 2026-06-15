@@ -14,7 +14,10 @@ export default defineConfig({
   site: SITE,
   output: "static",
   trailingSlash: "never",
-  build: { format: "directory", inlineStylesheets: "auto" },
+  // `file` (page.html) over `directory` (page/index.html): on Cloudflare Pages
+  // this serves the no-trailing-slash URL directly (200), so the sitemap and
+  // canonical (both trailingSlash:"never") match the served URL with no 308 hop.
+  build: { format: "file", inlineStylesheets: "auto" },
   // Prefetch links on hover/focus so the view-transition navigations feel
   // instant. Pairs with <ClientRouter /> in Base.astro.
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },

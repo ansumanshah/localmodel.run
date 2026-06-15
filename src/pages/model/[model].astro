@@ -89,8 +89,8 @@ const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "t
                 a: model.commercial_use === "yes"
                   ? `Yes. ${model.name} is licensed ${model.license}, which permits commercial use.`
                   : model.commercial_use === "conditional"
-                    ? `Conditionally. ${model.license}: ${model.license_note ?? "check the terms."}`
-                    : `No. ${model.license}: ${model.license_note ?? "the weights are non-commercial."}`,
+                    ? `Conditionally. ${model.license_note ?? `the ${model.license} license applies; check the terms.`}`
+                    : `No. ${model.license_note ?? `the ${model.license} license is non-commercial.`}`,
               },
             ]
           : []),
@@ -276,8 +276,8 @@ const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "t
         model.commercial_use === "yes"
           ? `Yes. ${model.name} is licensed ${licenseName}, which permits commercial use.`
           : model.commercial_use === "conditional"
-            ? `Conditionally. ${licenseName}: ${model.license_note ?? "check the terms."}`
-            : `No. ${licenseName}: ${model.license_note ?? "the weights are non-commercial."}`;
+            ? `Conditionally. ${model.license_note ?? `the ${licenseName} license applies; check the terms.`}`
+            : `No. ${model.license_note ?? `the ${licenseName} license is non-commercial.`}`;
       const commercialFaq: FaqItem[] =
         model.commercial_use != null
           ? [{ q: `Can I use ${model.name} commercially?`, a: commercialAnswer }]
