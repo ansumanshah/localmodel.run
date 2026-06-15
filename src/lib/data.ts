@@ -21,6 +21,30 @@ export const devices = (devicesData as DeviceRow[]).slice();
 export const tools = toolsData as ToolRow[];
 export const meta = metaData as DataMeta;
 
+const RELEASE_MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+/** Format a release string ("2024-07" or "2024") as "Jul 2024" / "2024". Falls
+ *  back to the raw value if it does not match the expected shape. */
+export function formatRelease(release: string | null | undefined): string {
+  if (!release) return "";
+  const m = /^(\d{4})-(\d{2})$/.exec(release);
+  if (!m) return release;
+  const month = RELEASE_MONTHS[Number(m[2]) - 1];
+  return month ? `${month} ${m[1]}` : release;
+}
+
 export function getModel(id: string): ModelRow | undefined {
   return models.find((m) => m.id === id);
 }

@@ -441,5 +441,135 @@
       "https://github.com/a-ghorbani/pocketpal-ai"
     ],
     "notes": "Representative of upper-mid and flagship Android devices (e.g., OnePlus 12, Pixel 9, Samsung S24+). LPDDR5 or LPDDR5X depending on SoC. Android OS overhead ~3-4GB; usable ~8-8.5GB (community estimate). Practical ceiling: 7B Q4_K_M models. Llama 3.1 8B Q4_K_M (~7GB runtime) fits with ~1.5GB headroom. 13B Q4_K_M (~11.7GB) will OOM. MLC-LLM leverages GPU (Adreno or Mali) for faster inference if supported. CPU-only inference on 7B is slow (~3-8 tok/s); GPU path via MLC-LLM can reach ~15-25 tok/s on flagship Adreno."
+  },
+  {
+    "id": "apple-m5-16gb",
+    "name": "Apple M5 (16GB)",
+    "category": "mac",
+    "memory_gb": 16,
+    "memory_type": "unified",
+    "usable_memory_gb": 10.5,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://support.apple.com/en-us/125405",
+      "https://www.apple.com/macbook-pro/specs/",
+      "https://developer.apple.com/forums/thread/732035"
+    ],
+    "notes": "Base MacBook Pro 14-inch M5 (2025). recommendedMaxWorkingSetSize ~66% for <64GB = ~10.5GB usable. Fits 7-8B models at Q4_K_M. M5 adds a Neural Accelerator per GPU core for faster prompt processing."
+  },
+  {
+    "id": "apple-m5-32gb",
+    "name": "Apple M5 (32GB)",
+    "category": "mac",
+    "memory_gb": 32,
+    "memory_type": "unified",
+    "usable_memory_gb": 21,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://support.apple.com/en-us/125405",
+      "https://www.apple.com/macbook-pro/specs/",
+      "https://developer.apple.com/forums/thread/732035"
+    ],
+    "notes": "Top base-M5 config (MacBook Pro 14-inch M5, 2025); 32GB is the max on the base M5 chip. ~66% for <64GB = ~21GB usable. Fits 14B at Q4_K_M comfortably, 32B tight."
+  },
+  {
+    "id": "apple-m5-pro-48gb",
+    "name": "Apple M5 Pro (48GB)",
+    "category": "mac",
+    "memory_gb": 48,
+    "memory_type": "unified",
+    "usable_memory_gb": 32,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://support.apple.com/en-us/126318",
+      "https://www.apple.com/macbook-pro/specs/",
+      "https://blog.peddals.com/en/fine-tune-vram-size-of-mac-for-llm/"
+    ],
+    "notes": "M5 Pro (MacBook Pro 14/16-inch). Configurable to 64GB; 48GB config shown. ~66% for <64GB = ~32GB usable. ~307GB/s memory bandwidth. Fits 34B at Q4_K_M."
+  },
+  {
+    "id": "apple-m5-max-128gb",
+    "name": "Apple M5 Max (128GB)",
+    "category": "mac",
+    "memory_gb": 128,
+    "memory_type": "unified",
+    "usable_memory_gb": 96,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://support.apple.com/en-us/126318",
+      "https://support.apple.com/en-us/126319",
+      "https://www.apple.com/macbook-pro/specs/"
+    ],
+    "notes": "M5 Max top config. 75% rule at >=64GB = ~96GB usable. ~614GB/s memory bandwidth. Fits 70B at Q8, or 235B-class MoE at Q4 with room to spare."
+  },
+  {
+    "id": "iphone-17",
+    "name": "iPhone 17",
+    "category": "iphone",
+    "memory_gb": 8,
+    "memory_type": "unified",
+    "usable_memory_gb": 4.5,
+    "best_runtime": "llama.cpp + Metal (via PocketPal or Off Grid app)",
+    "sources": [
+      "https://www.macrumors.com/2025/09/09/iphone-17-pro-iphone-air-ram-amounts/",
+      "https://www.apple.com/iphone-17/specs/"
+    ],
+    "notes": "iPhone 17 confirmed 8GB RAM (MacRumors, Sep 2025). A19 chip. iOS reserves ~3-4GB; ~4.5GB usable for weights (community estimate). On-device ceiling 1B-4B Q4_K_M."
+  },
+  {
+    "id": "iphone-17-pro",
+    "name": "iPhone 17 Pro",
+    "category": "iphone",
+    "memory_gb": 12,
+    "memory_type": "unified",
+    "usable_memory_gb": 8,
+    "best_runtime": "llama.cpp + Metal (via PocketPal or Off Grid app)",
+    "sources": [
+      "https://www.macrumors.com/2025/09/09/iphone-17-pro-iphone-air-ram-amounts/",
+      "https://www.apple.com/iphone-17-pro/specs/"
+    ],
+    "notes": "iPhone 17 Pro confirmed 12GB RAM (MacRumors, Sep 2025), up from 8GB on iPhone 16 Pro. A19 Pro. iOS overhead ~3.5-4GB; ~8GB usable (community estimate). The extra RAM lifts the on-device ceiling toward 7-8B Q4_K_M, a first for iPhone."
+  },
+  {
+    "id": "iphone-air",
+    "name": "iPhone Air",
+    "category": "iphone",
+    "memory_gb": 12,
+    "memory_type": "unified",
+    "usable_memory_gb": 8,
+    "best_runtime": "llama.cpp + Metal (via PocketPal or Off Grid app)",
+    "sources": [
+      "https://www.macrumors.com/2025/09/09/iphone-17-pro-iphone-air-ram-amounts/",
+      "https://www.apple.com/iphone-air/specs/"
+    ],
+    "notes": "iPhone Air confirmed 12GB RAM (MacRumors, Sep 2025). A19 Pro. iOS overhead ~3.5-4GB; ~8GB usable (community estimate). On-device ceiling ~7-8B Q4_K_M."
+  },
+  {
+    "id": "pixel-10-pro",
+    "name": "Google Pixel 10 Pro",
+    "category": "android",
+    "memory_gb": 16,
+    "memory_type": "ram",
+    "usable_memory_gb": 10.5,
+    "best_runtime": "llama.cpp (PocketPal) or MLC-LLM (Adreno GPU path)",
+    "sources": [
+      "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
+      "https://store.google.com/product/pixel_10_pro_specs"
+    ],
+    "notes": "16GB LPDDR5X confirmed via GSMArena. Tensor G5. Memory is reserved for on-device Gemini Nano plus ~3-4GB Android OS overhead; usable ~10-10.5GB (community estimate). Practical ceiling 7B Q4_K_M; 13B tight."
+  },
+  {
+    "id": "samsung-s26-ultra",
+    "name": "Samsung Galaxy S26 Ultra (16GB, 1TB config)",
+    "category": "android",
+    "memory_gb": 16,
+    "memory_type": "ram",
+    "usable_memory_gb": 12,
+    "best_runtime": "llama.cpp (PocketPal) or MLC-LLM (Adreno GPU path)",
+    "sources": [
+      "https://www.gsmarena.com/samsung_galaxy_s26_ultra_5g-14320.php",
+      "https://www.sammyfans.com/2026/03/13/samsung-galaxy-s26-ultra-details/"
+    ],
+    "notes": "16GB LPDDR5X on the 1TB config (256/512GB ship 12GB) per GSMArena and SammyFans. Snapdragon 8 Elite Gen 5. Android overhead ~3-4GB; usable ~12GB (community estimate). Fits 7B-13B Q4_K_M. MLC-LLM + Adreno for best throughput."
   }
 ]

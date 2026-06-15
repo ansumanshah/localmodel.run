@@ -214,6 +214,13 @@ export function verdictLabel(v: Verdict): string {
         : "Unknown";
 }
 
+// Compact form for dense grids/tables where the surrounding context (a "can run"
+// column, a device card) already supplies the meaning. The hero verdict uses the
+// full verdictLabel().
+export function verdictLabelShort(v: Verdict): string {
+  return v === "yes" ? "Yes" : v === "tight" ? "Tight" : v === "no" ? "No" : "Unknown";
+}
+
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }

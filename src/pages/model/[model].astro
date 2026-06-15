@@ -17,6 +17,7 @@ import {
   dedupeSources,
   installCommands,
   modelModality,
+  formatRelease,
   meta,
 } from "@/lib/data";
 import { canRun, estimateMemory, quantLadderSizes } from "@/lib/compute";
@@ -39,6 +40,16 @@ const isText = modality === "text";
 const path = `/model/${model.id}`;
 const NonTextProfile =
   modality === "image" ? ImageModelProfile : modality === "video" ? VideoModelProfile : AudioModelProfile;
+
+// Compact HuggingFace stat (6,599,474 -> "6.6M").
+const fmtNum = (n: number | null | undefined): string | null => {
+  if (n == null) return null;
+  if (n >= 1e6) return +(n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return +(n / 1e3).toFixed(1) + "K";
+  return String(n);
+};
+const COMMERCIAL_LABEL: Record<string, string> = { yes: "Commercial OK", conditional: "Conditional", no: "Non-commercial" };
+const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "tight", no: "no" };
 ---
 {
   isText ? (
@@ -52,7 +63,7 @@ const NonTextProfile =
       const commands = installCommands(model, "linux");
       const title = `${model.name}: RAM, VRAM & how to run locally · localmodel.run`;
       const description = truncate(
-        `${model.name} (${model.params_b}B${model.is_moe ? ` MoE, ${model.active_params_b}B active` : ""}) needs ~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M. Minimum to run: ${minDevice ? minDevice.name : "high-memory hardware"}. Sizes, the exact Ollama command, and which of 30 devices can run it.`,
+        `${model.name} (${model.params_b}B${model.is_moe ? ` MoE, ${model.active_params_b}B active` : ""}) needs ~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M. Minimum to run: ${minDevice ? minDevice.name : "high-memory hardware"}. Sizes, the exact Ollama command, and which of ${devices.length} devices can run it.`,
       );
       const faqs: FaqItem[] = [
         {
@@ -68,6 +79,18 @@ const NonTextProfile =
               {
                 q: `Is ${model.name} cheaper to run because it is a MoE model?`,
                 a: `It is faster, not lighter. ${model.name} activates only ${model.active_params_b}B of ${model.params_b}B params per token (so it runs quickly), but all experts must stay in memory, so it still needs memory for the full ${model.params_b}B.`,
+              },
+            ]
+          : []),
+        ...(model.commercial_use != null
+          ? [
+              {
+                q: `Can I use ${model.name} commercially?`,
+                a: model.commercial_use === "yes"
+                  ? `Yes. ${model.name} is licensed ${model.license}, which permits commercial use.`
+                  : model.commercial_use === "conditional"
+                    ? `Conditionally. ${model.license}: ${model.license_note ?? "check the terms."}`
+                    : `No. ${model.license}: ${model.license_note ?? "the weights are non-commercial."}`,
               },
             ]
           : []),
@@ -98,25 +121,50 @@ const NonTextProfile =
           <div class="mx-auto max-w-3xl px-4 py-8">
             <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Models", url: "/can-i-run" }, { name: model.name, url: path }]} />
 
-            <h1 class="flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+            <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Text model · {model.family}</p>
+            <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
               <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
-              <span>{model.name} requirements</span>
+              <span transition:name={`model-name-${model.id}`}>{model.name} requirements</span>
             </h1>
             <p class="mt-4 text-pretty text-lg text-muted-foreground">
-              {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active)` : ""}{model.release ? ` · released ${model.release}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
+              {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
               Minimum to run at Q4_K_M: <strong class="text-foreground">{minDevice ? minDevice.name : "high-memory hardware"}</strong>.
             </p>
 
-            <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+              {model.subtype === "vlm" && (
+                <span class="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 font-medium">Vision · accepts images</span>
+              )}
+              {model.license && (
+                <span class="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1">
+                  <span class="text-muted-foreground">License</span>
+                  <span class="font-medium">{model.license}</span>
+                  {model.commercial_use && (
+                    <span style={`color:var(--verdict-${COMMERCIAL_VERDICT[model.commercial_use]}-fg)`}>· {COMMERCIAL_LABEL[model.commercial_use]}</span>
+                  )}
+                </span>
+              )}
+              {model.hf_id && (fmtNum(model.hf_downloads) || fmtNum(model.hf_likes)) && (
+                <a href={`https://huggingface.co/${model.hf_id}`} rel="noopener nofollow" class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground">
+                  {fmtNum(model.hf_downloads) && <span>&#8595; {fmtNum(model.hf_downloads)}/mo</span>}
+                  {fmtNum(model.hf_likes) && <span>&#9829; {fmtNum(model.hf_likes)}</span>}
+                  <span class="opacity-70">on HuggingFace</span>
+                </a>
+              )}
+            </div>
+
+            <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
-                { k: "Q4_K_M", v: `${model.q4_k_m_gb ?? q4.weightsGb} GB` },
-                { k: "Q8_0", v: model.q8_0_gb ? `${model.q8_0_gb} GB` : "-" },
-                { k: "Total @ Q4 (4k)", v: `~${q4.totalGb} GB` },
-                { k: "Context", v: `${model.default_context_k}k` },
+                { k: "Q4_K_M", num: String(model.q4_k_m_gb ?? q4.weightsGb), unit: "GB" },
+                { k: "Q8_0", num: model.q8_0_gb ? String(model.q8_0_gb) : null, unit: "GB" },
+                { k: "Total @ Q4 (4k)", num: `~${q4.totalGb}`, unit: "GB" },
+                { k: "Context", num: String(model.default_context_k), unit: "k" },
               ].map((s) => (
-                <div class="rounded-xl border border-border bg-card p-4">
-                  <div class="text-xs text-muted-foreground">{s.k}</div>
-                  <div class="mt-1 text-lg font-semibold">{s.v}</div>
+                <div class="bp-panel p-4">
+                  <div class="bp-stat-label">{s.k}</div>
+                  <div class="bp-stat-val mt-1.5 text-lg">
+                    {s.num != null ? <><span class="num">{s.num}</span>&nbsp;{s.unit}</> : "-"}
+                  </div>
                 </div>
               ))}
             </section>
@@ -124,13 +172,20 @@ const NonTextProfile =
             <section class="mt-8 grid gap-6 sm:grid-cols-2">
               <div>
                 <h2 class="mb-3 text-lg font-semibold">Quantization sizes</h2>
-                <div class="overflow-hidden rounded-xl border border-border">
+                <div class="bp-panel overflow-hidden">
+                  <div class="bp-panel-header"><span class="bp-panel-label">GGUF quants</span><span class="bp-panel-label">on disk</span></div>
                   <table class="w-full text-sm">
+                    <thead class="sr-only">
+                      <tr>
+                        <th scope="col">Quantization</th>
+                        <th scope="col">Size on disk</th>
+                      </tr>
+                    </thead>
                     <tbody class="divide-y divide-border">
                       {ladder.map((q) => (
-                        <tr class={q.label === "Q4_K_M" ? "bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)]" : ""}>
+                        <tr class={q.label === "Q4_K_M" ? "bg-[color-mix(in_oklch,var(--color-brand)_10%,transparent)]" : ""}>
                           <td class="px-4 py-2 font-medium">{q.label}{q.label === "Q4_K_M" ? " (default)" : ""}</td>
-                          <td class="px-4 py-2 text-right text-muted-foreground">{q.gb} GB{q.measured ? "" : " est"}</td>
+                          <td class="px-4 py-2 text-right text-muted-foreground"><span class="num">{q.gb}</span>&nbsp;GB{q.measured ? "" : " est"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -155,13 +210,13 @@ const NonTextProfile =
               <div class="mt-3 space-y-5">
                 {Object.entries(groups).map(([cat, list]) => (
                   <div>
-                    <h3 class="mb-2 text-sm font-semibold text-muted-foreground">{CATEGORY_LABEL[cat] ?? cat}</h3>
+                    <h3 class="bp-stat-label mb-2">{CATEGORY_LABEL[cat] ?? cat}</h3>
                     <ul class="grid gap-2 sm:grid-cols-2">
                       {list.map((d) => {
                         const r = canRun(model, d);
                         return (
                           <li>
-                            <a href={`/can-i-run/${model.id}/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-foreground/30">
+                            <a href={`/can-i-run/${model.id}/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
                               <span class="flex min-w-0 items-center gap-2 text-sm">
                                 <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
                                 <span class="truncate">{d.name}</span>
@@ -179,7 +234,7 @@ const NonTextProfile =
 
             <section class="mt-10">
               <h2 class="text-lg font-semibold">FAQ</h2>
-              <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+              <div class="bp-panel mt-3 divide-y divide-border">
                 {faqs.map((f) => (
                   <div class="p-4">
                     <p class="font-medium">{f.q}</p>
@@ -194,7 +249,7 @@ const NonTextProfile =
             <Sources urls={sources} />
 
             <p class="mt-6 text-xs text-muted-foreground">
-              Memory figures are estimates (formula v{meta.formula_version}, data validated {meta.updated}). See <a href="/methodology" class="underline">methodology</a>.
+              Memory figures are estimates. See <a href="/methodology" class="underline">methodology</a>.
             </p>
           </div>
         </Base>
@@ -216,12 +271,17 @@ const NonTextProfile =
       const desc = truncate(
         `${model.name} (${model.params_b}B ${archLabel}${kindWord}) needs ~${need.neededGb} GB ${memWord} at ${need.quantLabel}. Minimum to run: ${minDevice ? minDevice.name : "capable hardware"}. Sizes, the tools, and which devices can run it.`,
       );
+      const licenseName = model.license ?? "its license";
       const commercialAnswer =
         model.commercial_use === "yes"
-          ? `Yes. ${model.name} is licensed ${model.license}, which permits commercial use.`
+          ? `Yes. ${model.name} is licensed ${licenseName}, which permits commercial use.`
           : model.commercial_use === "conditional"
-            ? `Conditionally. ${model.license}: ${model.license_note ?? "check the terms."}`
-            : `No. ${model.license}: ${model.license_note ?? "the weights are non-commercial."}`;
+            ? `Conditionally. ${licenseName}: ${model.license_note ?? "check the terms."}`
+            : `No. ${licenseName}: ${model.license_note ?? "the weights are non-commercial."}`;
+      const commercialFaq: FaqItem[] =
+        model.commercial_use != null
+          ? [{ q: `Can I use ${model.name} commercially?`, a: commercialAnswer }]
+          : [];
       const faqs: FaqItem[] =
         modality === "audio"
           ? [
@@ -232,10 +292,12 @@ const NonTextProfile =
               {
                 q: `Can ${model.name} run on a phone or CPU?`,
                 a: model.audio?.cpu_ok
-                  ? `Yes for CPU; the smaller tiers are light enough for real-time use, and several have on-device phone runtimes.`
+                  ? (model.audio.device_classes?.includes("iphone") || model.audio.device_classes?.includes("android")
+                      ? `Yes for CPU. The smaller tiers are light enough for real-time use, and on-device phone runtimes are available.`
+                      : `Yes for CPU. It runs on Mac or laptop CPU, though no phone runtime is confirmed.`)
                   : `Not practically. ${model.name} expects a GPU; CPU inference is too slow for real use.`,
               },
-              { q: `Can I use ${model.name} commercially?`, a: commercialAnswer },
+              ...commercialFaq,
             ]
           : [
               {
@@ -248,7 +310,7 @@ const NonTextProfile =
                   ? `The text encoder is run once to encode your prompt, then offloaded to CPU before the ${modality === "video" ? "frames are generated" : "denoising steps"}, so it is not resident at the memory peak.`
                   : `The pipeline moves each stage off the GPU between passes (sequential CPU offload), so peak VRAM stays near the active stage rather than the sum of every file.`,
               },
-              { q: `Can I use ${model.name} commercially?`, a: commercialAnswer },
+              ...commercialFaq,
             ];
       const sources = dedupeSources(model.sources, [need.source]);
       const jsonLd = [
@@ -277,7 +339,7 @@ const NonTextProfile =
             <Breadcrumbs slot="breadcrumbs" items={[{ name: "Home", url: "/" }, { name: "Models", url: "/can-i-run" }, { name: model.name, url: path }]} />
             <section class="mt-10">
               <h2 class="text-lg font-semibold">FAQ</h2>
-              <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+              <div class="bp-panel mt-3 divide-y divide-border">
                 {faqs.map((f) => (
                   <div class="p-4">
                     <p class="font-medium">{f.q}</p>

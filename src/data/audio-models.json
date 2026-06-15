@@ -198,7 +198,7 @@
       },
       "cpu_ok": true,
       "device_classes": ["mac", "nvidia", "amd", "laptop"],
-      "tools": ["llama.cpp", "LM Studio", "Ollama", "vLLM"],
+      "tools": ["llama.cpp", "LM Studio", "vLLM"],
       "task": "Text to speech"
     },
     "sources": [

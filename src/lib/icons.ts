@@ -29,6 +29,11 @@ export function makerForFamily(family: string): IconSpec {
     return { icon: "simple-icons:mistralai", label: "Mistral AI" };
   if (f.includes("granite")) return { icon: "simple-icons:ibm", label: "IBM" };
   if (f.includes("smollm")) return { icon: "simple-icons:huggingface", label: "Hugging Face" };
+  if (f.includes("gpt-oss")) return { icon: "simple-icons:openai", label: "OpenAI" };
+  if (f === "yi") return { icon: null, label: "01.AI", initials: "Yi" };
+  if (f.includes("command")) return { icon: null, label: "Cohere", initials: "CR" };
+  if (f.includes("glm")) return { icon: null, label: "Zhipu AI", initials: "GL" };
+  if (f.includes("falcon")) return { icon: null, label: "TII", initials: "FN" };
   if (f.includes("sarvam")) return { icon: null, label: "Sarvam AI", initials: "S" };
   // Image / video / audio makers. Whisper (OpenAI) and MusicGen (Meta) have
   // marks in the installed simple-icons set; the rest fall back to a lettered

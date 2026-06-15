@@ -2,7 +2,7 @@
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import Sources from "@/components/Sources.astro";
-import { devices, categoryDevices, CATEGORY_LABEL, dedupeSources, meta } from "@/lib/data";
+import { devices, categoryDevices, CATEGORY_LABEL, dedupeSources, formatRelease, meta } from "@/lib/data";
 import { canRunModality, modalityNeed } from "@/lib/compute-mm";
 import type { ModelRow, ImageSpec } from "@/data/types";
 
@@ -43,12 +43,13 @@ const sources = dedupeSources(model.sources, [need.source]);
 <div class="mx-auto max-w-3xl px-4 py-8">
   <slot name="breadcrumbs" />
 
-  <h1 class="flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+  <p class="bp-eyebrow mt-4" style="--bp-accent: var(--modality-image)"><span class="bp-dot" aria-hidden="true"></span>Image model &middot; {spec.arch.toUpperCase()}</p>
+  <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
     <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
-    <span>{model.name} requirements</span>
+    <span transition:name={`model-name-${model.id}`}>{model.name} requirements</span>
   </h1>
   <p class="mt-4 text-pretty text-lg text-muted-foreground">
-    {spec.arch.toUpperCase()} image model · {model.params_b}B params · {spec.native_resolution} · {spec.steps} steps{model.release ? ` · released ${model.release}` : ""}.
+    {spec.arch.toUpperCase()} image model &middot; {model.params_b}B params &middot; {spec.native_resolution} &middot; {spec.steps} steps{model.release ? ` · released ${formatRelease(model.release)}` : ""}.
     Realistic minimum to run: <strong class="text-foreground">{minDevice ? minDevice.name : "a 16 GB+ GPU"}</strong> at {need.quantLabel}.
   </p>
 
@@ -62,31 +63,35 @@ const sources = dedupeSources(model.sources, [need.source]);
 
   <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
     {[
-      { k: `Peak VRAM (${need.quantLabel})`, v: `~${need.neededGb} GB` },
-      { k: "All resident", v: need.noOffloadGb ? `~${need.noOffloadGb} GB` : "-" },
-      { k: "Offload floor", v: need.offloadFloorGb ? `~${need.offloadFloorGb} GB` : "-" },
+      { k: `Peak VRAM (${need.quantLabel})`, v: `~${need.neededGb} GB` },
+      { k: "All resident", v: need.noOffloadGb ? `~${need.noOffloadGb} GB` : "-" },
+      { k: "Offload floor", v: need.offloadFloorGb ? `~${need.offloadFloorGb} GB` : "-" },
       { k: "Resolution", v: spec.native_resolution },
     ].map((s) => (
-      <dl class="rounded-xl border border-border bg-card p-4">
-        <dt class="text-xs text-muted-foreground">{s.k}</dt>
-        <dd class="mt-1 text-lg font-semibold">{s.v}</dd>
-      </dl>
+      <div class="bp-panel p-4">
+        <div class="bp-stat-label">{s.k}</div>
+        <div class="bp-stat-val mt-1.5 text-lg">{s.v}</div>
+      </div>
     ))}
   </section>
 
   <section class="mt-8 grid gap-6 sm:grid-cols-2">
     <div>
       <h2 class="mb-3 text-lg font-semibold">Backbone size by precision</h2>
-      <div class="overflow-hidden rounded-xl border border-border">
+      <div class="bp-panel overflow-hidden">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Precision</span>
+          <span class="bp-panel-label">On disk</span>
+        </div>
         <table class="w-full text-sm">
           <thead class="sr-only"><tr><th scope="col">Precision</th><th scope="col">Size</th></tr></thead>
           <tbody class="divide-y divide-border">
             {backboneRows.map((r) => {
               const isRec = need.quantLabel.toLowerCase().startsWith(r.label.split(" ")[0].toLowerCase());
               return (
-                <tr class={isRec ? "bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)]" : ""}>
+                <tr class={isRec ? "bg-[color-mix(in_oklch,var(--color-brand)_10%,transparent)]" : ""}>
                   <th scope="row" class="px-4 py-2 text-left font-medium">{r.label}{isRec ? <span class="sr-only"> (recommended)</span> : null}</th>
-                  <td class="px-4 py-2 text-right text-muted-foreground">{r.gb} GB</td>
+                  <td class="px-4 py-2 text-right text-muted-foreground"><span class="num">{r.gb}</span>&nbsp;GB</td>
                 </tr>
               );
             })}
@@ -97,7 +102,11 @@ const sources = dedupeSources(model.sources, [need.source]);
     </div>
     <div>
       <h2 class="mb-3 text-lg font-semibold">Pipeline components</h2>
-      <div class="overflow-hidden rounded-xl border border-border">
+      <div class="bp-panel overflow-hidden">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Component</span>
+          <span class="bp-panel-label">Size</span>
+        </div>
         <table class="w-full text-sm">
           <thead class="sr-only"><tr><th scope="col">Component</th><th scope="col">Size</th></tr></thead>
           <tbody class="divide-y divide-border">
@@ -108,18 +117,18 @@ const sources = dedupeSources(model.sources, [need.source]);
                   {c.offloaded && <span class="ml-1.5 text-xs text-muted-foreground">offloaded</span>}
                 </td>
                 <td class="px-4 py-2 text-right text-muted-foreground">
-                  {c.q4_gb ? `${c.q4_gb}` : c.fp8_gb ? `${c.fp8_gb}` : c.fp16_gb ? `${c.fp16_gb}` : "-"} GB
+                  <span class="num">{c.q4_gb ? `${c.q4_gb}` : c.fp8_gb ? `${c.fp8_gb}` : c.fp16_gb ? `${c.fp16_gb}` : "-"}</span>&nbsp;GB
                 </td>
               </tr>
             ))}
             <tr>
               <td class="px-4 py-2 font-medium">VAE</td>
-              <td class="px-4 py-2 text-right text-muted-foreground">{spec.vae_gb} GB</td>
+              <td class="px-4 py-2 text-right text-muted-foreground"><span class="num">{spec.vae_gb}</span>&nbsp;GB</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="mt-2 text-xs text-muted-foreground">Encoders marked "offloaded" move to CPU before denoising, so they do not count toward peak VRAM.</p>
+      <p class="mt-2 text-xs text-muted-foreground">Encoders marked &#x201C;offloaded&#x201D; move to CPU before denoising, so they do not count toward peak VRAM.</p>
     </div>
   </section>
 
@@ -130,7 +139,7 @@ const sources = dedupeSources(model.sources, [need.source]);
     </p>
     <div class="mt-3 flex flex-wrap gap-2">
       {spec.tools.map((t) => (
-        <span class="rounded-lg border border-border bg-card px-3 py-1.5 text-sm">{t}</span>
+        <span class="bp-code px-3 py-1.5 text-sm">{t}</span>
       ))}
     </div>
   </section>
@@ -142,14 +151,14 @@ const sources = dedupeSources(model.sources, [need.source]);
         const supported = list.length > 0 && spec.device_classes.includes(list[0].category);
         return (
           <div>
-            <h3 class="mb-2 text-sm font-semibold text-muted-foreground">{CATEGORY_LABEL[cat] ?? cat}</h3>
+            <h3 class="bp-stat-label mb-2">{CATEGORY_LABEL[cat] ?? cat}</h3>
             {supported ? (
               <ul class="grid gap-2 sm:grid-cols-2">
                 {list.map((d) => {
                   const r = canRunModality(model, d);
                   return (
                     <li>
-                      <a href={`/can-i-run/${model.id}/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-foreground/30">
+                      <a href={`/can-i-run/${model.id}/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
                         <span class="flex min-w-0 items-center gap-2 text-sm">
                           <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
                           <span class="truncate">{d.name}</span>
@@ -171,7 +180,11 @@ const sources = dedupeSources(model.sources, [need.source]);
 
   <slot />
 
-  {model.notes && <p class="mt-8 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">{model.notes}</p>}
+  {model.notes && (
+    <div class="bp-panel mt-8 p-4">
+      <p class="text-sm text-muted-foreground">{model.notes}</p>
+    </div>
+  )}
 
   <Sources urls={sources} />
 

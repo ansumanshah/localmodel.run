@@ -60,9 +60,13 @@ async function hfQuantSizes(repo) {
     const bytes = matched.reduce((a, f) => a + f.size, 0); // handle split files
     return round2(bytes / GIB);
   };
+  // mmproj = the VLM vision projector, shipped fp16 alongside the LLM GGUF.
+  const mmproj = files.filter((f) => /mmproj/i.test(f.name) && /(f16|fp16)/i.test(f.name) && /\.gguf$/i.test(f.name));
   return {
     q4_k_m_gb: sumQuant(/Q4_K_M/i),
     q8_0_gb: sumQuant(/Q8_0/i),
+    mxfp4_gb: sumQuant(/mxfp4/i), // native 4-bit format for gpt-oss et al (no Q4_K_M file)
+    mmproj_gb: mmproj.length ? round2(mmproj.reduce((a, f) => a + f.size, 0) / GIB) : null,
   };
 }
 
@@ -84,11 +88,35 @@ async function main() {
     if (m.hf_repo) {
       try {
         const sizes = await hfQuantSizes(m.hf_repo);
-        if (sizes.q4_k_m_gb) m.q4_k_m_gb = sizes.q4_k_m_gb;
-        if (sizes.q8_0_gb) m.q8_0_gb = sizes.q8_0_gb;
+        // gpt-oss and friends ship native MXFP4 with no Q4_K_M file; use it for the 4-bit slot.
+        let q4 = sizes.q4_k_m_gb ?? sizes.mxfp4_gb;
+        let q8 = sizes.q8_0_gb;
+        // VLM rows fold the fp16 vision projector into the loaded footprint (matches the row's stored total).
+        if (m.subtype === "vlm" && sizes.mmproj_gb) {
+          if (q4) q4 = round2(q4 + sizes.mmproj_gb);
+          if (q8) q8 = round2(q8 + sizes.mmproj_gb);
+        }
+        if (q4) m.q4_k_m_gb = q4;
+        if (q8) m.q8_0_gb = q8;
         okHf++;
       } catch (e) {
         console.warn("  [hf]", e instanceof Error ? e.message : e);
+      }
+    }
+    if (m.hf_id) {
+      try {
+        const headers = HF_TOKEN ? { Authorization: `Bearer ${HF_TOKEN}` } : {};
+        const res = await fetch(
+          `https://huggingface.co/api/models/${m.hf_id}?expand[]=downloads&expand[]=likes`,
+          { headers },
+        );
+        if (res.ok) {
+          const j = await res.json();
+          if (typeof j.downloads === "number") m.hf_downloads = j.downloads;
+          if (typeof j.likes === "number") m.hf_likes = j.likes;
+        }
+      } catch (e) {
+        console.warn("  [hf-stats]", e instanceof Error ? e.message : e);
       }
     }
   }

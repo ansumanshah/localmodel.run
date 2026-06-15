@@ -22,6 +22,13 @@ export interface ModelRow {
   pulls_text: string | null;
   arena_elo?: number | null; // LMArena text leaderboard
   arena_rank?: number | null;
+  hf_repo?: string | null; // GGUF repo (e.g. "bartowski/...-GGUF") so update-data.mjs can cron-refresh sizes
+  ollama_default_gb?: number | null; // default-tag size from the Ollama OCI manifest (written by the cron)
+  subtype?: "vlm" | "embedding" | "coder" | null; // display discriminant; VLM rows render via the text path
+  vision_encoder_gb?: number | null; // VLM mmproj/vision projector size, already folded into the GGUF totals
+  hf_id?: string | null; // canonical (non-GGUF) HuggingFace repo, for stats + provenance
+  hf_downloads?: number | null; // HF Hub downloads, last 30 days (cron-refreshed)
+  hf_likes?: number | null; // HF Hub likes (cron-refreshed)
   // Modality discriminant. Absent = "text" (the validated default path).
   // Image / video / audio models carry a modality spec below and use a
   // different memory model (see compute-mm.ts). The text engine is never
