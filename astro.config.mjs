@@ -15,6 +15,9 @@ export default defineConfig({
   output: "static",
   trailingSlash: "never",
   build: { format: "directory", inlineStylesheets: "auto" },
+  // Prefetch links on hover/focus so the view-transition navigations feel
+  // instant. Pairs with <ClientRouter /> in Base.astro.
+  prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   // i18n architecture. English is the default (no prefix); Spanish is the proof
   // locale at /es/. Programmatic model x device pages stay English-only until
   // English is indexed (avoids thin auto-translated pages). Add a locale later

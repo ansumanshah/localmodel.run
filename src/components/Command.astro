@@ -8,12 +8,12 @@ const { code, label } = Astro.props;
 
 <div class="group relative">
   {label && <div class="mb-1.5 text-xs font-medium text-muted-foreground">{label}</div>}
-  <div class="flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3 font-mono text-sm">
+  <div class="flex items-start gap-3 rounded-lg border border-l-2 border-border border-l-[var(--color-brand)] bg-card px-4 py-3 font-mono text-sm">
     <span class="select-none text-[var(--color-brand)]">$</span>
     <code class="flex-1 overflow-x-auto whitespace-pre-wrap break-words" data-copy-text={code}>{code}</code>
     <button
       type="button"
-      class="copy-btn shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground opacity-0 transition hover:text-foreground group-hover:opacity-100"
+      class="copy-btn shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground opacity-0 transition hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       data-copy={code}
       aria-label="Copy command"
     >

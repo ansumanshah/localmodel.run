@@ -12,14 +12,14 @@ const fill = fits ? "var(--color-verdict-yes)" : "var(--color-verdict-no)";
 ---
 
 <div class="space-y-2">
-  <div class="relative h-7 w-full overflow-hidden rounded-md bg-muted">
-    <div class="h-full rounded-md transition-all" style={`width:${needPct}%;background:color-mix(in oklch, ${fill} 75%, transparent)`}></div>
-    <div class="absolute inset-y-0 w-px bg-foreground/70" style={`left:${usablePct}%`} title="Usable memory">
-      <span class="absolute -top-0.5 left-1 whitespace-nowrap text-[10px] font-medium text-foreground/80">usable ~{usableGb} GB</span>
+  <div class="relative h-7 w-full overflow-hidden rounded-md bg-muted" role="img" aria-label={`Memory: needs ~${neededGb} GB, device usable ~${usableGb} GB`}>
+    <div class="bar-fill h-full" style={`transform:scaleX(${needPct / 100});background:color-mix(in oklch, ${fill} 75%, transparent)`}></div>
+    <div class="absolute inset-y-0 w-px bg-foreground/70" style={`left:${usablePct}%`} aria-label="Usable memory">
+      <span class="absolute -top-0.5 left-1 whitespace-nowrap text-[10px] font-medium text-foreground/80">usable ~<span class="num">{usableGb}</span>&nbsp;GB</span>
     </div>
   </div>
   <div class="flex justify-between text-xs text-muted-foreground">
-    <span>Needs <span class="font-medium text-foreground">~{neededGb} GB</span></span>
-    <span>Device usable <span class="font-medium text-foreground">~{usableGb} GB</span></span>
+    <span>Needs <span class="font-medium text-foreground">~<span class="num">{neededGb}</span>&nbsp;GB</span></span>
+    <span>Device usable <span class="font-medium text-foreground">~<span class="num">{usableGb}</span>&nbsp;GB</span></span>
   </div>
 </div>

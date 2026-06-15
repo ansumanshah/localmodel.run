@@ -44,6 +44,12 @@
   --verdict-yes-fg: oklch(0.48 0.15 152);
   --verdict-tight-fg: oklch(0.46 0.13 86);
   --verdict-no-fg: oklch(0.52 0.21 25);
+  /* Modality accents (cool spectrum, distinct from the warm verdict colors).
+     Light-mode values: darker for contrast on a white surface. */
+  --modality-text: var(--color-brand);
+  --modality-image: oklch(0.52 0.12 200);
+  --modality-video: oklch(0.5 0.2 325);
+  --modality-audio: oklch(0.52 0.16 245);
 }
 
 .dark {
@@ -68,6 +74,11 @@
   --verdict-yes-fg: oklch(0.8 0.16 152);
   --verdict-tight-fg: oklch(0.84 0.15 86);
   --verdict-no-fg: oklch(0.72 0.19 25);
+  /* Modality accents, lighter for dark surfaces. */
+  --modality-text: var(--color-brand);
+  --modality-image: oklch(0.78 0.13 200);
+  --modality-video: oklch(0.76 0.17 325);
+  --modality-audio: oklch(0.76 0.15 245);
 }
 
 /* Map tokens into Tailwind's color space so utilities like bg-card work. */
@@ -113,6 +124,99 @@
   ::selection {
     background: oklch(0.71 0.13 280 / 25%);
   }
+
+  /* Film grain: a faint fixed noise layer over the whole viewport for tactile
+     depth (per the frontend-design skill). Tuned low so it never touches text
+     legibility; pointer-events:none keeps it inert. Lighter still in light mode. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+  :root.light body::after {
+    opacity: 0.03;
+  }
+}
+
+@layer components {
+  /* Memory/score fill: animate transform (compositor-friendly) instead of width,
+     which would thrash layout on every Detector change. Grows once on load. */
+  .bar-fill {
+    transform-origin: left;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: bar-grow 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform;
+  }
+  @keyframes bar-grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* Machined numerals: monospace + tabular figures so columns of numbers align
+     and read like an instrument readout rather than typeset prose. */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* The one kinetic moment: the hero verdict pops in on each new result.
+     Transform + opacity only, so it stays on the compositor. */
+  .verdict-word {
+    animation: verdict-reveal 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes verdict-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  /* A 1px light-catching seam along the top edge of a card: the detail that
+     separates flat dark UI from machined dark UI. Subtle in light mode. */
+  .card-seam {
+    position: relative;
+  }
+  .card-seam::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklch, var(--color-brand) 30%, transparent) 30%,
+      color-mix(in oklch, var(--color-brand) 30%, transparent) 70%,
+      transparent
+    );
+    pointer-events: none;
+  }
+  .card-seam:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill {
+    animation: none;
+    transition: none;
+  }
+  .verdict-word {
+    animation: none;
+  }
+  details > summary svg {
+    transition: none;
+  }
 }
 
 /* Default to dark; respects an explicit light toggle later. */
@@ -135,5 +239,468 @@
     --verdict-yes-fg: oklch(0.8 0.16 152);
     --verdict-tight-fg: oklch(0.84 0.15 86);
     --verdict-no-fg: oklch(0.72 0.19 25);
+    --modality-text: var(--color-brand);
+    --modality-image: oklch(0.78 0.13 200);
+    --modality-video: oklch(0.76 0.17 325);
+    --modality-audio: oklch(0.76 0.15 245);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BLUEPRINT CONSOLE THEME
+   The site-wide design language: a faint blueprint grid, monospace micro
+   labels, indigo registration ticks and wire-lines, and instrument-panel
+   framing around key UI. Reusable primitives consumed by every page.
+   All motion is transform/opacity only and guarded by prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════ */
+@layer components {
+  /* ── Blueprint backdrop primitives ──────────────────────────────────── */
+  /* A faint blueprint line grid. Put on a position:relative section with a
+     ::stacking child; mask keeps it strongest in the center. */
+  .bp-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(color-mix(in oklch, var(--color-brand) 7%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklch, var(--color-brand) 7%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse 85% 80% at 50% 40%, black 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse 85% 80% at 50% 40%, black 30%, transparent 80%);
+  }
+  .light .bp-grid {
+    background-image:
+      linear-gradient(color-mix(in oklch, var(--color-brand) 10%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklch, var(--color-brand) 10%, transparent) 1px, transparent 1px);
+  }
+
+  /* Indigo brand glow wash */
+  .bp-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 55% at 65% 50%, color-mix(in oklch, var(--color-brand) 22%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 40% at 16% 28%, oklch(0.72 0.14 200 / 0.13) 0%, transparent 65%),
+      radial-gradient(ellipse 38% 34% at 88% 82%, oklch(0.68 0.17 325 / 0.1) 0%, transparent 65%);
+  }
+  .light .bp-glow {
+    background: radial-gradient(ellipse 60% 55% at 65% 50%, color-mix(in oklch, var(--color-brand) 8%, transparent) 0%, transparent 70%);
+  }
+
+  /* Scanline sweep */
+  .bp-scanline {
+    position: absolute;
+    inset-inline: 0;
+    height: 2px;
+    z-index: 3;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklch, var(--color-brand) 40%, transparent) 30%,
+      color-mix(in oklch, var(--color-brand) 70%, transparent) 50%,
+      color-mix(in oklch, var(--color-brand) 40%, transparent) 70%,
+      transparent 100%
+    );
+    box-shadow: 0 0 12px color-mix(in oklch, var(--color-brand) 50%, transparent);
+    animation: bp-scan 8s cubic-bezier(0.37, 0, 0.63, 1) 1.2s infinite;
+    will-change: transform, opacity;
+  }
+
+  /* Cursor-follow spotlight (driven by --mx/--my set in JS) */
+  .bp-spotlight {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklch, var(--color-brand) 10%, transparent) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: opacity;
+  }
+  .light .bp-spotlight {
+    background: radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklch, var(--color-brand) 5%, transparent) 0%, transparent 70%);
+  }
+
+  /* Section-level corner registration ticks. Wrap 4 .bp-corner in a
+     position:relative parent; each holds an h + v .bp-tick. */
+  .bp-corner {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .bp-corner--tl { top: 20px; left: 20px; }
+  .bp-corner--tr { top: 20px; right: 20px; }
+  .bp-corner--bl { bottom: 20px; left: 20px; }
+  .bp-corner--br { bottom: 20px; right: 20px; }
+  .bp-tick { position: absolute; background: color-mix(in oklch, var(--color-brand) 55%, transparent); }
+  .bp-tick--h { height: 1px; width: 100%; top: 0; left: 0; }
+  .bp-tick--v { width: 1px; height: 100%; top: 0; left: 0; }
+  .bp-corner--tr .bp-tick--h { right: 0; left: auto; }
+  .bp-corner--tr .bp-tick--v { right: 0; left: auto; }
+  .bp-corner--bl .bp-tick--h { bottom: 0; top: auto; }
+  .bp-corner--bl .bp-tick--v { bottom: 0; top: auto; }
+  .bp-corner--br .bp-tick--h { bottom: 0; top: auto; right: 0; left: auto; }
+  .bp-corner--br .bp-tick--v { bottom: 0; top: auto; right: 0; left: auto; }
+
+  /* ── Monospace labels and wire-lines ────────────────────────────────── */
+  .bp-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bp-accent, var(--color-brand));
+    margin: 0;
+  }
+  .bp-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--bp-accent, var(--color-brand));
+    flex-shrink: 0;
+    animation: bp-dot-pulse 2s ease-in-out infinite;
+  }
+  .bp-wire {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--color-brand) 50%, transparent) 0%,
+      color-mix(in oklch, var(--color-brand) 15%, transparent) 60%,
+      transparent 100%
+    );
+  }
+
+  /* Shimmering indigo accent word (for headings) */
+  .bp-accent {
+    background: linear-gradient(
+      90deg,
+      var(--color-brand) 0%,
+      oklch(0.82 0.13 200) 35%,
+      oklch(0.8 0.16 320) 65%,
+      var(--color-brand) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: bp-shimmer 4s linear infinite;
+  }
+  .light .bp-accent {
+    background: linear-gradient(
+      90deg,
+      oklch(0.45 0.18 280) 0%,
+      oklch(0.52 0.13 200) 35%,
+      oklch(0.48 0.2 325) 65%,
+      oklch(0.45 0.18 280) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Inline code chip */
+  .bp-code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: color-mix(in oklch, var(--color-brand) 12%, var(--muted));
+    color: var(--color-brand);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    border: 1px solid color-mix(in oklch, var(--color-brand) 25%, transparent);
+  }
+  .light .bp-code { background: color-mix(in oklch, var(--color-brand) 8%, var(--muted)); }
+
+  /* ── Monospace stat readout ─────────────────────────────────────────── */
+  .bp-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 0 1.5rem;
+    margin: 0;
+    width: fit-content;
+  }
+  .bp-stat-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .bp-stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .bp-stat-val {
+    font-family: var(--font-mono);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--foreground);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .bp-stat-yes { color: var(--color-brand); }
+
+  /* ── Instrument panel: the reusable frame around key UI ──────────────── */
+  /* .bp-panel is the lighter content-card frame; .bp-instrument is the
+     heavier hero-weight variant with glassmorphism + a deep indigo lift. */
+  .bp-panel,
+  .bp-instrument {
+    position: relative;
+    border-radius: 12px;
+    border: 1px solid color-mix(in oklch, var(--color-brand) 22%, transparent);
+    background-color: var(--card);
+    background-image: radial-gradient(100% 56px at 50% 0, color-mix(in oklch, var(--color-brand) 14%, transparent) 0%, transparent 100%);
+    overflow: hidden;
+  }
+  .bp-panel {
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--color-brand) 10%, transparent),
+      0 1px 2px oklch(0 0 0 / 0.2);
+  }
+  .bp-instrument {
+    background-color: color-mix(in oklch, var(--card) 80%, transparent);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-color: color-mix(in oklch, var(--color-brand) 28%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--color-brand) 15%, transparent),
+      0 8px 16px oklch(0 0 0 / 0.35),
+      0 20px 64px color-mix(in oklch, var(--color-brand) 12%, transparent),
+      0 48px 96px color-mix(in oklch, var(--color-brand) 6%, transparent);
+  }
+  .light .bp-instrument {
+    background-color: color-mix(in oklch, var(--card) 90%, transparent);
+    border-color: color-mix(in oklch, var(--color-brand) 22%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--color-brand) 14%, transparent),
+      0 4px 8px oklch(0 0 0 / 0.08),
+      0 20px 48px color-mix(in oklch, var(--color-brand) 8%, transparent);
+  }
+  /* One-shot diagonal shine on entry (hero panel only) */
+  .bp-instrument::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 10;
+    background-image: linear-gradient(45deg, transparent 40%, oklch(1 0 0 / 0.1) 50%, transparent 60%);
+    background-size: 200% 200%;
+    background-position: 220% 220%;
+    animation: bp-shine 1.2s cubic-bezier(0.23, 1, 0.32, 1) 0.6s both;
+  }
+
+  /* Panel header / footer bars with mono micro-labels */
+  .bp-panel-header,
+  .bp-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+  }
+  .bp-panel-header {
+    border-bottom: 1px solid color-mix(in oklch, var(--color-brand) 20%, transparent);
+    background: color-mix(in oklch, var(--color-brand) 6%, transparent);
+  }
+  .bp-panel-footer {
+    border-top: 1px solid color-mix(in oklch, var(--color-brand) 20%, transparent);
+    background: color-mix(in oklch, var(--color-brand) 4%, transparent);
+  }
+  .bp-panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: color-mix(in oklch, var(--color-brand) 80%, var(--muted-foreground));
+  }
+  .bp-panel-status {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--color-verdict-yes);
+  }
+  .bp-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-verdict-yes);
+    animation: bp-status-blink 2s ease-in-out infinite;
+  }
+  .bp-panel-sub {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    opacity: 0.7;
+  }
+
+  /* ── Hero layout shell (homepage) ───────────────────────────────────── */
+  .bp-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--background);
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    padding: clamp(3rem, 8vh, 6rem) clamp(1rem, 4vw, 3rem);
+  }
+  /* Cinematic vignette: darken the far edges so the instrument reads as the
+     focal point. Hero bands only; much fainter in light mode. */
+  .bp-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(ellipse 105% 105% at 50% 42%, transparent 55%, oklch(0 0 0 / 0.34) 100%);
+  }
+  :root.light .bp-hero::after {
+    background: radial-gradient(ellipse 105% 105% at 50% 42%, transparent 62%, oklch(0 0 0 / 0.05) 100%);
+  }
+  .bp-inner {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  @media (min-width: 900px) {
+    .bp-inner { grid-template-columns: 2fr 3fr; gap: clamp(2rem, 4vw, 4rem); }
+  }
+  .bp-copy { display: flex; flex-direction: column; gap: 1.5rem; }
+  .bp-h1 {
+    font-size: clamp(2rem, 4vw + 0.75rem, 3.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    color: var(--foreground);
+    margin: 0;
+  }
+  .bp-sub {
+    font-size: clamp(0.9375rem, 1vw + 0.5rem, 1.125rem);
+    line-height: 1.65;
+    color: var(--muted-foreground);
+    margin: 0;
+  }
+  .bp-sub strong { color: var(--foreground); font-weight: 600; }
+  .bp-stats { display: flex; flex-direction: column; gap: 0.75rem; }
+  .bp-cta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 0.25rem; }
+  .bp-cta-link {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    color: var(--color-brand);
+    transition: opacity 0.15s ease;
+  }
+  .bp-cta-link:hover { text-decoration: underline; }
+  .bp-cta-link:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  .bp-cta-link--muted { color: var(--muted-foreground); }
+  .bp-cta-link--muted:hover { color: var(--foreground); }
+  .bp-detector-wrap { padding: 1.5rem; }
+
+  /* ── Entrance animation ─────────────────────────────────────────────── */
+  .bp-enter {
+    animation: bp-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--delay, 0ms);
+  }
+
+  /* ── Coverage strip ─────────────────────────────────────────────────── */
+  .bp-strip {
+    border-top: 1px solid var(--border);
+    background: color-mix(in oklch, var(--color-brand) 3%, var(--background));
+    padding: 0.75rem clamp(1rem, 4vw, 3rem);
+  }
+  .bp-strip-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+  }
+  .bp-strip-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+    flex-shrink: 0;
+    margin-right: 0.25rem;
+  }
+  .bp-strip-item { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted-foreground); letter-spacing: 0.02em; }
+  .bp-strip-sep { font-family: var(--font-mono); font-size: 0.6875rem; color: color-mix(in oklch, var(--color-brand) 40%, transparent); }
+
+  @media (max-width: 600px) {
+    .bp-stat-grid { grid-template-columns: repeat(2, auto); gap: 0.5rem 1.25rem; }
+  }
+}
+
+@keyframes bp-scan {
+  0% { transform: translateY(-100%); opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { transform: translateY(200%); opacity: 0; }
+}
+@keyframes bp-dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes bp-status-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+@keyframes bp-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes bp-shine {
+  from { background-position: 220% 220%; opacity: 1; }
+  to { background-position: -60% -60%; opacity: 0; }
+}
+@keyframes bp-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-scanline { animation: none; opacity: 0; }
+  .bp-dot,
+  .bp-status-dot { animation: none; }
+  .bp-instrument::after { animation: none; opacity: 0; }
+  .bp-accent {
+    animation: none;
+    background: linear-gradient(135deg, var(--color-brand), oklch(0.82 0.1 280));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  /* Remove the entrance motion entirely (not just shorten it), and stop
+     smooth scrolling, for users who asked for reduced motion. */
+  .bp-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }

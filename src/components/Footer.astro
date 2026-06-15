@@ -30,30 +30,41 @@ const cols = [
 ];
 ---
 
-<footer class="border-t border-border/60 bg-card/30">
+<footer class="relative border-t border-border/60 bg-card/30">
+  <!-- Blueprint brand wire along the footer's top edge -->
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] to-transparent"></div>
+  <!-- Corner registration ticks -->
+  <div class="bp-corner bp-corner--tl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+  <div class="bp-corner bp-corner--tr" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+
   <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[2fr_1fr_1fr]">
     <div>
-      <div class="font-semibold">localmodel<span class="text-muted-foreground">.run</span></div>
-      <p class="mt-2 max-w-xs text-sm text-muted-foreground">{t("footer.tagline")}</p>
-      <p class="mt-3 text-xs text-muted-foreground">{t("footer.dataNote", { date: meta.updated })}</p>
-    </div>
-    {cols.map((c) => (
-      <div>
-        <div class="text-sm font-medium">{c.title}</div>
-        <ul class="mt-2 space-y-1.5">
-          {c.links.map((l) => (
-            <li>
-              <a href={l.href} class="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a>
-            </li>
-          ))}
-        </ul>
+      <div class="flex items-center gap-2 font-semibold">
+        localmodel<span class="text-muted-foreground">.run</span>
+        <span class="font-mono text-[10px] font-normal uppercase tracking-widest text-[var(--color-brand)]">// local ai</span>
       </div>
-    ))}
+      <p class="mt-2 max-w-xs text-sm text-muted-foreground">{t("footer.tagline")}</p>
+      <p class="mt-3 font-mono text-[11px] text-muted-foreground">{t("footer.dataNote", { date: meta.updated })}</p>
+    </div>
+    <nav aria-label="Footer">
+      {cols.map((c) => (
+        <div>
+          <div class="font-mono text-[11px] uppercase tracking-widest text-[var(--color-brand)]">{c.title}</div>
+          <ul class="mt-3 space-y-1.5">
+            {c.links.map((l) => (
+              <li>
+                <a href={l.href} class="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
   </div>
   <div class="border-t border-border/60">
     <div class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
       <span>&copy; {year} localmodel.run. Estimates, not guarantees, always verify before a large download.</span>
-      <span>Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline hover:text-foreground">Ansuman Shah</a>. <a href="/about" class="underline hover:text-foreground">About</a>. <a href="/privacy" class="underline hover:text-foreground">Privacy</a>.</span>
+      <span>Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline hover:text-foreground">Ansuman Shah</a>. <a href="/about" class="underline hover:text-foreground">About</a>. <a href="/privacy" class="underline hover:text-foreground">Privacy</a>. <a href="/notices" class="underline hover:text-foreground">Notices</a>.</span>
     </div>
   </div>
 </footer>

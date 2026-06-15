@@ -66,59 +66,120 @@ const jsonLd = [
   <div class="mx-auto max-w-3xl px-4 py-8">
     <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Rig scores", url: "/rig" }, { name: device.name, url: path }]} />
 
-    <div class="rounded-2xl border border-border bg-card/60 p-6 sm:p-8">
-      <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
-        <div
-          class="grid h-36 w-36 shrink-0 place-items-center rounded-3xl border-2"
-          style={`border-color:${GRADE_COLOR[score.grade]};background:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 8%, transparent)`}
-        >
-          <div class="text-center">
-            <div class="text-xs uppercase tracking-wide text-muted-foreground">Rig Score</div>
-            <div class="text-7xl font-bold leading-none" style={`color:${GRADE_COLOR[score.grade]}`}>{score.grade}</div>
+    <!-- Score instrument readout -->
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Rig score &middot; {device.category}</p>
+
+    <div class="bp-panel mt-4">
+      <div class="bp-panel-header">
+        <span class="bp-panel-label">Device readout</span>
+        <span class="bp-panel-label">{meta.updated}</span>
+      </div>
+
+      <div class="p-6 sm:p-8">
+        <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
+          <!-- Grade dial -->
+          <div
+            class="grid h-36 w-36 shrink-0 place-items-center rounded-2xl border-2"
+            style={`border-color:${GRADE_COLOR[score.grade]};background:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 8%, transparent)`}
+            role="img"
+            aria-label={`Rig score: ${score.grade}`}
+          >
+            <div class="text-center">
+              <div class="bp-stat-label">Rig Score</div>
+              <div class="mt-1 font-mono text-7xl font-bold leading-none" style={`color:${GRADE_COLOR[score.grade]}`}>{score.grade}</div>
+            </div>
+          </div>
+
+          <!-- Device summary -->
+          <div class="text-center sm:text-left">
+            <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
+              <EntityIcon device={device.category} size={28} class="text-muted-foreground" />
+              <span>{device.name}</span>
+            </h1>
+            <p class="mt-2 text-lg text-muted-foreground">
+              Runs <strong class="text-foreground">{score.runnable} of {score.total}</strong> models ({score.pct}%)
+            </p>
+            <p class="mt-1 text-sm text-muted-foreground">{GRADE_BLURB[score.grade]}</p>
+            {score.biggest && (
+              <p class="mt-1 text-sm text-muted-foreground">Biggest it can run: <strong class="text-foreground">{score.biggest.name}</strong></p>
+            )}
           </div>
         </div>
-        <div class="text-center sm:text-left">
-          <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
-            <EntityIcon device={device.category} size={28} class="text-muted-foreground" />
-            <span>{device.name}</span>
-          </h1>
-          <p class="mt-2 text-lg text-muted-foreground">
-            Runs <strong class="text-foreground">{score.runnable} of {score.total}</strong> models ({score.pct}%)
-          </p>
-          <p class="mt-1 text-sm text-muted-foreground">{GRADE_BLURB[score.grade]}</p>
-          {score.biggest && (
-            <p class="mt-1 text-sm text-muted-foreground">Biggest it can run: <strong class="text-foreground">{score.biggest.name}</strong></p>
-          )}
+
+        <!-- Stat breakdown row -->
+        <div class="mt-6">
+          <div class="bp-wire" aria-hidden="true"></div>
+          <dl class="bp-stat-grid mt-4">
+            <div class="bp-stat-item">
+              <dt class="bp-stat-label">Grade</dt>
+              <dd class="bp-stat-val" style={`color:${GRADE_COLOR[score.grade]}`}>{score.grade}</dd>
+            </div>
+            <div class="bp-stat-item">
+              <dt class="bp-stat-label">Runnable</dt>
+              <dd class="bp-stat-val">{score.runnable}</dd>
+            </div>
+            <div class="bp-stat-item">
+              <dt class="bp-stat-label">Total</dt>
+              <dd class="bp-stat-val">{score.total}</dd>
+            </div>
+            <div class="bp-stat-item">
+              <dt class="bp-stat-label">Coverage</dt>
+              <dd class="bp-stat-val bp-stat-yes">{score.pct}%</dd>
+            </div>
+          </dl>
         </div>
       </div>
 
-      <div class="mt-6 flex flex-wrap justify-center gap-3 sm:justify-start">
-        <a href={xUrl} rel="noopener" target="_blank" class="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-[oklch(0.18_0.01_270)]">Share on X</a>
-        <a href={redditUrl} rel="noopener" target="_blank" class="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-accent">Share on Reddit</a>
-        <a href={`/best-llm-for/${device.id}`} class="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-accent">Best models →</a>
+      <div class="bp-panel-footer">
+        <div class="flex flex-wrap gap-3">
+          <a href={xUrl} rel="noopener noreferrer" target="_blank" aria-label={`Share ${device.name} rig score on X`} class="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-[oklch(0.18_0.01_270)]">Share on X</a>
+          <a href={redditUrl} rel="noopener noreferrer" target="_blank" aria-label={`Share ${device.name} rig score on Reddit`} class="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-accent">Share on Reddit</a>
+          <a href={`/best-llm-for/${device.id}`} class="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-accent">Best models &rarr;</a>
+        </div>
+        <span class="bp-panel-label hidden sm:block">localmodel.run</span>
       </div>
     </div>
 
+    <!-- Top models section -->
     <section class="mt-8">
-      <h2 class="text-lg font-semibold">Top models on {device.name}</h2>
-      <ul class="mt-3 grid gap-2 sm:grid-cols-2">
-        {top.map((x) => (
-          <li>
-            <a href={`/can-i-run/${x.m.id}/${device.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 transition-colors hover:border-foreground/30">
-              <span class="flex min-w-0 items-center gap-2 text-sm font-medium">
-                <EntityIcon maker={x.m.family} size={18} class="text-muted-foreground" />
-                <span class="truncate">{x.m.name}</span>
-              </span>
-              <VerdictBadge verdict={x.r.verdict} />
-            </a>
-          </li>
+      <h2 class="mb-3 text-lg font-semibold">Top models on {device.name}</h2>
+      <div class="bp-panel overflow-hidden">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Compatible models</span>
+          <span class="bp-panel-label">by size</span>
+        </div>
+        <ul class="grid gap-0 divide-y divide-border sm:grid-cols-2 sm:divide-y-0">
+          {top.map((x) => (
+            <li class="border-b border-border last:border-b-0 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:border-border">
+              <a href={`/can-i-run/${x.m.id}/${device.id}`} class="flex items-center justify-between px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_5%,transparent)]">
+                <span class="flex min-w-0 items-center gap-2 text-sm font-medium">
+                  <EntityIcon maker={x.m.family} size={18} class="text-muted-foreground" />
+                  <span class="truncate">{x.m.name}</span>
+                </span>
+                <VerdictBadge verdict={x.r.verdict} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="bp-panel divide-y divide-border">
+        {rigFaqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
 
     <p class="mt-8 text-center text-sm text-muted-foreground">
-      Want your own? <a href="/" class="text-[var(--color-brand)] hover:underline">Check your rig on the homepage →</a>
+      Want your own? <a href="/" class="text-[var(--color-brand)] hover:underline">Check your rig on the homepage &rarr;</a>
     </p>
-    <p class="mt-2 text-center text-xs text-muted-foreground">Score from coverage of {score.total} tracked models, estimated with our <a href="/methodology" class="underline">memory methodology</a>. Data validated {meta.updated} from Ollama, HuggingFace and vendor specs.</p>
+    <p class="mt-2 text-center text-xs text-muted-foreground">Score from coverage of {score.total} tracked models, estimated with our <a href="/methodology" class="underline">memory methodology</a>.</p>
   </div>
 </Base>

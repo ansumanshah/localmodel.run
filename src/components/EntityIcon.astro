@@ -27,7 +27,7 @@ else spec = { icon: null, label: "", initials: "?" };
   spec.icon ? (
     <Icon
       name={spec.icon}
-      title={spec.label}
+      aria-hidden="true"
       width={size}
       height={size}
       class:list={["inline-block shrink-0 align-[-0.125em]", cls]}

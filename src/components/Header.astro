@@ -14,22 +14,27 @@ const links = [
 ---
 
 <header class="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-  <div class="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4">
-    <a href={localizedPath("/", lang)} class="flex items-center gap-2 font-semibold tracking-tight">
+  <div class="relative mx-auto flex h-14 max-w-6xl items-center gap-2 px-4">
+    <a href={localizedPath("/", lang)} class="flex items-center gap-2 rounded-md font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]">
       <span class="grid h-7 w-7 place-items-center rounded-md bg-[var(--color-brand)] text-[oklch(0.18_0.01_270)]">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="6" y="6" width="12" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"></rect>
           <rect x="8.4" y="12.4" width="7.2" height="2.8" rx="1.1" fill="currentColor"></rect>
         </svg>
       </span>
-      <span>localmodel<span class="text-muted-foreground">.run</span></span>
+      <span class="whitespace-nowrap">localmodel<span class="text-muted-foreground">.run</span></span>
     </a>
 
-    <nav class="ml-auto hidden items-center gap-1 sm:flex" aria-label="Primary">
+    <span class="ml-3 hidden items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground md:flex" aria-hidden="true">
+      <span class="h-1.5 w-1.5 rounded-full bg-[var(--color-verdict-yes)]"></span>
+      model compatibility
+    </span>
+
+    <nav class="ml-auto hidden items-center gap-0.5 sm:flex" aria-label="Primary">
       {links.map((l) => (
         <a
           href={l.href}
-          class="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          class="rounded-md px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
         >
           {l.label}
         </a>
@@ -37,32 +42,79 @@ const links = [
     </nav>
 
     <div class="ml-auto flex items-center gap-1 sm:ml-2">
-      <div class="mr-1 flex items-center overflow-hidden rounded-md border border-border text-xs">
-        <a href="/" class={`px-2 py-1 transition-colors ${lang === "en" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>EN</a>
-        <a href="/es" class={`px-2 py-1 transition-colors ${lang === "es" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>ES</a>
-      </div>
+      <nav aria-label="Language" class="mr-1 flex items-center overflow-hidden rounded-md border border-border font-mono text-[11px]">
+        <a href="/" aria-current={lang === "en" ? "true" : undefined} class={`px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-brand)] ${lang === "en" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>EN</a>
+        <a href="/es" aria-current={lang === "es" ? "true" : undefined} class={`px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-brand)] ${lang === "es" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>ES</a>
+      </nav>
       <button
         id="theme-toggle"
         type="button"
-        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
         aria-label="Toggle theme"
       >
         <svg class="hidden dark:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
         <svg class="block dark:hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"></path></svg>
       </button>
+      <button
+        id="mobile-menu-btn"
+        type="button"
+        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] sm:hidden"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
     </div>
+
+    <!-- Blueprint brand wire along the header's bottom edge -->
+    <div class="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-[color-mix(in_oklch,var(--color-brand)_50%,transparent)] to-transparent"></div>
   </div>
+
+  <!-- Mobile nav panel (toggled by the hamburger; hidden at sm and up) -->
+  <nav id="mobile-nav" aria-label="Primary mobile" class="hidden border-t border-border/60 px-4 py-2 sm:hidden">
+    <ul class="flex flex-col">
+      {links.map((l) => (
+        <li>
+          <a
+            href={l.href}
+            class="block rounded-md px-2 py-2.5 font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+          >
+            {l.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
 </header>
 
 <script is:inline>
-  document.getElementById("theme-toggle")?.addEventListener("click", function () {
-    var root = document.documentElement;
-    var dark = root.classList.toggle("dark");
-    root.classList.toggle("light", !dark);
-    try {
-      localStorage.setItem("theme", dark ? "dark" : "light");
-    } catch (_e) {
-      /* localStorage unavailable (private mode); ignore */
-    }
-  });
+  // Delegated on document so the listeners survive view-transition swaps.
+  (function () {
+    if (window.__lmrHeaderBound) return;
+    window.__lmrHeaderBound = true;
+    document.addEventListener("click", function (e) {
+      var el = e.target;
+      if (!(el instanceof Element)) return;
+      if (el.closest("#theme-toggle")) {
+        var root = document.documentElement;
+        var dark = root.classList.toggle("dark");
+        root.classList.toggle("light", !dark);
+        try {
+          localStorage.setItem("theme", dark ? "dark" : "light");
+        } catch (_e) {
+          /* localStorage unavailable (private mode); ignore */
+        }
+        return;
+      }
+      var btn = el.closest("#mobile-menu-btn");
+      if (btn) {
+        var panel = document.getElementById("mobile-nav");
+        if (!panel) return;
+        var closed = panel.classList.toggle("hidden");
+        btn.setAttribute("aria-expanded", String(!closed));
+        btn.setAttribute("aria-label", closed ? "Open menu" : "Close menu");
+      }
+    });
+  })();
 </script>

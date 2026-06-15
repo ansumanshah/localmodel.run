@@ -171,14 +171,14 @@ export function softwareAppLd(origin: string): JsonLd {
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     creator: personAuthor,
     featureList: [
-      "Hardware compatibility check for local LLMs",
+      "Hardware compatibility check for local AI models (LLMs, image, video, audio)",
       "Memory requirement calculator with KV cache",
       "Per-platform tool recommendations",
-      "Rig score grading for 30 devices",
+      "Rig score grading across all tracked devices",
     ],
     screenshot: new URL("/og/home.png", origin).href,
     description:
-      "Check whether your computer or phone can run a given local LLM, and which tool to use, per platform.",
+      "Check whether your computer or phone can run a given local AI model (LLM, image, video, or audio), and which tool to use, per platform.",
   };
 }
 
@@ -190,9 +190,9 @@ export function datasetLd(opts: {
   return {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    name: "Local LLM hardware-requirement dataset",
+    name: "Local AI model hardware-requirement dataset",
     description:
-      "Validated parameter counts, GGUF quant sizes and memory requirements for popular local LLMs, with per-device runnability.",
+      "Validated memory requirements and per-device runnability for local AI models: text LLMs (GGUF quant sizes), plus image, video and audio models (sourced peak-VRAM anchors).",
     url: new URL("/methodology", opts.origin).href,
     dateModified: opts.dateModified,
     isAccessibleForFree: true,

@@ -1,7 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Detector from "@/components/Detector.tsx";
-import { models, devices, meta } from "@/lib/data";
+import { allModels, devices, meta } from "@/lib/data";
 import { useTranslations } from "@/i18n/utils";
 import { faqLd, softwareAppLd, truncate, type FaqItem } from "@/lib/seo";
 
@@ -9,13 +9,13 @@ const t = useTranslations("es");
 const path = "/es";
 const title = "¿Puedo ejecutar este modelo de IA en local? Comprueba tu Mac, PC o móvil · localmodel.run";
 const description = truncate(
-  `Comprueba al instante si tu ordenador o móvil puede ejecutar un modelo de IA local como Llama, DeepSeek, Qwen o Gemma, y qué herramienta usar en Mac, Windows, Linux, iOS o Android. Gratis, sin registro. ${models.length} modelos, ${devices.length} dispositivos, datos validados.`,
+  `Comprueba al instante si tu ordenador o móvil puede ejecutar un modelo de IA local como Llama, DeepSeek, Qwen o Gemma, y qué herramienta usar en Mac, Windows, Linux, iOS o Android. Gratis, sin registro. ${allModels.length} modelos entre texto, imagen, video y audio, ${devices.length} dispositivos, datos validados.`,
 );
 
 const faqs: FaqItem[] = [
   {
-    q: "¿Cómo sé si mi ordenador puede ejecutar un LLM en local?",
-    a: `Compara la memoria que necesita el modelo con tu memoria utilizable. Un modelo de 7-8B en Q4_K_M necesita unos 6-7 GB, así que funciona en un Mac de 16 GB o una GPU de 12 GB. localmodel.run hace ese cálculo para ${models.length} modelos en ${devices.length} dispositivos.`,
+    q: "¿Cómo sé si mi ordenador puede ejecutar un modelo de IA en local?",
+    a: `Compara la memoria que necesita el modelo con tu memoria utilizable. Un modelo de texto de 7-8B en Q4_K_M necesita unos 6-7 GB, así que funciona en un Mac de 16 GB o una GPU de 12 GB. Los modelos de imagen (como Stable Diffusion o FLUX) requieren ~4-8 GB según la variante. localmodel.run hace ese cálculo para ${allModels.length} modelos en ${devices.length} dispositivos.`,
   },
   {
     q: "¿Puedo ejecutar modelos de IA en local en un Mac?",
@@ -31,29 +31,91 @@ const jsonLd = [softwareAppLd(Astro.site!.href), faqLd(faqs)];
 
 const steps = [
   { n: "1", t: "Tamaños reales", d: "Los tamaños por cuantización vienen de Ollama y HuggingFace, no de suposiciones. Cada número tiene su fuente." },
-  { n: "2", t: "Cálculo de memoria honesto", d: "Sumamos la caché KV y el overhead, y usamos memoria utilizable realista (Apple unificada ~70%, VRAM menos el driver)." },
+  { n: "2", t: "Cálculo de memoria honesto", d: "Sumamos la caché KV y el overhead, y usamos memoria utilizable realista (Apple unificada ~66-75% (segun el chip), VRAM menos el driver)." },
   { n: "3", t: "La herramienta adecuada", d: "Por plataforma: MLX/Ollama en Mac, CUDA en Windows, vLLM en Linux, PocketPal en el móvil." },
 ];
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]} ogTitle="¿Puedo ejecutar este modelo de IA en local?">
-  <section class="relative overflow-hidden border-b border-border/60">
-    <div class="pointer-events-none absolute inset-0 -z-10 opacity-60 [background:radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--color-brand)_18%,transparent),transparent)]"></div>
-    <div class="mx-auto max-w-4xl px-4 pb-12 pt-14 text-center sm:pt-20">
-      <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
-        <span class="h-1.5 w-1.5 rounded-full bg-[var(--color-brand)]"></span>
-        {t("hero.badge", { models: models.length, devices: devices.length, date: meta.updated })}
+  <!-- Hero: Blueprint Console (Spanish). Same instrument-panel framing as the
+       English homepage, with all Spanish copy preserved unchanged. -->
+  <section class="bp-hero" id="hero-spotlight-es" style="--mx:50%;--my:50%">
+    <!-- Blueprint grid -->
+    <div class="bp-grid" aria-hidden="true"></div>
+
+    <!-- Corner registration ticks -->
+    <div class="bp-corner bp-corner--tl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+    <div class="bp-corner bp-corner--tr" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+    <div class="bp-corner bp-corner--bl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+    <div class="bp-corner bp-corner--br" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+
+    <!-- Indigo brand glow -->
+    <div class="bp-glow" aria-hidden="true"></div>
+    <!-- Scanline sweep -->
+    <div class="bp-scanline" aria-hidden="true"></div>
+    <!-- Cursor-follow spotlight -->
+    <div class="bp-spotlight" aria-hidden="true"></div>
+
+    <div class="bp-inner">
+      <!-- Copy column -->
+      <div class="bp-copy">
+        <p class="bp-eyebrow bp-enter" style="--delay:0ms">
+          <span class="bp-dot" aria-hidden="true"></span>
+          {t("hero.badge", { models: allModels.length, devices: devices.length, date: meta.updated })}
+        </p>
+        <h1 class="bp-h1 bp-enter" style="--delay:80ms">
+          {t("hero.title1")} {t("hero.title2")} <span class="bp-accent">{t("hero.locally")}</span>
+        </h1>
+        <p class="bp-sub bp-enter" style="--delay:180ms">
+          {t("hero.sub")}
+        </p>
+        <div class="bp-stats bp-enter" style="--delay:280ms">
+          <div class="bp-wire" aria-hidden="true"></div>
+          <dl class="bp-stat-grid">
+            <div class="bp-stat-item"><dt class="bp-stat-label">Modelos</dt><dd class="bp-stat-val">{allModels.length}</dd></div>
+            <div class="bp-stat-item"><dt class="bp-stat-label">Dispositivos</dt><dd class="bp-stat-val">{devices.length}</dd></div>
+            <div class="bp-stat-item"><dt class="bp-stat-label">Modalidades</dt><dd class="bp-stat-val">4</dd></div>
+            <div class="bp-stat-item"><dt class="bp-stat-label">Precio</dt><dd class="bp-stat-val bp-stat-yes">Gratis</dd></div>
+          </dl>
+          <div class="bp-cta">
+            <a href="/can-i-run" class="bp-cta-link">Ver todos los modelos →</a>
+            <a href="/methodology" class="bp-cta-link bp-cta-link--muted">Cómo calculamos →</a>
+          </div>
+        </div>
       </div>
-      <h1 class="text-balance text-4xl font-bold tracking-tight sm:text-6xl">
-        {t("hero.title1")} {t("hero.title2")} <span class="text-[var(--color-brand)]">{t("hero.locally")}</span>
-      </h1>
-      <p class="mx-auto mt-5 max-w-2xl text-pretty text-lg text-muted-foreground">{t("hero.sub")}</p>
-      <div class="mx-auto mt-8 max-w-2xl text-left">
-        <Detector client:load />
+
+      <!-- Instrument panel -->
+      <div class="bp-instrument bp-enter" style="--delay:120ms">
+        <div class="bp-panel-header" aria-hidden="true">
+          <span class="bp-panel-label">Motor de umbral VRAM</span>
+          <span class="bp-panel-status"><span class="bp-status-dot"></span>EN VIVO</span>
+        </div>
+        <div class="bp-detector-wrap">
+          <Detector client:load />
+        </div>
       </div>
     </div>
   </section>
 
+  <!-- Slim coverage strip -->
+  <div class="bp-strip">
+    <div class="bp-strip-inner">
+      <span class="bp-strip-label">Cubre</span>
+      <span class="bp-strip-item">Generación de texto</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item">Modelos de imagen</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item">Modelos de video</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item">Modelos de audio</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item">Apple Silicon</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item">NVIDIA / AMD</span>
+    </div>
+  </div>
+
+  <!-- How it works -->
   <section class="mx-auto max-w-5xl px-4 py-12">
     <h2 class="text-2xl font-bold tracking-tight">{t("home.howItWorks")}</h2>
     <div class="mt-5 grid gap-4 sm:grid-cols-3">
@@ -67,12 +129,16 @@ const steps = [
     </div>
   </section>
 
+  <!-- FAQ -->
   <section class="mx-auto max-w-3xl px-4 py-12">
     <h2 class="text-2xl font-bold tracking-tight">{t("home.faq")}</h2>
     <div class="mt-5 divide-y divide-border rounded-xl border border-border bg-card">
       {faqs.map((f) => (
         <details class="group p-5">
-          <summary class="cursor-pointer list-none font-medium [&::-webkit-details-marker]:hidden">{f.q}</summary>
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] [&::-webkit-details-marker]:hidden">
+          <span>{f.q}</span>
+          <svg class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+        </summary>
           <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
         </details>
       ))}
@@ -82,3 +148,24 @@ const steps = [
     </p>
   </section>
 </Base>
+
+<!-- Cursor-follow spotlight for the blueprint hero -->
+<script is:inline data-astro-rerun>
+  (function () {
+    var hero = document.getElementById("hero-spotlight-es");
+    var spotlight = hero && hero.querySelector(".bp-spotlight");
+    if (!hero || !spotlight) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (hero.dataset.spotBound) return;
+    hero.dataset.spotBound = "1";
+    hero.addEventListener("pointermove", function (e) {
+      var r = hero.getBoundingClientRect();
+      spotlight.style.setProperty("--mx", (((e.clientX - r.left) / r.width) * 100).toFixed(1) + "%");
+      spotlight.style.setProperty("--my", (((e.clientY - r.top) / r.height) * 100).toFixed(1) + "%");
+      spotlight.style.opacity = "1";
+    });
+    hero.addEventListener("pointerleave", function () {
+      spotlight.style.opacity = "0";
+    });
+  })();
+</script>

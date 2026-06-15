@@ -1,13 +1,17 @@
 ---
+import { Icon } from "astro-icon/components";
 import type { Verdict } from "@/data/types";
-import { verdictLabel } from "@/lib/compute";
+import { verdictLabel, verdictLabelShort } from "@/lib/compute";
 
 interface Props {
   verdict: Verdict;
   size?: "sm" | "lg";
+  // Only used by the `lg` (hero) variant: a short muted aside (e.g. the speed)
+  // that sits inline with the verdict so the two read as one line.
+  note?: string;
   class?: string;
 }
-const { verdict, size = "sm", class: cls = "" } = Astro.props;
+const { verdict, size = "sm", note, class: cls = "" } = Astro.props;
 
 // Fill/border use the vivid verdict color; TEXT uses the WCAG-AA-tuned
 // foreground token (darker on light surfaces, lighter on dark).
@@ -23,14 +27,32 @@ const textColor: Record<Verdict, string> = {
   no: "var(--verdict-no-fg)",
   unknown: "var(--muted-foreground)",
 };
-const icon: Record<Verdict, string> = { yes: "✓", tight: "≈", no: "✕", unknown: "?" };
-const pad = size === "lg" ? "px-3.5 py-1.5 text-sm" : "px-2.5 py-0.5 text-xs";
+const iconName: Record<Verdict, string> = {
+  yes: "lucide:circle-check",
+  tight: "lucide:circle-alert",
+  no: "lucide:circle-x",
+  unknown: "lucide:circle-question-mark",
+};
 ---
 
-<span
-  class={`inline-flex items-center gap-1.5 rounded-full border font-medium ${pad} ${cls}`}
-  style={`color:${textColor[verdict]};border-color:color-mix(in oklch, ${color[verdict]} 40%, transparent);background:color-mix(in oklch, ${color[verdict]} 12%, transparent)`}
->
-  <span aria-hidden="true">{icon[verdict]}</span>
-  <span>{verdictLabel(verdict)}</span>
-</span>
+{
+  size === "lg" ? (
+    // Hero verdict: icon-led colored text, no pill. The optional note blends in
+    // as a muted aside on the same line so verdict + speed read as one unit.
+    <span class={`inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-base font-semibold tracking-tight ${cls}`}>
+      <span class="inline-flex items-center gap-1.5" style={`color:${textColor[verdict]}`}>
+        <Icon name={iconName[verdict]} width={18} height={18} class="shrink-0" aria-hidden="true" />
+        {verdictLabel(verdict)}
+      </span>
+      {note && <span class="text-sm font-normal text-muted-foreground">{note}</span>}
+    </span>
+  ) : (
+    <span
+      class={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${cls}`}
+      style={`color:${textColor[verdict]};border-color:color-mix(in oklch, ${color[verdict]} 35%, transparent);background:color-mix(in oklch, ${color[verdict]} 10%, transparent)`}
+    >
+      <Icon name={iconName[verdict]} width={13} height={13} class="shrink-0" aria-hidden="true" />
+      <span>{verdictLabelShort(verdict)}</span>
+    </span>
+  )
+}

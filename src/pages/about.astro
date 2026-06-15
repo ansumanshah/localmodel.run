@@ -7,7 +7,7 @@ import { breadcrumbLd, techArticleLd, truncate } from "@/lib/seo";
 const path = "/about";
 const title = "About · localmodel.run";
 const description = truncate(
-  "localmodel.run is built by Ansuman Shah, an indie dev who kept Googling whether a model would fit in RAM. Every number is validated against Ollama and HuggingFace GGUF repos.",
+  "localmodel.run is built by Ansuman Shah, an indie dev who kept Googling whether a model would fit in RAM. Text model figures are validated against Ollama and HuggingFace GGUF repos; image, video, and audio figures are sourced from vendor specs and benchmarks.",
 );
 
 const jsonLd = [
@@ -26,6 +26,11 @@ const jsonLd = [
 <Base title={title} description={description} path={path} jsonLd={jsonLd}>
   <article class="mx-auto max-w-2xl px-4 py-8">
     <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "About", url: path }]} />
+
+    <p class="bp-eyebrow mb-3">
+      <span class="bp-dot" aria-hidden="true"></span>
+      localmodel.run
+    </p>
     <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">About</h1>
 
     <div class="mt-6 space-y-4 text-muted-foreground">
@@ -33,17 +38,30 @@ const jsonLd = [
         I kept Googling "can I run Llama 3 70B on a 16 GB Mac" and getting Reddit threads with conflicting answers and no math shown. So I built a calculator that does the actual memory math, cites its sources, and gives a straight yes or no.
       </p>
       <p>
-        Every number on this site is validated against real GGUF files on the <a href="https://ollama.com/library" rel="noopener nofollow" class="underline">Ollama library</a> and HuggingFace repos. The formula is public. You can check it on the <a href="/methodology" class="underline">methodology page</a>.
-      </p>
-      <p>
-        The site covers Mac, Windows, Linux, iOS, and Android. It recommends the right tool per platform because the wrong one costs you half your tokens per second.
-      </p>
-      <p>
-        Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline text-foreground font-medium">Ansuman Shah</a>, an indie dev in Bengaluru. I build small, focused tools under the <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">NoodleApps</a> name. Find me on <a href="https://x.com/AnsumanShah" rel="noopener nofollow" class="underline">X</a> or <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">GitHub</a>.
-      </p>
-      <p class="text-sm">
-        Data last validated {meta.updated}. Figures are estimates, not guarantees. Always verify before a large download.
+        The site covers Mac, Windows, Linux, iOS, and Android. It recommends the right tool per platform because the wrong one cuts your throughput in half.
       </p>
     </div>
+
+    <hr class="bp-wire my-6" />
+
+    <p class="bp-stat-label mb-3">Data sources</p>
+    <div class="space-y-4 text-muted-foreground">
+      <p>
+        Text model figures are validated against real GGUF files on the <a href="https://ollama.com/library" rel="noopener nofollow" class="underline">Ollama library</a> and HuggingFace repos. Image, video, and audio figures are sourced from vendor specs and benchmarks. The formula is public. You can check it on the <a href="/methodology" class="underline">methodology page</a>.
+      </p>
+    </div>
+
+    <hr class="bp-wire my-6" />
+
+    <p class="bp-stat-label mb-3">Builder</p>
+    <div class="bp-panel p-5">
+      <p class="text-muted-foreground">
+        Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline text-foreground font-medium">Ansuman Shah</a>, an indie dev in Bengaluru. Small, focused tools under the NoodleApps name. Find me on <a href="https://x.com/AnsumanShah" rel="noopener nofollow" class="underline">X</a> or <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">GitHub</a>.
+      </p>
+    </div>
+
+    <p class="mt-6 text-sm text-muted-foreground">
+      Data last validated {meta.updated}. Figures are estimates, not guarantees. Always verify before a large download.
+    </p>
   </article>
 </Base>

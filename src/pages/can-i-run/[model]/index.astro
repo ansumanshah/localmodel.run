@@ -23,9 +23,14 @@ const kindWord =
 const memWord = modality === "audio" ? "memory" : "VRAM";
 const archWord = spec && "arch" in spec ? `${spec.arch.toUpperCase()} ` : "";
 const paramLabel = model.params_b < 1 ? `${Math.round(model.params_b * 1000)}M` : `${model.params_b}B`;
+const audioHasPhone =
+  modality === "audio" &&
+  !!(model.audio?.device_classes?.includes("iphone") || model.audio?.device_classes?.includes("android"));
 const runtimeSentence =
   modality === "audio" && model.audio?.cpu_ok
-    ? "It runs on CPU, so most machines can run it; pick your hardware below."
+    ? audioHasPhone
+      ? "It runs on CPU, so most machines can run it; pick your hardware below."
+      : "It runs on CPU, so most desktop and laptop machines can run it; pick your hardware below."
     : "It needs a GPU (Apple Silicon, NVIDIA or AMD); pick your hardware below.";
 const groups = categoryDevices();
 
@@ -52,7 +57,7 @@ const jsonLd = [
   breadcrumbLd(
     [
       { name: "Home", url: "/" },
-      { name: "Can I run", url: "/can-i-run" },
+      { name: "Models", url: "/can-i-run" },
       { name: model.name, url: path },
     ],
     Astro.site!.href,
@@ -89,12 +94,17 @@ const jsonLd = [
     <Breadcrumbs
       items={[
         { name: "Home", url: "/" },
-        { name: "Can I run", url: "/can-i-run" },
+        { name: "Models", url: "/can-i-run" },
         { name: model.name, url: path },
       ]}
     />
 
-    <h1 class="flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+    <p class="bp-eyebrow mt-4">
+      <span class="bp-dot" aria-hidden="true"></span>
+      {isText ? `Text model · ${model.family}` : `${kindWord} · ${model.family}`}
+    </p>
+
+    <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
       <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
       <span>Can I run {model.name}? Pick your device.</span>
     </h1>
@@ -114,12 +124,12 @@ const jsonLd = [
       </p>
     )}
 
-    <div class="mt-8 space-y-6">
+    <div class="bp-wire mt-6" aria-hidden="true"></div>
+
+    <div class="mt-6 space-y-6">
       {shownGroups.map(([cat, list]) => (
         <section>
-          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {CATEGORY_LABEL[cat] ?? cat}
-          </h2>
+          <h2 class="bp-stat-label mb-3">{CATEGORY_LABEL[cat] ?? cat}</h2>
           <ul class="grid gap-2 sm:grid-cols-2">
             {list.map((d) => {
               const r = isText ? canRun(model, d) : canRunModality(model, d);
@@ -127,9 +137,9 @@ const jsonLd = [
                 <li>
                   <a
                     href={`/can-i-run/${model.id}/${d.id}`}
-                    class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30"
+                    class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
                   >
-                    <span class="flex min-w-0 items-center gap-2 text-sm font-medium">
+                    <span class="flex min-w-0 items-center gap-2 text-sm">
                       <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
                       <span class="truncate">{d.name}</span>
                     </span>
@@ -145,7 +155,7 @@ const jsonLd = [
 
     <p class="mt-8 text-xs text-muted-foreground">
       {isText
-        ? `Memory figures are estimates (formula v${meta.formula_version}, data validated ${meta.updated}).`
+        ? `Memory figures are estimates.`
         : `${memWord === "memory" ? "Memory" : "VRAM"} is a sourced peak-usage anchor at ${need!.quantLabel}, validated ${meta.updated}.`} See <a href="/methodology" class="underline">methodology</a>.
     </p>
   </div>

@@ -7,6 +7,7 @@ import Footer from "@/components/Footer.astro";
 import { getLangFromUrl, localizedPath, stripLocale } from "@/i18n/utils";
 import type { Lang } from "@/i18n/ui";
 import { organizationLd, websiteLd, safeJsonLd, type JsonLd } from "@/lib/seo";
+import { ClientRouter } from "astro:transitions";
 
 interface Props {
   title: string;
@@ -107,19 +108,26 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
          and bundled at build); no third-party font CDN, no visitor-IP leak. -->
 
     <script is:inline>
-      // Set theme before paint to avoid flash. Defaults to dark.
+      // Set theme before paint to avoid flash. An explicit choice (the header
+      // toggle) wins; otherwise follow the OS prefers-color-scheme, defaulting
+      // to dark when the OS has no preference.
       (function () {
+        var root = document.documentElement;
         try {
           var t = localStorage.getItem("theme");
-          var root = document.documentElement;
-          if (t === "light") {
+          var prefersLight =
+            t !== "dark" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: light)").matches;
+          if (t === "light" || prefersLight) {
             root.classList.remove("dark");
             root.classList.add("light");
           } else {
             root.classList.add("dark");
           }
         } catch (_e) {
-          /* localStorage unavailable; fall back to default dark theme */
+          /* matchMedia/localStorage unavailable; keep the default dark theme */
+          root.classList.add("dark");
         }
       })();
     </script>
@@ -129,29 +137,58 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     ))}
     <script type="application/ld+json" set:html={safeJsonLd(organizationLd(site.href))} />
     <script type="application/ld+json" set:html={safeJsonLd(websiteLd(site.href))} />
+
+    <!-- SPA-style cross-document view transitions (shared-element morphs). Astro
+         disables these automatically under prefers-reduced-motion. -->
+    <ClientRouter />
   </head>
   <body class="min-h-screen flex flex-col">
+    <a
+      href="#main-content"
+      class="sr-only z-50 rounded-md bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-[oklch(0.18_0.01_270)] focus:not-sr-only focus:absolute focus:left-4 focus:top-3"
+    >
+      Skip to content
+    </a>
     <Header />
-    <main class="flex-1">
+    <main id="main-content" class="flex-1">
       <slot />
     </main>
     <Footer year={year} />
     <script is:inline>
-      // Delegated copy-to-clipboard for [data-copy] buttons.
-      document.addEventListener("click", function (e) {
-        var t = e.target;
-        if (!(t instanceof Element)) return;
-        var btn = t.closest("[data-copy]");
-        if (!btn) return;
-        var text = btn.getAttribute("data-copy") || "";
-        navigator.clipboard?.writeText(text).then(function () {
-          var prev = btn.textContent;
-          btn.textContent = "Copied";
-          setTimeout(function () {
-            btn.textContent = prev;
-          }, 1400);
+      // Delegated copy-to-clipboard for [data-copy] buttons. Guarded so the
+      // single document listener is not re-bound across view-transition swaps.
+      if (!window.__lmrCopyBound) {
+        window.__lmrCopyBound = true;
+        document.addEventListener("click", function (e) {
+          var t = e.target;
+          if (!(t instanceof Element)) return;
+          var btn = t.closest("[data-copy]");
+          if (!btn) return;
+          var text = btn.getAttribute("data-copy") || "";
+          navigator.clipboard?.writeText(text).then(function () {
+            var prev = btn.textContent;
+            btn.textContent = "Copied";
+            setTimeout(function () {
+              btn.textContent = prev;
+            }, 1400);
+          });
         });
-      });
+      }
+    </script>
+
+    <script is:inline>
+      // The View Transitions API emits a benign "Transition was aborted"
+      // rejection when one navigation supersedes an in-flight transition.
+      // Swallow only that exact message so it never surfaces as an uncaught error.
+      if (!window.__lmrVtGuard) {
+        window.__lmrVtGuard = true;
+        window.addEventListener("unhandledrejection", function (e) {
+          var msg = e.reason && (e.reason.message || e.reason);
+          if (typeof msg === "string" && msg.indexOf("Transition was aborted") !== -1) {
+            e.preventDefault();
+          }
+        });
+      }
     </script>
 
     {cfBeaconToken && (

@@ -9,6 +9,7 @@ import {
   tools,
   platformLabel,
   models,
+  allModels,
   devices,
   meta,
 } from "@/lib/data";
@@ -22,25 +23,25 @@ if (!refModel) throw new Error("index.astro: reference model 'llama-3.1-8b' not 
 const path = "/";
 const title = "Can I run this AI model locally? · localmodel.run";
 const description = truncate(
-  `Instantly check if your computer or phone can run a local LLM like Llama, DeepSeek, Qwen or Gemma, and which tool to use on Mac, Windows, Linux, iOS or Android. Free, no signup. ${models.length} models, ${devices.length} devices, validated data.`,
+  `Instantly check if your computer or phone can run a local AI model, from text LLMs like Llama, Qwen and DeepSeek to image, video and audio models, and which tool to use on Mac, Windows, Linux, iOS or Android. Free, no signup. ${allModels.length} models across text, image, video and audio, ${devices.length} devices, validated data.`,
 );
 
 const faqs: FaqItem[] = [
   {
-    q: "How do I know if my computer can run a local LLM?",
-    a: `Compare the model's memory needs to your usable memory. A 7-8B model at Q4_K_M needs about 6-7 GB, so it runs on a 16 GB Mac or a 12 GB GPU. localmodel.run does this math for ${models.length} models across ${devices.length} devices.`,
+    q: "How do I know if my computer can run a local AI model?",
+    a: `Compare the model's memory needs to your usable memory. A 7-8B text model at Q4_K_M needs about 6-7 GB, so it runs on a 16 GB Mac or a 12 GB GPU. Image and video diffusion models typically need 4-12 GB of GPU or Apple Silicon VRAM. Audio models (Whisper, Kokoro) run on CPU and need 1-4 GB. localmodel.run does this math for ${allModels.length} models across ${devices.length} devices.`,
   },
   {
     q: "Can I run AI models locally on a Mac?",
     a: "Yes. Apple Silicon shares unified memory, so a 16 GB Mac runs 7-8B models and a 64 GB+ Mac runs 70B. Use LM Studio (which ships MLX) for a GUI, or mlx-lm for the most speed. vLLM is not a Mac tool, it is a Linux/CUDA serving engine.",
   },
   {
-    q: "Can I run an LLM on my phone?",
-    a: "Yes, within limits. iPhones and Android flagships realistically run 1B-4B models. On iOS 26 use Apple's built-in Foundation Models or PocketPal AI; on Android use PocketPal AI or Google AI Edge.",
+    q: "Can I run AI models on my phone?",
+    a: "Yes, within limits. iPhones and Android flagships realistically run 1B-4B text models. For text: PocketPal AI works on both iOS and Android; Apple Foundation Models is built into iOS 26. For images on iPhone: Draw Things supports diffusion models locally. For audio: Whisper (speech-to-text) runs on both iOS and Android.",
   },
   {
     q: "Which is the best tool to run models locally?",
-    a: "On Mac, start with LM Studio, it ships MLX and has a GUI. On Linux, Ollama for quick chat, vLLM if you are serving traffic. On Android or iOS, PocketPal is the only real option. Each device page links the right one so you do not have to guess.",
+    a: "On Mac, start with LM Studio, it ships MLX and has a GUI. On Linux, Ollama for quick chat, vLLM if you are serving traffic. On phones: for text, PocketPal AI (iOS and Android) or Apple Foundation Models (iOS 26); for images on iPhone, Draw Things; for audio, whisper.cpp. Each device page links the right tool so you do not have to guess.",
   },
 ];
 
@@ -52,46 +53,104 @@ const jsonLd = [
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]}>
-  <!-- Hero -->
-  <section class="relative overflow-hidden border-b border-border/60">
-    <div class="pointer-events-none absolute inset-0 -z-10 opacity-60 [background:radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--color-brand)_18%,transparent),transparent)]"></div>
-    <div class="mx-auto max-w-4xl px-4 pb-12 pt-14 text-center sm:pt-20">
-      <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
-        <span class="h-1.5 w-1.5 rounded-full bg-[var(--color-brand)]"></span>
-        {models.length} models · {devices.length} devices · validated {meta.updated}
-      </div>
-      <h1 class="text-balance text-4xl font-bold tracking-tight sm:text-6xl">
-        Can I run this AI model <span class="text-[var(--color-brand)]">locally?</span>
-      </h1>
-      <p class="mx-auto mt-5 max-w-2xl text-pretty text-lg text-muted-foreground">
-        Pick a model, pick your hardware. You get a yes or no, the memory math, the exact command, and which tool to actually use. Covers Mac, Windows, Linux, iOS, Android.
-      </p>
+  <!-- Hero: Blueprint Console. The live detector is the instrument; the page
+       frames it like precision hardware and puts the indigo brand to work. -->
+  <section class="bp-hero" id="hero-spotlight" style="--mx:50%;--my:50%">
+    <!-- Blueprint grid -->
+    <div class="bp-grid" aria-hidden="true"></div>
 
-      <div class="mx-auto mt-8 max-w-2xl text-left">
-        <Detector client:load />
+    <!-- Corner registration ticks -->
+    <div class="bp-corner bp-corner--tl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+    <div class="bp-corner bp-corner--tr" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+    <div class="bp-corner bp-corner--bl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+    <div class="bp-corner bp-corner--br" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
+
+    <!-- Indigo brand glow -->
+    <div class="bp-glow" aria-hidden="true"></div>
+    <!-- Scanline sweep -->
+    <div class="bp-scanline" aria-hidden="true"></div>
+    <!-- Cursor-follow spotlight -->
+    <div class="bp-spotlight" aria-hidden="true"></div>
+
+    <div class="bp-inner">
+      <!-- Copy column -->
+      <div class="bp-copy">
+        <p class="bp-eyebrow bp-enter" style="--delay:0ms">
+          <span class="bp-dot" aria-hidden="true"></span>
+          Real memory math
+        </p>
+        <h1 class="bp-h1 bp-enter" style="--delay:80ms">
+          Can I run this AI model <span class="bp-accent">locally</span>?
+        </h1>
+        <p class="bp-sub bp-enter" style="--delay:180ms">
+          Pick your device. Pick a model. Get a <strong>yes</strong>, a <strong>tight</strong>,
+          or a <strong>no</strong>, plus the exact command to run it. No guessing. No signup.
+        </p>
+        <div class="bp-stats bp-enter" style="--delay:280ms">
+          <div class="bp-wire" aria-hidden="true"></div>
+          <dl class="bp-stat-grid">
+            <div class="bp-stat-item"><dt class="bp-stat-label">Models</dt><dd class="bp-stat-val">{allModels.length}</dd></div>
+            <div class="bp-stat-item"><dt class="bp-stat-label">Devices</dt><dd class="bp-stat-val">{devices.length}</dd></div>
+            <div class="bp-stat-item"><dt class="bp-stat-label">Modalities</dt><dd class="bp-stat-val">4</dd></div>
+            <div class="bp-stat-item"><dt class="bp-stat-label">Free</dt><dd class="bp-stat-val bp-stat-yes">Always</dd></div>
+          </dl>
+          <div class="bp-cta">
+            <a href="/can-i-run" class="bp-cta-link">Browse all models →</a>
+            <a href="/methodology" class="bp-cta-link bp-cta-link--muted">How we calculate →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instrument panel -->
+      <div class="bp-instrument bp-enter" style="--delay:120ms">
+        <div class="bp-panel-header" aria-hidden="true">
+          <span class="bp-panel-label">VRAM threshold engine</span>
+          <span class="bp-panel-status"><span class="bp-status-dot"></span>LIVE</span>
+        </div>
+        <div class="bp-detector-wrap">
+          <Detector client:load />
+        </div>
       </div>
     </div>
   </section>
+
+  <!-- Slim coverage strip: a quiet transition into the catalog below -->
+  <div class="bp-strip">
+    <div class="bp-strip-inner">
+      <span class="bp-strip-label">Covers</span>
+      <span class="bp-strip-item" style="color: var(--modality-text)">Text generation</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item" style="color: var(--modality-image)">Image models</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item" style="color: var(--modality-video)">Video models</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item" style="color: var(--modality-audio)">Audio models</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item">Apple Silicon</span>
+      <span class="bp-strip-sep" aria-hidden="true">/</span>
+      <span class="bp-strip-item">NVIDIA / AMD</span>
+    </div>
+  </div>
 
   <!-- Featured models -->
   <section class="mx-auto max-w-5xl px-4 py-12">
     <div class="flex items-end justify-between">
       <h2 class="text-2xl font-bold tracking-tight">Popular models</h2>
-      <a href="/can-i-run" class="text-sm text-[var(--color-brand)] hover:underline">All {models.length} models →</a>
+      <a href="/can-i-run" class="text-sm text-[var(--color-brand)] hover:underline">All {allModels.length} models →</a>
     </div>
     <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {popularModels.map((m) => (
-        <a href={`/model/${m.id}`} class="group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
+        <a href={`/model/${m.id}`} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
           <div class="flex items-center justify-between gap-2">
             <h3 class="flex min-w-0 items-center gap-2 font-semibold">
               <EntityIcon maker={m.family} size={18} class="text-muted-foreground" />
-              <span class="truncate">{m.name}</span>
+              <span class="truncate" transition:name={`model-name-${m.id}`}>{m.name}</span>
             </h3>
             <span class="shrink-0 text-xs text-muted-foreground">{m.params_b}B{m.is_moe ? " MoE" : ""}</span>
           </div>
           <p class="mt-1 text-sm text-muted-foreground">{m.q4_k_m_gb ?? "?"} GB at Q4_K_M · {m.default_context_k}k context</p>
           {m.pulls_text && <p class="mt-0.5 text-xs text-muted-foreground">{m.pulls_text} Ollama pulls</p>}
-          <span class="mt-3 inline-block text-sm text-[var(--color-brand)] group-hover:underline">Requirements →</span>
+          <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--color-brand)] group-hover:underline">Requirements →</span>
         </a>
       ))}
     </div>
@@ -108,7 +167,7 @@ const jsonLd = [
         {featuredDevices.map((d) => {
           const best = canRun(refModel, d);
           return (
-            <a href={`/best-llm-for/${d.id}`} class="group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
+            <a href={`/best-llm-for/${d.id}`} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
               <div class="flex items-center justify-between gap-2">
                 <h3 class="flex min-w-0 items-center gap-2 font-semibold">
                   <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
@@ -120,7 +179,7 @@ const jsonLd = [
                 <span>Llama 3.1 8B:</span>
                 <VerdictBadge verdict={best.verdict} />
               </div>
-              <span class="mt-3 inline-block text-sm text-[var(--color-brand)] group-hover:underline">Best models →</span>
+              <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--color-brand)] group-hover:underline">Best LLMs →</span>
             </a>
           );
         })}
@@ -133,8 +192,8 @@ const jsonLd = [
     <h2 class="text-2xl font-bold tracking-tight">How it works</h2>
     <div class="mt-5 grid gap-4 sm:grid-cols-3">
       {[
-        { n: "1", t: "Real sizes", d: "Quant sizes come from Ollama and HuggingFace GGUF repos, not guesses. Every number is sourced." },
-        { n: "2", t: "Honest memory math", d: "We add KV cache and runtime overhead, and use realistic usable memory (Apple unified ~70%, GPU VRAM minus driver)." },
+        { n: "1", t: "Real sizes", d: "Quant sizes come from HuggingFace GGUF repos, Ollama (text models) and vendor specs, not guesses. Every number is sourced." },
+        { n: "2", t: "Honest memory math", d: "We add KV cache and runtime overhead, and use realistic usable memory (Apple unified ~66-75% depending on chip, GPU VRAM minus driver)." },
         { n: "3", t: "The right tool", d: "Every platform has a different winner. MLX on Mac, CUDA on Windows, vLLM on Linux, PocketPal on phones. Wrong choice and you lose half your tokens per second." },
       ].map((s) => (
         <div class="rounded-xl border border-border bg-card p-5">
@@ -150,8 +209,8 @@ const jsonLd = [
   <section class="border-t border-border/60 bg-card/30">
     <div class="mx-auto max-w-5xl px-4 py-12">
       <div class="flex items-end justify-between">
-        <h2 class="text-2xl font-bold tracking-tight">Best tool per platform</h2>
-        <a href="/tools" class="text-sm text-[var(--color-brand)] hover:underline">Full guide →</a>
+        <h2 class="text-2xl font-bold tracking-tight">Best LLM runtime per platform</h2>
+        <a href="/tools" class="text-sm text-[var(--color-brand)] hover:underline">LLM runtimes guide →</a>
       </div>
       <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {tools.map((t) => (
@@ -173,10 +232,13 @@ const jsonLd = [
     <h2 class="text-2xl font-bold tracking-tight">Frequently asked</h2>
     <div class="mt-5 divide-y divide-border rounded-xl border border-border bg-card">
       {faqs.map((f) => (
-        <div class="p-5">
-          <p class="font-medium">{f.q}</p>
+        <details class="group p-5">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] [&::-webkit-details-marker]:hidden">
+            <span>{f.q}</span>
+            <svg class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+          </summary>
           <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
-        </div>
+        </details>
       ))}
     </div>
     <p class="mt-6 text-center text-sm text-muted-foreground">
@@ -184,3 +246,24 @@ const jsonLd = [
     </p>
   </section>
 </Base>
+
+<!-- Cursor-follow spotlight for the blueprint hero -->
+<script is:inline data-astro-rerun>
+  (function () {
+    var hero = document.getElementById("hero-spotlight");
+    var spotlight = hero && hero.querySelector(".bp-spotlight");
+    if (!hero || !spotlight) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (hero.dataset.spotBound) return;
+    hero.dataset.spotBound = "1";
+    hero.addEventListener("pointermove", function (e) {
+      var r = hero.getBoundingClientRect();
+      spotlight.style.setProperty("--mx", (((e.clientX - r.left) / r.width) * 100).toFixed(1) + "%");
+      spotlight.style.setProperty("--my", (((e.clientY - r.top) / r.height) * 100).toFixed(1) + "%");
+      spotlight.style.opacity = "1";
+    });
+    hero.addEventListener("pointerleave", function () {
+      spotlight.style.opacity = "0";
+    });
+  })();
+</script>

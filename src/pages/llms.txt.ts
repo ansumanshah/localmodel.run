@@ -80,7 +80,7 @@ export const GET: APIRoute = ({ site }) => {
     `- [Tools guide](${origin}/tools): Compare local LLM runtimes (Ollama, LM Studio, llama.cpp, etc.) by platform and use-case.`,
   );
   lines.push(
-    `- [Leaderboard](${origin}/leaderboard): Models ranked by benchmark scores, parameter count, and device compatibility breadth.`,
+    `- [Leaderboard](${origin}/leaderboard): Open text LLMs ranked by LMArena (Chatbot Arena) Elo, each linked to its hardware requirements.`,
   );
   lines.push(
     `- [Developers](${origin}/developers): API reference and JSON endpoints for programmatic access to model and device data.`,

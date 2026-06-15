@@ -15,52 +15,94 @@ const jsonLd = [
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd}>
-  <article class="mx-auto max-w-2xl px-4 py-8">
+  <article class="mx-auto max-w-2xl px-4 py-10">
     <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Privacy", url: path }]} />
-    <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Privacy</h1>
 
-    <div class="mt-6 space-y-4 text-muted-foreground">
-      <p>
-        localmodel.run is a static site. There is no backend, no account, and no sign-up. It was built to collect as little as possible, and this page says exactly what that means in plain terms.
-      </p>
+    <div class="mt-4 mb-6">
+      <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>localmodel.run &middot; data policy</p>
+      <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Privacy</h1>
+    </div>
 
-      <h2 class="mt-8 text-lg font-semibold text-foreground">What we don't do</h2>
-      <p>
-        No accounts, no logins, no email capture. No advertising, no third-party trackers, no tracking cookies. There is nothing here to sell or share, so we never sell or share your data.
-      </p>
+    <div class="bp-panel">
+      <div class="bp-panel-header">
+        <span class="bp-panel-label">policy overview</span>
+        <span class="bp-panel-sub">static site &middot; no backend</span>
+      </div>
 
-      <h2 class="mt-8 text-lg font-semibold text-foreground">Analytics</h2>
-      <p>
-        To see which pages are useful and where visitors come from, we use <a href="https://www.cloudflare.com/web-analytics/" rel="noopener nofollow" class="underline">Cloudflare Web Analytics</a>. It is cookieless, does not fingerprint you, and reports only aggregate counts. It cannot identify you.
-      </p>
-      <p>
-        Because each model and device combination has its own page, visiting one is counted as an aggregate page view. That tells us a page was popular, not who looked at it.
-      </p>
-      <p>
-        We also use Google Search Console and Bing Webmaster Tools. Those report aggregate search statistics from Google and Bing. They run on the search engine's side and are not scripts loaded on this page.
-      </p>
+      <div class="px-5 py-5 space-y-6 text-muted-foreground">
+        <p>
+          localmodel.run is a static site. There is no backend, no account, and no sign-up. It was built to collect as little as possible, and this page says exactly what that means in plain terms.
+        </p>
 
-      <h2 class="mt-8 text-lg font-semibold text-foreground">Your hardware stays on your device</h2>
-      <p>
-        When you use the compatibility detector, the model and device you pick are used to compute the answer in your browser. They are not sent to us and not stored anywhere.
-      </p>
+        <div class="bp-wire"></div>
 
-      <h2 class="mt-8 text-lg font-semibold text-foreground">What is stored on your device</h2>
-      <p>
-        Your light or dark theme choice is saved in your browser's local storage so the site remembers it next time. That is the only thing kept on your device, and it never leaves your browser.
-      </p>
+        <section>
+          <p class="bp-stat-label mb-2">What we don't do</p>
+          <p class="text-foreground font-semibold mb-2">No tracking. No data sales.</p>
+          <p>
+            No accounts, no logins, no email capture. No advertising, no third-party trackers, no tracking cookies. There is nothing here to sell or share, so we never sell or share your data.
+          </p>
+        </section>
 
-      <h2 class="mt-8 text-lg font-semibold text-foreground">Hosting</h2>
-      <p>
-        The site is served by Cloudflare Pages. Like any web host, Cloudflare processes standard request data such as your IP address to deliver and protect the site. See <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener nofollow" class="underline">Cloudflare's privacy policy</a> for how they handle it.
-      </p>
+        <div class="bp-wire"></div>
 
-      <h2 class="mt-8 text-lg font-semibold text-foreground">Questions</h2>
-      <p>
-        Questions about privacy? Find me on <a href="https://x.com/AnsumanShah" rel="noopener nofollow" class="underline">X</a> or <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">GitHub</a>.
-      </p>
+        <section>
+          <p class="bp-stat-label mb-2">Analytics</p>
+          <p class="text-foreground font-semibold mb-2">Cookieless aggregate counts only.</p>
+          <p>
+            To see which pages are useful and where visitors come from, we use <a href="https://www.cloudflare.com/web-analytics/" rel="noopener nofollow" class="underline">Cloudflare Web Analytics</a>. It is cookieless, does not fingerprint you, and reports only aggregate counts. It cannot identify you.
+          </p>
+          <p class="mt-3">
+            Because each model and device combination has its own page, visiting one is counted as an aggregate page view. That tells us a page was popular, not who looked at it.
+          </p>
+          <p class="mt-3">
+            We also use Google Search Console and Bing Webmaster Tools. Those report aggregate search statistics from Google and Bing. They run on the search engine's side and are not scripts loaded on this page.
+          </p>
+        </section>
 
-      <p class="text-sm">Last updated 14 June 2026.</p>
+        <div class="bp-wire"></div>
+
+        <section>
+          <p class="bp-stat-label mb-2">Your hardware</p>
+          <p class="text-foreground font-semibold mb-2">Stays on your device.</p>
+          <p>
+            When you use the compatibility detector, the model and device you pick are used to compute the answer in your browser. They are not sent to us and not stored anywhere.
+          </p>
+        </section>
+
+        <div class="bp-wire"></div>
+
+        <section>
+          <p class="bp-stat-label mb-2">Local storage</p>
+          <p class="text-foreground font-semibold mb-2">Theme preference only.</p>
+          <p>
+            Your light or dark theme choice is saved in your browser's local storage so the site remembers it next time. That is the only thing kept on your device, and it never leaves your browser.
+          </p>
+        </section>
+
+        <div class="bp-wire"></div>
+
+        <section>
+          <p class="bp-stat-label mb-2">Hosting</p>
+          <p class="text-foreground font-semibold mb-2">Cloudflare Pages.</p>
+          <p>
+            The site is served by Cloudflare Pages. Like any web host, Cloudflare processes standard request data such as your IP address to deliver and protect the site. See <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener nofollow" class="underline">Cloudflare's privacy policy</a> for how they handle it.
+          </p>
+        </section>
+
+        <div class="bp-wire"></div>
+
+        <section>
+          <p class="bp-stat-label mb-2">Questions</p>
+          <p>
+            Questions about privacy? Find me on <a href="https://x.com/AnsumanShah" rel="noopener nofollow" class="underline">X</a> or <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">GitHub</a>.
+          </p>
+        </section>
+      </div>
+
+      <div class="bp-panel-footer">
+        <span class="bp-panel-sub">last updated 14 june 2026</span>
+      </div>
     </div>
   </article>
 </Base>

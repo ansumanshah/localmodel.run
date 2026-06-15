@@ -96,7 +96,11 @@ const jsonLd = [
   <div class="mx-auto max-w-3xl px-4 py-8">
     <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Devices", url: "/best-llm-for" }, { name: device.name, url: path }]} />
 
-    <h1 class="flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+    <p class="bp-eyebrow mt-4">
+      <span class="bp-dot" aria-hidden="true"></span>
+      Device profile &middot; {platformLabel(platform)}
+    </p>
+    <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
       <EntityIcon device={device.category} size={28} class="text-muted-foreground" />
       <span>Best local LLMs for {device.name}</span>
     </h1>
@@ -106,59 +110,101 @@ const jsonLd = [
       {tool && <> Best tool: <strong class="text-foreground">{tool.beginner.name}</strong>.</>}
     </p>
 
-    {topPick && (
-      <div class="mt-6 rounded-xl border border-[color-mix(in_oklch,var(--color-brand)_40%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)] p-5">
-        <div class="text-xs font-semibold uppercase tracking-wide text-[var(--color-brand)]">Top pick</div>
-        <div class="mt-1 flex flex-wrap items-center justify-between gap-2">
-          <a href={`/can-i-run/${topPick.model.id}/${device.id}`} class="text-xl font-bold hover:underline">{topPick.model.name}</a>
-          <VerdictBadge verdict={topPick.result.verdict} />
+    <div class="bp-wire mt-5" aria-hidden="true"></div>
+
+    <dl class="bp-stat-grid mt-4">
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Usable memory</dt>
+        <dd class="bp-stat-val">~{usable} GB</dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Models run</dt>
+        <dd class="bp-stat-val">{fitting.length}</dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Too large</dt>
+        <dd class="bp-stat-val">{notFitting.length}</dd>
+      </div>
+      {topPick && (
+        <div class="bp-stat-item">
+          <dt class="bp-stat-label">Top pick</dt>
+          <dd class="bp-stat-val bp-stat-yes">{topPick.model.params_b}B</dd>
         </div>
-        <p class="verdict-text mt-1 text-sm text-muted-foreground">{topPick.result.reason}</p>
+      )}
+    </dl>
+
+    {topPick && (
+      <div class="bp-panel mt-6">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Top pick</span>
+          <span class="bp-panel-label">{topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"}</span>
+        </div>
+        <div class="p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <a href={`/can-i-run/${topPick.model.id}/${device.id}`} class="text-xl font-bold hover:underline">{topPick.model.name}</a>
+            <VerdictBadge verdict={topPick.result.verdict} />
+          </div>
+          <p class="verdict-text mt-1 text-sm text-muted-foreground">{topPick.result.reason}</p>
+        </div>
       </div>
     )}
 
     <section class="mt-8">
-      <h2 class="text-lg font-semibold">Runs on {device.name}</h2>
-      <ul class="mt-3 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
-        {fitting.map((r) => (
-          <li>
-            <a href={`/can-i-run/${r.model.id}/${device.id}`} class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/40">
-              <EntityIcon maker={r.model.family} size={18} class="text-muted-foreground shrink-0" />
-              <div class="min-w-0 flex-1">
-                <div class="truncate text-sm font-medium">{r.model.name}</div>
-                <div class="text-xs text-muted-foreground">{r.model.params_b}B{r.model.is_moe ? ` MoE` : ""} · ~{r.result.estimate?.totalGb} GB at {r.result.quant ? QUANT_LABEL[r.result.quant] : "Q4_K_M"}</div>
-              </div>
-              <VerdictBadge verdict={r.result.verdict} />
-            </a>
-          </li>
-        ))}
-      </ul>
+      <h2 class="mb-3 text-lg font-semibold">Runs on {device.name}</h2>
+      <div class="bp-panel overflow-hidden">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Compatible models</span>
+          <span class="bp-panel-label">{fitting.length} total</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {fitting.map((r) => (
+            <li>
+              <a href={`/can-i-run/${r.model.id}/${device.id}`} class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
+                <EntityIcon maker={r.model.family} size={18} class="text-muted-foreground shrink-0" />
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm font-medium">{r.model.name}</div>
+                  <div class="bp-stat-label mt-0.5">{r.model.params_b}B{r.model.is_moe ? ` MoE` : ""} &middot; ~{r.result.estimate?.totalGb} GB at {r.result.quant ? QUANT_LABEL[r.result.quant] : "Q4_K_M"}</div>
+                </div>
+                <VerdictBadge verdict={r.result.verdict} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
 
     {notFitting.length > 0 && (
       <section class="mt-8">
-        <h2 class="text-lg font-semibold text-muted-foreground">Too big for this device</h2>
-        <div class="mt-3 flex flex-wrap gap-2">
+        <h2 class="bp-stat-label mb-3">Too large for this device</h2>
+        <div class="flex flex-wrap gap-2">
           {notFitting.map((r) => (
-            <a href={`/can-i-run/${r.model.id}/${device.id}`} class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">{r.model.name}</a>
+            <a href={`/can-i-run/${r.model.id}/${device.id}`} class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">{r.model.name}</a>
           ))}
         </div>
       </section>
     )}
 
     {tool && (
-      <section class="mt-8 rounded-xl border border-border bg-card p-5">
-        <h2 class="text-lg font-semibold">Best way to run models on {platformLabel(platform)}</h2>
-        <p class="mt-2 text-sm text-muted-foreground"><strong class="text-foreground">Beginner:</strong> {tool.beginner.name}, {tool.beginner.why}</p>
-        <p class="mt-1.5 text-sm text-muted-foreground"><strong class="text-foreground">Power user:</strong> {tool.power.name}, {tool.power.why}</p>
-        <p class="mt-1.5 text-sm text-muted-foreground">{tool.gotcha}</p>
-        <a href={`/tools#${platform}`} class="mt-3 inline-block text-sm text-[var(--color-brand)] hover:underline">Full {platformLabel(platform)} tool guide →</a>
+      <section class="mt-8">
+        <h2 class="mb-3 text-lg font-semibold">Best way to run models on {platformLabel(platform)}</h2>
+        <div class="bp-panel">
+          <div class="bp-panel-header">
+            <span class="bp-panel-label">Runtime guide</span>
+            <span class="bp-panel-label">{platformLabel(platform)}</span>
+          </div>
+          <div class="p-4 space-y-2">
+            <p class="text-sm text-muted-foreground"><strong class="text-foreground">Beginner:</strong> {tool.beginner.name}, {tool.beginner.why}</p>
+            <p class="text-sm text-muted-foreground"><strong class="text-foreground">Power user:</strong> {tool.power.name}, {tool.power.why}</p>
+            <p class="text-sm text-muted-foreground">{tool.gotcha}</p>
+            <a href={`/tools#${platform}`} class="inline-block text-sm text-[var(--color-brand)] hover:underline">Full {platformLabel(platform)} tool guide &rarr;</a>
+          </div>
+        </div>
       </section>
     )}
 
     <section class="mt-10">
-      <h2 class="text-lg font-semibold">FAQ</h2>
-      <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="bp-panel divide-y divide-border">
         {faqs.map((f) => (
           <div class="p-4">
             <p class="font-medium">{f.q}</p>
@@ -171,7 +217,7 @@ const jsonLd = [
     <Sources urls={sources} />
 
     <p class="mt-6 text-xs text-muted-foreground">
-      Memory figures are estimates (formula v{meta.formula_version}, data validated {meta.updated}). See <a href="/methodology" class="underline">methodology</a>.
+      Memory figures are estimates. See <a href="/methodology" class="underline">methodology</a>.
     </p>
   </div>
 </Base>

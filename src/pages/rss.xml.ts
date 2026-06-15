@@ -3,10 +3,10 @@ import type { APIContext } from "astro";
 import { models } from "@/lib/data";
 
 function parseRelease(rel: string | null): Date {
-  if (!rel) return new Date("2024-01-01T00:00:00Z");
+  if (!rel) return new Date("2026-06-14T00:00:00Z");
   const s = /^\d{4}-\d{2}$/.test(rel) ? `${rel}-01` : rel; // YYYY-MM -> YYYY-MM-01
   const d = new Date(`${s}T00:00:00Z`);
-  return Number.isNaN(d.getTime()) ? new Date("2024-01-01T00:00:00Z") : d;
+  return Number.isNaN(d.getTime()) ? new Date("2026-06-14T00:00:00Z") : d;
 }
 
 export function GET(context: APIContext) {

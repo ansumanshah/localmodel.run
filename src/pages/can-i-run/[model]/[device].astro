@@ -57,15 +57,15 @@ const neededGb = isText ? q4.totalGb : (result.neededGb ?? 0);
 
 const speedWord: Record<string, string> = isText
   ? {
-      fast: "fast (GPU/Apple-Silicon accelerated)",
-      ok: "usable, moderate speed",
-      slow: "slow, expect low tokens/sec",
+      fast: "GPU accelerated",
+      ok: "usable speed",
+      slow: "slow on this hardware",
       none: "would not load",
     }
   : {
       fast: "fast on this GPU",
       ok: "moderate speed",
-      slow: "slow; expect heavy offloading",
+      slow: "heavy offloading",
       none: "would not load",
     };
 
@@ -217,103 +217,220 @@ if (fits && commands.length > 0) {
       ]}
     />
 
-    <h1 class="flex flex-wrap items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+    <!-- Eyebrow: mono micro-label with pulsing dot -->
+    <p class="bp-eyebrow mt-4">
+      <span class="bp-dot" aria-hidden="true"></span>
+      {modality} model &middot; {model.family} &middot; {platformLabel(platform)}
+    </p>
+
+    <h1 class="mt-3 flex flex-wrap items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
       <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
       <span>Can I run {model.name}</span>
-      <span class="flex items-center gap-2">on <EntityIcon device={device.category} size={28} class="text-muted-foreground" /> <span>{device.name}</span>?</span>
+      <span class="flex items-center gap-2">on <EntityIcon device={device.category} size={28} class="text-muted-foreground" /> <span>{device.name}?</span></span>
     </h1>
 
-    <div class="mt-4 flex flex-wrap items-center gap-3">
-      <VerdictBadge verdict={result.verdict} size="lg" />
-      <span class="text-sm text-muted-foreground">{speedWord[result.speed]}</span>
+    <!-- Verdict instrument panel: the primary readout -->
+    <div class="bp-panel mt-6">
+      <div class="bp-panel-header">
+        <span class="bp-panel-label">Compatibility verdict</span>
+        <span class="bp-panel-label">{isText ? "VRAM threshold engine" : `${memWord} check`}</span>
+      </div>
+
+      <div class="p-5">
+        <!-- Verdict badge + speed note -->
+        <div class="flex flex-wrap items-center gap-3">
+          <VerdictBadge verdict={result.verdict} size="lg" note={speedWord[result.speed]} />
+        </div>
+
+        <p class="verdict-text mt-3 text-pretty text-lg text-muted-foreground">{verdictText}</p>
+
+        {!result.noRuntime && (
+          <div class="mt-5">
+            <MemoryBar neededGb={neededGb} usableGb={usable} fits={fits} />
+            <p class="mt-3 text-sm text-muted-foreground">{result.reason}</p>
+          </div>
+        )}
+        {result.noRuntime && (
+          <p class="mt-4 text-sm text-muted-foreground">{result.reason} {spec && `Where it does run (${spec.tools.slice(0, 2).join(", ")}), it needs ~${neededGb} GB of ${memWord} at ${result.quantLabel}.`}</p>
+        )}
+      </div>
+
+      <!-- Stat readout row: key numbers at a glance -->
+      <div class="bp-wire mx-5" aria-hidden="true"></div>
+      <dl class="flex flex-wrap gap-x-6 gap-y-3 px-5 py-4">
+        <div class="bp-stat-item">
+          <dt class="bp-stat-label">{isText ? "Q4_K_M needed" : `Peak ${memWord}`}</dt>
+          <dd class="bp-stat-val num text-base">~{neededGb} GB</dd>
+        </div>
+        <div class="bp-stat-item">
+          <dt class="bp-stat-label">Usable on device</dt>
+          <dd class="bp-stat-val num text-base">~{usable} GB</dd>
+        </div>
+        <div class="bp-stat-item">
+          <dt class="bp-stat-label">Device memory</dt>
+          <dd class="bp-stat-val num text-base">{device.memory_gb} GB</dd>
+        </div>
+        {isText && result.quant && (
+          <div class="bp-stat-item">
+            <dt class="bp-stat-label">Best quant</dt>
+            <dd class="bp-stat-val text-base">{QUANT_LABEL[result.quant]}</dd>
+          </div>
+        )}
+        {!isText && result.quantLabel && (
+          <div class="bp-stat-item">
+            <dt class="bp-stat-label">Quant</dt>
+            <dd class="bp-stat-val text-base">{result.quantLabel}</dd>
+          </div>
+        )}
+      </dl>
     </div>
-
-    <p class="verdict-text mt-4 text-pretty text-lg text-muted-foreground">{verdictText}</p>
-
-    {!result.noRuntime && (
-      <div class="mt-6 rounded-xl border border-border bg-card p-5">
-        <MemoryBar neededGb={neededGb} usableGb={usable} fits={fits} />
-        <p class="mt-3 text-sm text-muted-foreground">{result.reason}</p>
-      </div>
-    )}
-    {result.noRuntime && (
-      <div class="mt-6 rounded-xl border border-border bg-card p-5">
-        <p class="text-sm text-muted-foreground">{result.reason} {spec && `Where it does run (${spec.tools.slice(0, 2).join(", ")}), it needs ~${neededGb} GB of VRAM at ${result.quantLabel}.`}</p>
-      </div>
-    )}
 
     {isText && fits && commands.length > 0 && (
       <section class="mt-8">
-        <h2 class="mb-3 text-lg font-semibold">Run it</h2>
-        <p class="mb-3 text-sm text-muted-foreground">Pick your tool. All three load the same Q4_K_M weights.</p>
-        <div class="space-y-3">
-          {commands.map((c) => <Command code={c.cmd} label={c.tool} />)}
+        <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Run it</p>
+        <div class="bp-panel">
+          <div class="bp-panel-header">
+            <span class="bp-panel-label">Install commands</span>
+            <span class="bp-panel-label">{platformLabel(platform)}</span>
+          </div>
+          <div class="space-y-3 p-5">
+            <p class="text-sm text-muted-foreground">Pick your tool. All three load the same Q4_K_M weights.</p>
+            {commands.map((c) => <Command code={c.cmd} label={c.tool} />)}
+            {tool?.gotcha && <p class="text-xs text-muted-foreground">{tool.gotcha}</p>}
+          </div>
         </div>
-        {tool?.gotcha && <p class="mt-3 text-xs text-muted-foreground">{tool.gotcha}</p>}
       </section>
     )}
 
     {isText && !command && tool && (
-      <section class="mt-8 rounded-xl border border-border bg-card p-5">
-        <h2 class="text-lg font-semibold">How to run it on {platformLabel(platform)}</h2>
-        <p class="mt-2 text-sm text-muted-foreground">
-          On {platformLabel(platform)} use <strong class="text-foreground">{tool.beginner.name}</strong> ({tool.beginner.why}).
-          {tool.gotcha}
-        </p>
+      <section class="mt-8">
+        <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>How to run it</p>
+        <div class="bp-panel p-5">
+          <p class="text-sm text-muted-foreground">
+            On {platformLabel(platform)} use <strong class="text-foreground">{tool.beginner.name}</strong> ({tool.beginner.why}).
+            {tool.gotcha}
+          </p>
+        </div>
       </section>
     )}
 
     {!isText && spec && fits && (
-      <section class="mt-8 rounded-xl border border-border bg-card p-5">
-        <h2 class="text-lg font-semibold">How to run it</h2>
-        <p class="mt-2 text-sm text-muted-foreground">
-          Use <strong class="text-foreground">{spec.tools[0]}</strong>{spec.tools[1] ? <> or <strong class="text-foreground">{spec.tools[1]}</strong></> : null} at {result.quantLabel}. {isDiffusion ? (hasOffloadedEncoder ? "The big text encoder is loaded to encode your prompt, then offloaded before generation, which is why peak VRAM stays near the backbone size rather than the sum of every file." : "It conditions on an image, not a text prompt; the pipeline offloads each stage off the GPU between passes, keeping peak VRAM near the active stage.") : model.audio?.cpu_ok ? "It is light enough to run on CPU; a GPU just makes it faster." : "It loads as a single model and runs on a GPU."}
-        </p>
+      <section class="mt-8">
+        <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>How to run it</p>
+        <div class="bp-panel p-5">
+          <p class="text-sm text-muted-foreground">
+            Use <strong class="text-foreground">{spec.tools[0]}</strong>{spec.tools[1] ? <> or <strong class="text-foreground">{spec.tools[1]}</strong></> : null} at {result.quantLabel}. {isDiffusion ? (hasOffloadedEncoder ? "The big text encoder is loaded to encode your prompt, then offloaded before generation, which is why peak VRAM stays near the backbone size rather than the sum of every file." : "It conditions on an image, not a text prompt; the pipeline offloads each stage off the GPU between passes, keeping peak VRAM near the active stage.") : model.audio?.cpu_ok ? "It is light enough to run on CPU; a GPU just makes it faster." : "It loads as a single model and runs on a GPU."}
+          </p>
+        </div>
       </section>
     )}
 
+    <!-- Model + Device spec tiles -->
     <section class="mt-8 grid gap-4 sm:grid-cols-2">
-      <div class="rounded-xl border border-border bg-card p-5">
-        <h2 class="text-sm font-semibold text-muted-foreground">Model</h2>
-        {isText ? (
-          <dl class="mt-3 space-y-1.5 text-sm">
-            <div class="flex justify-between"><dt class="text-muted-foreground">Parameters</dt><dd>{model.params_b}B{model.is_moe ? ` (MoE, ${model.active_params_b}B active)` : ""}</dd></div>
-            <div class="flex justify-between"><dt class="text-muted-foreground">Q4_K_M size</dt><dd>{model.q4_k_m_gb ?? q4.weightsGb} GB</dd></div>
-            {model.q8_0_gb && <div class="flex justify-between"><dt class="text-muted-foreground">Q8_0 size</dt><dd>{model.q8_0_gb} GB</dd></div>}
-            <div class="flex justify-between"><dt class="text-muted-foreground">Context</dt><dd>{model.default_context_k}k</dd></div>
-            {model.ollama_tag && <div class="flex justify-between"><dt class="text-muted-foreground">Ollama tag</dt><dd class="font-mono text-xs">{model.ollama_tag}</dd></div>}
-          </dl>
-        ) : (
-          <dl class="mt-3 space-y-1.5 text-sm">
-            <div class="flex justify-between"><dt class="text-muted-foreground">Type</dt><dd>{modality === "audio" ? model.audio?.task : `${modality} (${archLabel})`}</dd></div>
-            <div class="flex justify-between"><dt class="text-muted-foreground">Parameters</dt><dd>{paramLabel}{model.is_moe ? ` (MoE, ${model.active_params_b}B active)` : ""}</dd></div>
-            <div class="flex justify-between"><dt class="text-muted-foreground">Peak {memWord}</dt><dd>~{neededGb} GB at {result.quantLabel}</dd></div>
-            {resolution && <div class="flex justify-between"><dt class="text-muted-foreground">Resolution</dt><dd>{resolution}</dd></div>}
-            {model.license && <div class="flex justify-between"><dt class="text-muted-foreground">License</dt><dd class="text-right">{model.license}</dd></div>}
-          </dl>
-        )}
-        <a href={`/model/${model.id}`} class="mt-3 inline-block text-sm text-[var(--color-brand)] hover:underline">Full {model.name} requirements →</a>
+      <div class="bp-panel">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Model</span>
+          <span class="bp-panel-label">{model.family}</span>
+        </div>
+        <div class="p-5">
+          {isText ? (
+            <dl class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <dt class="bp-stat-label self-center">Parameters</dt>
+                <dd class="num text-foreground">{model.params_b}B{model.is_moe ? ` (MoE, ${model.active_params_b}B active)` : ""}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="bp-stat-label self-center">Q4_K_M size</dt>
+                <dd class="num text-foreground">{model.q4_k_m_gb ?? q4.weightsGb} GB</dd>
+              </div>
+              {model.q8_0_gb && (
+                <div class="flex justify-between">
+                  <dt class="bp-stat-label self-center">Q8_0 size</dt>
+                  <dd class="num text-foreground">{model.q8_0_gb} GB</dd>
+                </div>
+              )}
+              <div class="flex justify-between">
+                <dt class="bp-stat-label self-center">Context</dt>
+                <dd class="num text-foreground">{model.default_context_k}k</dd>
+              </div>
+              {model.ollama_tag && (
+                <div class="flex justify-between gap-4">
+                  <dt class="bp-stat-label self-center">Ollama tag</dt>
+                  <dd class="font-mono text-xs text-foreground text-right">{model.ollama_tag}</dd>
+                </div>
+              )}
+            </dl>
+          ) : (
+            <dl class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <dt class="bp-stat-label self-center">Type</dt>
+                <dd class="text-foreground">{modality === "audio" ? model.audio?.task : `${modality} (${archLabel})`}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="bp-stat-label self-center">Parameters</dt>
+                <dd class="num text-foreground">{paramLabel}{model.is_moe ? ` (MoE, ${model.active_params_b}B active)` : ""}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="bp-stat-label self-center">Peak {memWord}</dt>
+                <dd class="num text-foreground">~{neededGb} GB at {result.quantLabel}</dd>
+              </div>
+              {resolution && (
+                <div class="flex justify-between">
+                  <dt class="bp-stat-label self-center">Resolution</dt>
+                  <dd class="text-foreground">{resolution}</dd>
+                </div>
+              )}
+              {model.license && (
+                <div class="flex justify-between gap-4">
+                  <dt class="bp-stat-label self-center">License</dt>
+                  <dd class="text-right text-foreground">{model.license}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+          <a href={`/model/${model.id}`} class="mt-4 inline-block text-sm text-[var(--color-brand)] hover:underline">Full {model.name} requirements &rarr;</a>
+        </div>
       </div>
-      <div class="rounded-xl border border-border bg-card p-5">
-        <h2 class="text-sm font-semibold text-muted-foreground">Device</h2>
-        <dl class="mt-3 space-y-1.5 text-sm">
-          <div class="flex justify-between"><dt class="text-muted-foreground">Memory</dt><dd>{device.memory_gb} GB {device.memory_type}</dd></div>
-          <div class="flex justify-between"><dt class="text-muted-foreground">Usable for weights</dt><dd>~{usable} GB</dd></div>
-          {device.best_runtime && <div class="flex justify-between"><dt class="text-muted-foreground">Best runtime</dt><dd class="text-right">{device.best_runtime}</dd></div>}
-        </dl>
-        <a href={`/best-llm-for/${device.id}`} class="mt-3 inline-block text-sm text-[var(--color-brand)] hover:underline">Best models for {device.name} →</a>
+
+      <div class="bp-panel">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Device</span>
+          <span class="bp-panel-label">{platformLabel(platform)}</span>
+        </div>
+        <div class="p-5">
+          <dl class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <dt class="bp-stat-label self-center">Memory</dt>
+              <dd class="num text-foreground">{device.memory_gb} GB {device.memory_type}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="bp-stat-label self-center">Usable for weights</dt>
+              <dd class="num text-foreground">~{usable} GB</dd>
+            </div>
+            {device.best_runtime && (
+              <div class="flex justify-between gap-4">
+                <dt class="bp-stat-label self-center">Best runtime</dt>
+                <dd class="text-right text-foreground">{device.best_runtime}</dd>
+              </div>
+            )}
+          </dl>
+          <a href={`/best-llm-for/${device.id}`} class="mt-4 inline-block text-sm text-[var(--color-brand)] hover:underline">Best models for {device.name} &rarr;</a>
+        </div>
       </div>
     </section>
 
     {alternatives.length > 0 && (
       <section class="mt-8">
-        <h2 class="text-lg font-semibold">{fits ? "You could also run" : "What you can run instead"}</h2>
-        <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+        <p class="bp-eyebrow mb-3">
+          <span class="bp-dot" aria-hidden="true"></span>
+          {fits ? "You could also run" : "What you can run instead"}
+        </p>
+        <ul class="grid gap-2 sm:grid-cols-2">
           {alternatives.map((m) => {
             const r = canRunModality(m, device);
             return (
               <li>
-                <a href={`/can-i-run/${m.id}/${device.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 transition-colors hover:border-foreground/30">
+                <a href={`/can-i-run/${m.id}/${device.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
                   <span class="flex min-w-0 items-center gap-2 text-sm font-medium">
                     <EntityIcon maker={m.family} size={18} class="text-muted-foreground" />
                     <span class="truncate">{m.name}</span>
@@ -329,18 +446,18 @@ if (fits && commands.length > 0) {
 
     {otherDevices.length > 0 && (
       <section class="mt-8">
-        <h2 class="text-lg font-semibold">Run {model.name} on other hardware</h2>
-        <div class="mt-3 flex flex-wrap gap-2">
+        <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Run {model.name} on other hardware</p>
+        <div class="flex flex-wrap gap-2">
           {otherDevices.map((d) => (
-            <a href={`/can-i-run/${model.id}/${d.id}`} class="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">{d.name}</a>
+            <a href={`/can-i-run/${model.id}/${d.id}`} class="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">{d.name}</a>
           ))}
         </div>
       </section>
     )}
 
     <section class="mt-10">
-      <h2 class="text-lg font-semibold">FAQ</h2>
-      <div class="mt-3 divide-y divide-border rounded-xl border border-border bg-card">
+      <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>FAQ</p>
+      <div class="bp-panel divide-y divide-border">
         {faqs.map((f) => (
           <div class="p-4">
             <p class="font-medium">{f.q}</p>
@@ -354,7 +471,7 @@ if (fits && commands.length > 0) {
 
     <p class="mt-6 text-xs text-muted-foreground">
       {isText
-        ? `Memory figures are estimates (formula v${meta.formula_version}, data validated ${meta.updated}).`
+        ? `Memory figures are estimates.`
         : `VRAM figures are sourced peak-usage anchors at the noted quant, validated ${meta.updated}.`} See <a href="/methodology" class="underline">methodology</a>.
     </p>
   </article>

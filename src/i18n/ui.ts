@@ -13,7 +13,8 @@ export const ui = {
     "nav.tools": "Tools",
     "nav.rig": "Rig score",
     "nav.methodology": "Methodology",
-    "hero.badge": "{models} models · {devices} devices · validated {date}",
+    "hero.badge":
+      "{models} models across text, image, video, audio · {devices} devices · validated {date}",
     "hero.title1": "Can I run this AI",
     "hero.title2": "model",
     "hero.locally": "locally?",
@@ -41,7 +42,8 @@ export const ui = {
     "nav.tools": "Herramientas",
     "nav.rig": "Rig score",
     "nav.methodology": "Metodología",
-    "hero.badge": "{models} modelos · {devices} dispositivos · validado {date}",
+    "hero.badge":
+      "{models} modelos entre texto, imagen, video y audio · {devices} dispositivos · validado {date}",
     "hero.title1": "¿Puedo ejecutar este",
     "hero.title2": "modelo de IA",
     "hero.locally": "en local?",

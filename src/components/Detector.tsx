@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { canRun, usableGb, QUANT_LABEL, verdictLabel } from "@/lib/compute";
+import { canRun, usableGb, QUANT_LABEL, verdictLabelShort } from "@/lib/compute";
 import { models, devices, devicePlatform, getTool, platformLabel } from "@/lib/data";
 import type { Verdict } from "@/data/types";
 
@@ -9,21 +9,73 @@ const sortedDevices = [...devices].sort((a, b) => {
 });
 const sortedModels = [...models].sort((a, b) => a.params_b - b.params_b);
 
-// Vivid color for fill/border; the WCAG-AA-tuned --verdict-*-fg token for text
-// (matches VerdictBadge.astro, which keeps the badge readable in light mode).
-const VERDICT_COLOR: Record<Verdict, string> = {
-  yes: "var(--color-verdict-yes)",
-  tight: "var(--color-verdict-tight)",
-  no: "var(--color-verdict-no)",
-  unknown: "var(--muted-foreground)",
-};
+// The WCAG-AA-tuned --verdict-*-fg token for the verdict text (matches
+// VerdictBadge.astro, which keeps the verdict readable in light mode).
 const VERDICT_TEXT: Record<Verdict, string> = {
   yes: "var(--verdict-yes-fg)",
   tight: "var(--verdict-tight-fg)",
   no: "var(--verdict-no-fg)",
   unknown: "var(--muted-foreground)",
 };
-const VERDICT_ICON: Record<Verdict, string> = { yes: "✓", tight: "≈", no: "✕", unknown: "?" };
+// Inline lucide icons (the React island can't use astro-icon); these mirror the
+// circle-check / circle-alert / circle-x / circle-help marks in VerdictBadge.astro.
+function VerdictIcon({ verdict, size = 15 }: { verdict: Verdict; size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="10" />
+      {verdict === "yes" && <path d="m9 12 2 2 4-4" />}
+      {verdict === "tight" && (
+        <>
+          <line x1="12" x2="12" y1="8" y2="12" />
+          <line x1="12" x2="12.01" y1="16" y2="16" />
+        </>
+      )}
+      {verdict === "no" && (
+        <>
+          <path d="m15 9-6 6" />
+          <path d="m9 9 6 6" />
+        </>
+      )}
+      {verdict === "unknown" && (
+        <>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <path d="M12 17h.01" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+// Custom dropdown chevron: native <select> arrows render inconsistently and
+// sit misaligned against our padding, so we hide the native one (appearance-none)
+// and position our own, vertically centered against the control.
+function ChevronDown() {
+  return (
+    <svg
+      className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
 
 function guessDeviceId(): string {
   const dm = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
@@ -71,43 +123,49 @@ export default function Detector() {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card/70 p-5 shadow-sm backdrop-blur sm:p-6">
+    <div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
             Your device
           </span>
-          <select
-            id="detector-device"
-            name="device"
-            value={deviceId}
-            onChange={(e) => setDeviceId(e.target.value)}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-          >
-            {sortedDevices.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="detector-device"
+              name="device"
+              value={deviceId}
+              onChange={(e) => setDeviceId(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-input bg-background px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {sortedDevices.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown />
+          </div>
         </label>
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
             Model to run
           </span>
-          <select
-            id="detector-model"
-            name="model"
-            value={modelId}
-            onChange={(e) => setModelId(e.target.value)}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-          >
-            {sortedModels.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name} ({m.params_b}B)
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="detector-model"
+              name="model"
+              value={modelId}
+              onChange={(e) => setModelId(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-input bg-background px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {sortedModels.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} ({m.params_b}B)
+                </option>
+              ))}
+            </select>
+            <ChevronDown />
+          </div>
         </label>
       </div>
 
@@ -115,7 +173,7 @@ export default function Detector() {
         <button
           type="button"
           onClick={detect}
-          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Auto-detect my device
         </button>
@@ -126,35 +184,43 @@ export default function Detector() {
         )}
       </div>
 
-      <div className="mt-5 rounded-xl border border-border bg-background p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div
-            className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold"
-            style={{
-              color: VERDICT_TEXT[result.verdict],
-              borderColor: `color-mix(in oklch, ${VERDICT_COLOR[result.verdict]} 40%, transparent)`,
-              background: `color-mix(in oklch, ${VERDICT_COLOR[result.verdict]} 12%, transparent)`,
-            }}
-          >
-            <span aria-hidden>{VERDICT_ICON[result.verdict]}</span>
-            {verdictLabel(result.verdict)}
-          </div>
-          <span className="text-xs text-muted-foreground">
-            needs ~{result.estimate?.totalGb} GB · usable ~{usable} GB
-          </span>
+      <div className="mt-5 border-t border-border/60 pt-5" aria-live="polite" aria-atomic="true">
+        <div
+          key={result.verdict}
+          className="verdict-word flex items-center gap-3 font-mono text-5xl font-bold leading-none tracking-tight sm:text-6xl"
+          style={{ color: VERDICT_TEXT[result.verdict] }}
+        >
+          <VerdictIcon verdict={result.verdict} size={42} />
+          {verdictLabelShort(result.verdict)}
         </div>
 
-        <div className="relative mt-4 h-7 w-full overflow-hidden rounded-md bg-muted">
+        <div className="mt-4 space-y-1 font-mono text-xs tabular-nums text-muted-foreground">
+          <div className="flex gap-4">
+            <span className="w-16 text-muted-foreground/70">NEEDS</span>
+            <span className="text-foreground">{result.estimate?.totalGb} GB</span>
+          </div>
+          <div className="flex gap-4">
+            <span className="w-16 text-muted-foreground/70">USABLE</span>
+            <span className="text-foreground">{usable} GB</span>
+          </div>
+        </div>
+
+        <div
+          className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted"
+          role="img"
+          aria-label={`Memory: needs ${needGb} GB, device has ${usable} GB usable`}
+        >
           <div
-            className="h-full rounded-md transition-all"
+            className="bar-fill h-full rounded-full"
             style={{
-              width: `${needPct}%`,
-              background: `color-mix(in oklch, ${result.verdict === "no" ? "var(--color-verdict-no)" : "var(--color-verdict-yes)"} 75%, transparent)`,
+              transform: `scaleX(${needPct / 100})`,
+              background: `color-mix(in oklch, ${result.verdict === "no" ? "var(--color-verdict-no)" : "var(--color-verdict-yes)"} 80%, transparent)`,
             }}
           />
           <div
             className="absolute inset-y-0 w-px bg-foreground/70"
             style={{ left: `${usablePct}%` }}
+            aria-hidden="true"
           />
         </div>
 
@@ -179,13 +245,13 @@ export default function Detector() {
             href={`/can-i-run/${model.id}/${device.id}`}
             className="text-sm font-medium text-[var(--color-brand)] hover:underline"
           >
-            See the full breakdown →
+            See the full breakdown <span aria-hidden="true">→</span>
           </a>
           <a
             href={`/rig/${device.id}`}
             className="text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            Get my Rig Score →
+            Get my Rig Score <span aria-hidden="true">→</span>
           </a>
         </div>
       </div>
