@@ -19,7 +19,25 @@ const faqs: FaqItem[] = [
   { q: "What is the fastest way to run a model on Apple Silicon?", a: "mlx-lm. Same model, same quant, consistently higher tokens per second than Ollama's llama.cpp Metal backend on M-series chips. Ollama has an MLX backend in preview that narrows the gap, but mlx-lm still leads. LM Studio can use the same MLX backend if you want a GUI." },
 ];
 
-const sources = dedupeSources(...tools.map((t) => t.sources));
+// Published third-party benchmarks (single-user decode tok/s, 4-bit unless noted).
+// Every row carries its own source URL.
+const appleBench = [
+  { hw: "M3 Max 64GB", model: "Llama 3.1 8B", mlx: "71", ollama: "58", src: "https://contracollective.com/blog/gguf-vs-mlx-quantization-formats-apple-silicon-2026", srcLabel: "contracollective" },
+  { hw: "M4 Max 128GB", model: "Qwen3 8B", mlx: "79.9", ollama: "76.9", src: "https://arxiv.org/abs/2601.19139", srcLabel: "arXiv" },
+  { hw: "M1 Max 64GB", model: "Qwen2.5 7B", mlx: "63.7", ollama: "40.8", src: "https://groundy.com/articles/mlx-vs-llamacpp-on-apple-silicon-which-runtime-to-use-for-local-llm-inference/", srcLabel: "groundy.com" },
+  { hw: "M3 Ultra 512GB", model: "Gemma 3 27B", mlx: "33", ollama: "24", src: "https://medium.com/google-cloud/gemma-3-performance-tokens-per-second-in-lm-studio-vs-ollama-mac-studio-m3-ultra-7e1af75438e4", srcLabel: "Google Cloud" },
+];
+const nvidiaBench = [
+  { hw: "RTX 4090", model: "Llama 3.1 8B Q4_K_M", tool: "llama.cpp", single: "~113-128", batched: "n/a", src: "https://www.hardware-corner.net/rtx-4090-llm-benchmarks/", srcLabel: "hardware-corner" },
+  { hw: "RTX 4090", model: "Llama 3.1 8B Q4_K_M", tool: "Ollama", single: "~95", batched: "n/a", src: "https://www.databasemart.com/blog/ollama-gpu-benchmark-rtx4090", srcLabel: "databasemart" },
+  { hw: "A100 40GB", model: "Llama 3.1 8B FP16", tool: "Ollama", single: "~45", batched: "41 @256", src: "https://developers.redhat.com/articles/2025/08/08/ollama-vs-vllm-deep-dive-performance-benchmarking", srcLabel: "Red Hat" },
+  { hw: "A100 40GB", model: "Llama 3.1 8B FP16", tool: "vLLM", single: "~38", batched: "793 @256", src: "https://developers.redhat.com/articles/2025/08/08/ollama-vs-vllm-deep-dive-performance-benchmarking", srcLabel: "Red Hat" },
+  { hw: "2x A100", model: "Llama 70B FP16", tool: "llama.cpp", single: "~17", batched: "196 @32", src: "https://github.com/ggml-org/llama.cpp/discussions/6730", srcLabel: "llama.cpp" },
+  { hw: "2x A100", model: "Llama 70B FP16", tool: "vLLM", single: "~35", batched: "649 @32", src: "https://github.com/ggml-org/llama.cpp/discussions/6730", srcLabel: "llama.cpp" },
+];
+const FAMSTACK = "https://famstack.dev/guides/mlx-vs-gguf-apple-silicon/";
+const benchSources = [...appleBench.map((b) => b.src), ...nvidiaBench.map((b) => b.src), FAMSTACK];
+const sources = dedupeSources(...tools.map((t) => t.sources), benchSources);
 const jsonLd = [
   breadcrumbLd([{ name: "Home", url: "/" }, { name: "Tools", url: path }], Astro.site!.href),
   techArticleLd({ headline: "Best tool to run LLMs locally, per platform", description, url: path, origin: Astro.site!.href, dateModified: meta.updated, sources }),
@@ -128,6 +146,80 @@ const jsonLd = [
         </section>
       ))}
     </div>
+
+    <!-- Benchmarks: published third-party tok/s -->
+    <section class="mt-12">
+      <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>How fast is each tool?</p>
+      <p class="text-sm text-muted-foreground">
+        How fast a model runs comes down to four things: your hardware, the model size, the quant, and how many requests hit it at once. The numbers below are <strong class="text-foreground">decode speed</strong>, the tokens per second you actually watch stream out, for one request at a time. Two things worth knowing before you read them: decode and prefill are not the same metric, and one-user speed tells you nothing about how a tool holds up under a crowd.
+      </p>
+
+      <h2 class="bp-stat-label mb-2 mt-6">Apple Silicon &middot; 4-bit, single user (tok/s)</h2>
+      <p class="mb-3 text-sm text-muted-foreground">
+        On a Mac, MLX is the one to beat. mlx-lm, and LM Studio which runs MLX under the hood, pull 20 to 55% more tokens per second than llama.cpp on dense models under 30B. Push past 30B and that lead fades, because now you are bandwidth-bound and the runtime barely matters. Ollama saw this coming and added an MLX backend in v0.19, which claws back most of the gap on 32GB+ Macs.
+      </p>
+      <div class="bp-panel overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-[color-mix(in_oklch,var(--color-brand)_5%,transparent)]">
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Hardware</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Model</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">mlx-lm / LM Studio</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Ollama (llama.cpp)</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Source</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {appleBench.map((b) => (
+              <tr>
+                <td class="px-4 py-2.5 text-muted-foreground">{b.hw}</td>
+                <td class="px-4 py-2.5 text-muted-foreground">{b.model}</td>
+                <td class="px-4 py-2.5 num font-mono text-foreground">{b.mlx}</td>
+                <td class="px-4 py-2.5 num font-mono text-muted-foreground">{b.ollama}</td>
+                <td class="px-4 py-2.5"><a href={b.src} rel="noopener nofollow" class="text-[var(--color-brand)] hover:underline">{b.srcLabel}</a></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">
+        One catch: MLX can bog down on prefill at long context (8K+ tokens), and llama.cpp sometimes chews through a big prompt faster even with slower decode (<a href={FAMSTACK} rel="noopener nofollow" class="underline">famstack.dev</a>). And Rapid-MLX? It markets a 4.2x lead over Ollama, but that is one cherry-picked run against an old Ollama build. Nobody has independently reproduced anything close, so we are not putting a multiplier next to its name.
+      </p>
+
+      <h2 class="bp-stat-label mb-2 mt-6">NVIDIA CUDA (tok/s)</h2>
+      <p class="mb-3 text-sm text-muted-foreground">
+        If it is just you, Ollama and llama.cpp keep right up with vLLM. vLLM earns its keep when a crowd shows up: continuous batching lets it serve hundreds of requests at once without falling over. The batched column is peak total tokens per second at the concurrency shown in brackets.
+      </p>
+      <div class="bp-panel overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-[color-mix(in_oklch,var(--color-brand)_5%,transparent)]">
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Hardware</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Model</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Tool</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">1 user</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Batched</th>
+              <th scope="col" class="bp-stat-label px-4 py-2 text-left font-medium">Source</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {nvidiaBench.map((b) => (
+              <tr>
+                <td class="px-4 py-2.5 text-muted-foreground">{b.hw}</td>
+                <td class="px-4 py-2.5 text-muted-foreground">{b.model}</td>
+                <td class="px-4 py-2.5 font-medium text-foreground">{b.tool}</td>
+                <td class="px-4 py-2.5 num font-mono text-muted-foreground">{b.single}</td>
+                <td class="px-4 py-2.5 num font-mono text-muted-foreground">{b.batched}</td>
+                <td class="px-4 py-2.5"><a href={b.src} rel="noopener nofollow" class="text-[var(--color-brand)] hover:underline">{b.srcLabel}</a></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">
+        Pile 256 users onto an A100 and vLLM puts out roughly 19x the tokens Ollama manages. With one user, they are neck and neck. So: serving a lot of people, reach for vLLM (or SGLang); running a tool just for yourself, Ollama and llama.cpp are simpler and plenty fast.
+      </p>
+    </section>
 
     <!-- FAQ -->
     <section class="mt-12">
