@@ -135,7 +135,7 @@ const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "t
             <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Text model · {model.family}</p>
             <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
               <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
-              <span transition:name={`model-name-${model.id}`}>{model.name} requirements</span>
+              <span transition:name={`model-name-${model.id}`}>{model.name}: RAM and VRAM requirements</span>
             </h1>
             <p class="mt-4 text-pretty text-lg text-muted-foreground">
               {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
@@ -279,7 +279,7 @@ const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "t
             <Sources urls={sources} />
 
             <p class="mt-6 text-xs text-muted-foreground">
-              Memory figures are estimates. See <a href="/methodology" class="underline">methodology</a>.
+              Last validated {meta.updated}. Memory figures are estimates. See <a href="/methodology" class="underline">methodology</a>.
             </p>
           </div>
         </Base>

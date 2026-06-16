@@ -40,7 +40,7 @@ const jsonLd = [
         Model catalog
       </p>
       <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl bp-enter" style="--delay:60ms">
-        Can I run this AI model <span class="bp-accent">locally</span>?
+        Browse {allModels.length} local AI <span class="bp-accent">models</span>
       </h1>
       <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground bp-enter" style="--delay:130ms">
         {allModels.length} local AI models across text, image, video and audio, each validated against vendor specs, HuggingFace and tool benchmarks ({meta.updated}). Pick one to see its requirements and which of {devices.length} devices can run it.
@@ -116,6 +116,23 @@ const jsonLd = [
         </section>
       ))}
     </div>
+
+    <section class="mt-12 border-t border-border/60 pt-8">
+      <h2 class="bp-stat-label mb-3">Browse by device</h2>
+      <ul class="flex flex-wrap gap-2">
+        {devices.map((d) => (
+          <li>
+            <a href={`/best-llm-for/${d.id}`} class="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground">
+              <EntityIcon device={d.category} size={14} class="text-muted-foreground" />
+              {d.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="mt-3 text-sm text-muted-foreground">
+        Or get a <a href="/rig" class="text-[var(--color-brand)] hover:underline">Rig Score</a> for your exact machine.
+      </p>
+    </section>
   </div>
 </Base>
 
