@@ -8,7 +8,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
   Access-Control-Allow-Origin: *
-  Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt", </.well-known/agent.json>; rel="alternate"; type="application/json"; title="agent-card", </api/index.json>; rel="api-catalog", </sitemap-index.xml>; rel="sitemap"
+  Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt", </.well-known/agent.json>; rel="alternate"; type="application/json"; title="agent-card", </.well-known/api-catalog>; rel="api-catalog", </sitemap-index.xml>; rel="sitemap"
 
 # Hashed assets are immutable
 /_astro/*
@@ -19,6 +19,10 @@
 
 /.well-known/agent.json
   Content-Type: application/json; charset=utf-8
+
+/.well-known/api-catalog
+  Content-Type: application/linkset+json; charset=utf-8
+  Cache-Control: public, max-age=3600
 
 /api/*
   Cache-Control: public, max-age=3600
