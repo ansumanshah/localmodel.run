@@ -138,7 +138,7 @@ const jsonLd = [
       <h2 class="text-2xl font-bold tracking-tight">Popular models</h2>
       <a href="/can-i-run" class="text-sm text-[var(--color-brand)] hover:underline">All {allModels.length} models →</a>
     </div>
-    <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {popularModels.map((m) => (
         <a href={`/model/${m.id}`} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
           <div class="flex items-center justify-between gap-2">
@@ -163,7 +163,7 @@ const jsonLd = [
         <h2 class="text-2xl font-bold tracking-tight">Popular hardware</h2>
         <a href="/best-llm-for" class="text-sm text-[var(--color-brand)] hover:underline">All {devices.length} devices →</a>
       </div>
-      <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {featuredDevices.map((d) => {
           const best = canRun(refModel, d);
           return (
@@ -212,7 +212,7 @@ const jsonLd = [
         <h2 class="text-2xl font-bold tracking-tight">Best LLM runtime per platform</h2>
         <a href="/tools" class="text-sm text-[var(--color-brand)] hover:underline">LLM runtimes guide →</a>
       </div>
-      <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {tools.map((t) => (
           <a href={`/tools#${t.platform}`} class="rounded-xl border border-border bg-card p-4 transition-colors hover:border-foreground/30">
             <div class="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">

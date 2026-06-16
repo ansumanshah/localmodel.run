@@ -101,7 +101,7 @@ const jsonLd = [
         <span class="bp-panel-label">Device index</span>
         <span class="bp-panel-label">{devices.length} rigs</span>
       </div>
-      <div class="grid gap-px bg-border sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
         {scored.map(({ device, score }) => (
           <a
             href={`/rig/${device.id}`}

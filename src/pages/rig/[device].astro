@@ -148,7 +148,7 @@ const jsonLd = [
           <span class="bp-panel-label">Compatible models</span>
           <span class="bp-panel-label">by size</span>
         </div>
-        <ul class="grid gap-0 divide-y divide-border sm:grid-cols-2 sm:divide-y-0">
+        <ul class="grid grid-cols-1 gap-0 divide-y divide-border sm:grid-cols-2 sm:divide-y-0">
           {top.map((x) => (
             <li class="border-b border-border last:border-b-0 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:border-border">
               <a href={`/can-i-run/${x.m.id}/${device.id}`} class="flex items-center justify-between px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_5%,transparent)]">

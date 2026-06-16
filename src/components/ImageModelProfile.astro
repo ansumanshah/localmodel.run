@@ -153,7 +153,7 @@ const sources = dedupeSources(model.sources, [need.source]);
           <div>
             <h3 class="bp-stat-label mb-2">{CATEGORY_LABEL[cat] ?? cat}</h3>
             {supported ? (
-              <ul class="grid gap-2 sm:grid-cols-2">
+              <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {list.map((d) => {
                   const r = canRunModality(model, d);
                   return (

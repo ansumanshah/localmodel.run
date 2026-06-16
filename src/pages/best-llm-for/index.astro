@@ -63,7 +63,7 @@ const jsonLd = [
     {Object.entries(groups).map(([cat, list]) => (
       <section>
         <h2 class="bp-stat-label mb-4">{CATEGORY_LABEL[cat] ?? cat}</h2>
-        <ul class="grid gap-3 sm:grid-cols-2">
+        <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {list.map((d) => (
             <li>
               <a

@@ -76,7 +76,7 @@ const agentFiles = [
           <p class="text-sm text-muted-foreground">
             Every model, device, and compatibility page also serves clean Markdown at its URL plus <span class="bp-code">.md</span>, and exposes these discovery files:
           </p>
-          <ul class="mt-4 grid gap-2 sm:grid-cols-2">
+          <ul class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {agentFiles.map((a) => (
               <li>
                 <a href={a.url} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
