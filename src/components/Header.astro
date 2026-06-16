@@ -42,10 +42,6 @@ const links = [
     </nav>
 
     <div class="ml-auto flex items-center gap-1 sm:ml-2">
-      <nav aria-label="Language" class="mr-1 flex items-center overflow-hidden rounded-md border border-border font-mono text-[11px]">
-        <a href="/" aria-current={lang === "en" ? "true" : undefined} class={`px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-brand)] ${lang === "en" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>EN</a>
-        <a href="/es" aria-current={lang === "es" ? "true" : undefined} class={`px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-brand)] ${lang === "es" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>ES</a>
-      </nav>
       <button
         id="theme-toggle"
         type="button"
