@@ -1,4 +1,8 @@
-# Cloudflare Pages redirects. Friendly aliases -> canonical pages.
+# Cloudflare Pages redirects.
+# Canonicalize the www host to the bare apex (host-based rule, must precede path rules).
+https://www.localmodel.run/*  https://localmodel.run/:splat  301!
+
+# Friendly aliases -> canonical pages.
 /models               /can-i-run            301
 /devices              /best-llm-for         301
 /model                /can-i-run            301
