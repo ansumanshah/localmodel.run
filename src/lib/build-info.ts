@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 
 // Build identity, resolved once at build time. The footer shows the
 // package.json version (human-friendly); the commit + date stay as a hover
@@ -19,11 +19,25 @@ function gitShortSha(): string {
 
 function pkgVersion(): string {
   try {
-    const path = fileURLToPath(new URL("../../package.json", import.meta.url));
-    return (JSON.parse(readFileSync(path, "utf8")).version as string) || "0.0.0";
+    // cwd is the repo root during `astro build` (locally and on CF Pages),
+    // so this resolves correctly even after Vite bundles this module.
+    const raw = readFileSync(join(process.cwd(), "package.json"), "utf8");
+    return (JSON.parse(raw).version as string) || "0.0.0";
   } catch {
     return "0.0.0";
   }
+}
+
+// Format an ISO date ("2026-06-17") as "17 June 2026". Parsed from the string
+// parts so it is timezone-safe (no Date() drift across UTC boundaries).
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+export function humanDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  return `${d} ${MONTHS[m - 1]} ${y}`;
 }
 
 // Semver from package.json — the version users see.

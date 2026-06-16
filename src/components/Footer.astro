@@ -1,7 +1,8 @@
 ---
 import { meta } from "@/lib/data";
 import { getLangFromUrl, useTranslations } from "@/i18n/utils";
-import { BUILD_VERSION, BUILD_COMMIT, BUILD_DATE } from "@/lib/build-info";
+import { BUILD_VERSION, BUILD_COMMIT, BUILD_DATE, humanDate } from "@/lib/build-info";
+const siteUpdated = humanDate(meta.site_updated ?? meta.updated);
 interface Props {
   year: number;
 }
@@ -64,8 +65,8 @@ const cols = [
   </div>
   <div class="border-t border-border/60">
     <div class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-      <span>&copy; {year} localmodel.run. Estimates, not guarantees, always verify before a large download. <span class="font-mono opacity-60" title={`${BUILD_COMMIT} · built ${BUILD_DATE} UTC`}>v{BUILD_VERSION}</span></span>
-      <span>Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline hover:text-foreground">Ansuman Shah</a>. <a href="/about" class="underline hover:text-foreground">About</a>. <a href="/privacy" class="underline hover:text-foreground">Privacy</a>. <a href="/notices" class="underline hover:text-foreground">Notices</a>.</span>
+      <span>&copy; {year} localmodel.run. Estimates, not guarantees, always verify before a large download. <span class="font-mono opacity-60" title={`${BUILD_COMMIT} · built ${BUILD_DATE} UTC`}>Updated {siteUpdated} &middot; v{BUILD_VERSION}</span></span>
+      <span>Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline hover:text-foreground">Ansuman Shah</a> &middot; <a href="https://x.com/AnsumanShah" rel="me noopener nofollow" class="underline hover:text-foreground">@AnsumanShah</a>. <a href="/about" class="underline hover:text-foreground">About</a>. <a href="/privacy" class="underline hover:text-foreground">Privacy</a>. <a href="/notices" class="underline hover:text-foreground">Notices</a>.</span>
     </div>
   </div>
 </footer>
