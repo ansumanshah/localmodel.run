@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { BUILD_COMMIT, BUILD_TIME } from "@/lib/build-info";
+import { BUILD_VERSION, BUILD_COMMIT, BUILD_TIME } from "@/lib/build-info";
 import { allModels, devices, meta } from "@/lib/data";
 
 // Machine-readable build identity. `no-store` so it always reflects the live
@@ -8,6 +8,7 @@ export const GET: APIRoute = () =>
   new Response(
     JSON.stringify(
       {
+        version: BUILD_VERSION,
         commit: BUILD_COMMIT,
         builtAt: BUILD_TIME,
         dataValidated: meta.updated,
