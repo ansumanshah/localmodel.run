@@ -7,11 +7,12 @@
       { "name": "MLX / mlx-lm", "what": "Apple-native inference, usually fastest on M-series", "status": "stable", "url": "https://github.com/ml-explore/mlx-lm" },
       { "name": "LM Studio", "what": "GUI app, MLX + GGUF backends", "status": "stable", "url": "https://lmstudio.ai" },
       { "name": "Ollama", "what": "CLI/server, simple ollama run UX", "status": "stable", "url": "https://ollama.com" },
-      { "name": "llama.cpp (Metal)", "what": "Reference cross-platform engine", "status": "stable", "url": "https://github.com/ggml-org/llama.cpp" }
+      { "name": "llama.cpp (Metal)", "what": "Reference cross-platform engine", "status": "stable", "url": "https://github.com/ggml-org/llama.cpp" },
+      { "name": "Rapid-MLX", "what": "MLX inference server with an OpenAI-compatible API, prompt cache and tool calling; brew or pip install", "status": "stable", "url": "https://github.com/raullenchai/Rapid-MLX" }
     ],
     "gotcha": "vLLM is NOT a Mac tool, it is a CUDA/Linux serving engine. Unified memory is not a fixed VRAM slice; ~70% is usable for weights.",
     "ceiling": "M-series with 16GB runs up to ~8B comfortably; 64GB+ runs 70B at Q4.",
-    "sources": ["https://github.com/ml-explore/mlx-lm", "https://lmstudio.ai"]
+    "sources": ["https://github.com/ml-explore/mlx-lm", "https://lmstudio.ai", "https://github.com/raullenchai/Rapid-MLX"]
   },
   {
     "platform": "windows",
