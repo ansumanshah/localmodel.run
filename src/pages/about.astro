@@ -2,16 +2,28 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import { meta } from "@/lib/data";
-import { breadcrumbLd, techArticleLd, truncate } from "@/lib/seo";
+import { breadcrumbLd, techArticleLd, truncate, type JsonLd } from "@/lib/seo";
 
 const path = "/about";
-const title = "About · localmodel.run";
+const title = "About localmodel.run: methodology, accuracy and data sources";
 const description = truncate(
   "localmodel.run is built by Ansuman Shah, an indie dev who kept Googling whether a model would fit in RAM. Text model figures are validated against Ollama and HuggingFace GGUF repos; image, video, and audio figures are sourced from vendor specs and benchmarks.",
 );
 
+const personLd: JsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Ansuman Shah",
+  url: "https://github.com/ansumanshah",
+  jobTitle: "Software engineer",
+  description:
+    "Indie developer who has spent over a decade building web and mobile apps at scale, now building local-AI and developer tools under the NoodleApps name.",
+  sameAs: ["https://github.com/ansumanshah", "https://x.com/AnsumanShah"],
+};
+
 const jsonLd = [
   breadcrumbLd([{ name: "Home", url: "/" }, { name: "About", url: path }], Astro.site!.href),
+  personLd,
   techArticleLd({
     headline: "About localmodel.run",
     description,
@@ -56,7 +68,7 @@ const jsonLd = [
     <p class="bp-stat-label mb-3">Builder</p>
     <div class="bp-panel p-5">
       <p class="text-muted-foreground">
-        Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline text-foreground font-medium">Ansuman Shah</a>, an indie dev in Bengaluru. Small, focused tools under the NoodleApps name. Find me on <a href="https://x.com/AnsumanShah" rel="noopener nofollow" class="underline">X</a> or <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">GitHub</a>.
+        Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline text-foreground font-medium">Ansuman Shah</a>, an indie dev in Bengaluru who has spent over a decade building web and mobile apps at scale. That is why the methodology here is explicit and every number is sourced. Small, focused tools under the NoodleApps name. Find me on <a href="https://x.com/AnsumanShah" rel="noopener nofollow" class="underline">X</a> or <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">GitHub</a>.
       </p>
     </div>
 

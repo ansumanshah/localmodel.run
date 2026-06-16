@@ -55,6 +55,16 @@ const q4 = estimateMemory(model, "q4_k_m");
 const spec = isText ? null : modalitySpec(model);
 const neededGb = isText ? q4.totalGb : (result.neededGb ?? 0);
 
+// Pair-specific detail line (text): ±15% context variance + headroom on this device.
+const varianceNote =
+  isText && result.estimate != null
+    ? `That figure is at a 4k context and moves about ±15% as context length changes.${
+        (result.headroomGb ?? 0) > 0
+          ? ` ${device.name} leaves ~${result.headroomGb} GB of headroom${result.upgradeQuant ? `, room to step up to ${QUANT_LABEL[result.upgradeQuant]} for higher quality` : ""}.`
+          : ""
+      }`
+    : null;
+
 const speedWord: Record<string, string> = isText
   ? {
       fast: "GPU accelerated",
@@ -248,6 +258,7 @@ if (fits && commands.length > 0) {
           <div class="mt-5">
             <MemoryBar neededGb={neededGb} usableGb={usable} fits={fits} />
             <p class="mt-3 text-sm text-muted-foreground">{result.reason}</p>
+            {varianceNote && <p class="mt-2 text-xs text-muted-foreground">{varianceNote}</p>}
           </div>
         )}
         {result.noRuntime && (
