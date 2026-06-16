@@ -201,10 +201,30 @@ export function datasetLd(opts: {
     // Declare the agent-readable endpoints so AI crawlers can discover them via
     // structured data, not just the <link rel=alternate> headers.
     distribution: [
-      { "@type": "DataDownload", name: "llms.txt", encodingFormat: "text/plain", contentUrl: new URL("/llms.txt", opts.origin).href },
-      { "@type": "DataDownload", name: "llms-full.txt", encodingFormat: "text/plain", contentUrl: new URL("/llms-full.txt", opts.origin).href },
-      { "@type": "DataDownload", name: "JSON API catalog", encodingFormat: "application/json", contentUrl: new URL("/api/index.json", opts.origin).href },
-      { "@type": "DataDownload", name: "Agent card", encodingFormat: "application/json", contentUrl: new URL("/.well-known/agent.json", opts.origin).href },
+      {
+        "@type": "DataDownload",
+        name: "llms.txt",
+        encodingFormat: "text/plain",
+        contentUrl: new URL("/llms.txt", opts.origin).href,
+      },
+      {
+        "@type": "DataDownload",
+        name: "llms-full.txt",
+        encodingFormat: "text/plain",
+        contentUrl: new URL("/llms-full.txt", opts.origin).href,
+      },
+      {
+        "@type": "DataDownload",
+        name: "JSON API catalog",
+        encodingFormat: "application/json",
+        contentUrl: new URL("/api/index.json", opts.origin).href,
+      },
+      {
+        "@type": "DataDownload",
+        name: "Agent card",
+        encodingFormat: "application/json",
+        contentUrl: new URL("/.well-known/agent.json", opts.origin).href,
+      },
     ],
   };
 }

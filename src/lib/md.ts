@@ -54,10 +54,15 @@ export function pairMarkdown(model: ModelRow, device: DeviceRow): string {
     canOllama ? "```sh\nollama run " + model.ollama_tag + "\n```" : null,
     otherDevices.length ? `` : null,
     otherDevices.length ? `## Run ${model.name} on other devices` : null,
-    ...otherDevices.map((d) => `- [${d.name}](https://localmodel.run/can-i-run/${model.id}/${d.id})`),
+    ...otherDevices.map(
+      (d) => `- [${d.name}](https://localmodel.run/can-i-run/${model.id}/${d.id})`,
+    ),
     otherModels.length ? `` : null,
     otherModels.length ? `## Other models that run on ${device.name}` : null,
-    ...otherModels.map((m) => `- [${m.name} (${m.params_b}B)](https://localmodel.run/can-i-run/${m.id}/${device.id})`),
+    ...otherModels.map(
+      (m) =>
+        `- [${m.name} (${m.params_b}B)](https://localmodel.run/can-i-run/${m.id}/${device.id})`,
+    ),
     ``,
     `Estimate, not a guarantee. Sources: ${model.sources.join(", ")}.`,
     `More: https://localmodel.run/can-i-run/${model.id}/${device.id}`,
