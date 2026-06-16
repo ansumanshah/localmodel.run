@@ -473,17 +473,6 @@
       0 0 0 1px color-mix(in oklch, var(--vc) 16%, transparent),
       0 1px 2px oklch(0 0 0 / 0.2);
   }
-  .bp-panel--verdict::before {
-    content: "";
-    position: absolute;
-    top: 14px;
-    bottom: 14px;
-    left: 0;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: var(--vc);
-    z-index: 6;
-  }
   .bp-panel--verdict .bp-panel-header {
     border-bottom-color: color-mix(in oklch, var(--vc) 28%, transparent);
     background: color-mix(in oklch, var(--vc) 9%, transparent);
