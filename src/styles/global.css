@@ -290,26 +290,6 @@
     background: radial-gradient(ellipse 60% 55% at 65% 50%, color-mix(in oklch, var(--color-brand) 8%, transparent) 0%, transparent 70%);
   }
 
-  /* Scanline sweep */
-  .bp-scanline {
-    position: absolute;
-    inset-inline: 0;
-    height: 2px;
-    z-index: 3;
-    pointer-events: none;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in oklch, var(--color-brand) 40%, transparent) 30%,
-      color-mix(in oklch, var(--color-brand) 70%, transparent) 50%,
-      color-mix(in oklch, var(--color-brand) 40%, transparent) 70%,
-      transparent 100%
-    );
-    box-shadow: 0 0 12px color-mix(in oklch, var(--color-brand) 50%, transparent);
-    animation: bp-scan 8s cubic-bezier(0.37, 0, 0.63, 1) 1.2s infinite;
-    will-change: transform, opacity;
-  }
-
   /* Cursor-follow spotlight (driven by --mx/--my set in JS) */
   .bp-spotlight {
     position: absolute;
@@ -482,6 +462,36 @@
       0 4px 8px oklch(0 0 0 / 0.08),
       0 20px 48px color-mix(in oklch, var(--color-brand) 8%, transparent);
   }
+  /* Verdict-keyed panel: swaps the indigo brand tint for the verdict color
+     (passed in as --vc) so the yes/tight/no answer reads at a glance. Same
+     visual grammar as .bp-panel, recolored, plus a left status stripe. */
+  .bp-panel--verdict {
+    --vc: var(--color-brand);
+    border-color: color-mix(in oklch, var(--vc) 38%, transparent);
+    background-image: radial-gradient(100% 60px at 50% 0, color-mix(in oklch, var(--vc) 20%, transparent) 0%, transparent 100%);
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--vc) 16%, transparent),
+      0 1px 2px oklch(0 0 0 / 0.2);
+  }
+  .bp-panel--verdict::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--vc);
+    z-index: 6;
+  }
+  .bp-panel--verdict .bp-panel-header {
+    border-bottom-color: color-mix(in oklch, var(--vc) 28%, transparent);
+    background: color-mix(in oklch, var(--vc) 9%, transparent);
+  }
+  .bp-panel--verdict .bp-panel-label {
+    color: color-mix(in oklch, var(--vc) 78%, var(--muted-foreground));
+  }
+
   /* One-shot diagonal shine on entry (hero panel only) */
   .bp-instrument::after {
     content: "";
@@ -654,12 +664,6 @@
   }
 }
 
-@keyframes bp-scan {
-  0% { transform: translateY(-100%); opacity: 0; }
-  5% { opacity: 1; }
-  95% { opacity: 1; }
-  100% { transform: translateY(200%); opacity: 0; }
-}
 @keyframes bp-dot-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -682,7 +686,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bp-scanline { animation: none; opacity: 0; }
   .bp-dot,
   .bp-status-dot { animation: none; }
   .bp-instrument::after { animation: none; opacity: 0; }

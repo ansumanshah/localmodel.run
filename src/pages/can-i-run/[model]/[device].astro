@@ -49,6 +49,16 @@ const platform = devicePlatform(device);
 const tool = getTool(platform);
 const fits = result.verdict !== "no";
 
+// Verdict color drives the primary panel's tint (border, top glow, status
+// stripe) so the yes/tight/no answer is scannable before reading a word.
+const verdictColor: Record<typeof result.verdict, string> = {
+  yes: "var(--color-verdict-yes)",
+  tight: "var(--color-verdict-tight)",
+  no: "var(--color-verdict-no)",
+  unknown: "var(--muted-foreground)",
+};
+const panelVc = verdictColor[result.verdict];
+
 // Memory needed for the bar: text uses the estimator total, non-text uses the
 // sourced peak-VRAM anchor.
 const q4 = estimateMemory(model, "q4_k_m");
@@ -239,8 +249,8 @@ if (fits && commands.length > 0) {
       <span class="flex items-center gap-2">on <EntityIcon device={device.category} size={28} class="text-muted-foreground" /> <span>{device.name}?</span></span>
     </h1>
 
-    <!-- Verdict instrument panel: the primary readout -->
-    <div class="bp-panel mt-6">
+    <!-- Verdict instrument panel: the primary readout, tinted by the verdict -->
+    <div class="bp-panel bp-panel--verdict mt-6" style={`--vc:${panelVc}`}>
       <div class="bp-panel-header">
         <span class="bp-panel-label">Compatibility verdict</span>
         <span class="bp-panel-label">{isText ? "VRAM threshold engine" : `${memWord} check`}</span>
