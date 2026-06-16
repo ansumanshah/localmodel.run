@@ -1,11 +1,19 @@
 {
   "schema_version": "v1",
   "version": "1",
-  "last_updated": "2026-06-14",
+  "last_updated": "2026-06-16",
   "name": "localmodel.run",
   "description": "Check whether a computer or phone can run a given local LLM, and which tool to use, across macOS, Windows, Linux, iOS and Android.",
+  "use_case": "Hardware compatibility check for running local AI models (LLMs, image, video, audio) on a specific computer or phone.",
+  "tags": ["local-llm", "hardware-compatibility", "gguf", "ollama", "vram", "on-device-ai", "apple-silicon"],
+  "example_queries": [
+    "Can I run Llama 3.1 8B on my M2 MacBook Pro 16GB?",
+    "What models can an RTX 4090 run locally?",
+    "Will Qwen2.5 7B run on an iPhone 16 Pro?",
+    "Cheapest GPU to run a 70B model locally"
+  ],
   "url": "https://localmodel.run",
-  "contact": "https://github.com/ansumanshah/localmodel/issues",
+  "contact": "https://github.com/ansumanshah/localmodel.run/issues",
   "capabilities": [
     {
       "name": "check_compatibility",
