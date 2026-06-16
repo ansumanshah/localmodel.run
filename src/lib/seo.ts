@@ -196,6 +196,9 @@ export function datasetLd(opts: {
     url: new URL("/methodology", opts.origin).href,
     dateModified: opts.dateModified,
     isAccessibleForFree: true,
+    // CC BY 4.0: facts compiled from public sources, free to reuse with
+    // attribution. Also clears GSC's "missing field license" Dataset warning.
+    license: "https://creativecommons.org/licenses/by/4.0/",
     creator: orgEntity(opts.origin),
     citation: opts.sources.slice(0, 25).map((url) => ({ "@type": "CreativeWork", url })),
     // Declare the agent-readable endpoints so AI crawlers can discover them via
