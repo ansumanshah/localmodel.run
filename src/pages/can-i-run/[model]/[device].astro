@@ -243,10 +243,8 @@ if (fits && commands.length > 0) {
       {modality} model &middot; {model.family} &middot; {platformLabel(platform)}
     </p>
 
-    <h1 class="mt-3 flex flex-wrap items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-      <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
-      <span>Can I run {model.name}</span>
-      <span class="flex items-center gap-2">on <EntityIcon device={device.category} size={28} class="text-muted-foreground" /> <span>{device.name}?</span></span>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Can I run {model.name} on {device.name}?
     </h1>
 
     <!-- Verdict instrument panel: the primary readout, tinted by the verdict -->
