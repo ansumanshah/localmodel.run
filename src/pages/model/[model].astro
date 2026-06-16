@@ -37,6 +37,17 @@ export function getStaticPaths() {
 const { model } = Astro.props;
 const modality = modelModality(model);
 const isText = modality === "text";
+// Cross-model internal links (same family first, then nearest-size text models).
+const similar = [
+  ...allModels.filter((m) => m.id !== model.id && m.family === model.family),
+  ...allModels.filter(
+    (m) =>
+      m.id !== model.id &&
+      m.family !== model.family &&
+      modelModality(m) === "text" &&
+      Math.abs(m.params_b - model.params_b) <= Math.max(2, model.params_b * 0.4),
+  ),
+].slice(0, 6);
 const path = `/model/${model.id}`;
 const NonTextProfile =
   modality === "image" ? ImageModelProfile : modality === "video" ? VideoModelProfile : AudioModelProfile;
@@ -231,6 +242,25 @@ const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "t
                 ))}
               </div>
             </section>
+
+            {similar.length > 0 && (
+              <section class="mt-10">
+                <h2 class="text-lg font-semibold">Similar models</h2>
+                <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+                  {similar.map((m) => (
+                    <li>
+                      <a href={`/model/${m.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                        <span class="flex min-w-0 items-center gap-2 text-sm">
+                          <EntityIcon maker={m.family} size={18} class="text-muted-foreground" />
+                          <span class="truncate">{m.name} requirements</span>
+                        </span>
+                        <span class="shrink-0 text-xs text-muted-foreground">{m.params_b < 1 ? `${Math.round(m.params_b * 1000)}M` : `${m.params_b}B`}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             <section class="mt-10">
               <h2 class="text-lg font-semibold">FAQ</h2>
