@@ -21,10 +21,10 @@ const jsonLd = [
 <Base title={title} description={description} path={path} jsonLd={jsonLd}>
   <!-- Intro band: themed but no bp-grid/scanline (not a landing hero) -->
   <section class="hub-intro relative overflow-hidden border-b border-border/60">
-    <div class="mx-auto max-w-4xl px-4 py-12">
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:py-12">
       <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Devices", url: path }]} />
 
-      <p class="bp-eyebrow mt-6">
+      <p class="bp-eyebrow mt-5 sm:mt-6">
         <span class="bp-dot" aria-hidden="true"></span>
         Hardware index &middot; {devices.length} devices
       </p>
