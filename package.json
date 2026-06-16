@@ -18,7 +18,8 @@
     "astro": "astro",
     "check": "astro check",
     "update-data": "node scripts/update-data.mjs",
-    "validate-data": "node scripts/validate-data.mjs"
+    "validate-data": "node scripts/validate-data.mjs",
+    "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
     "@astrojs/react": "5.0.7",
