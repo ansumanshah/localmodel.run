@@ -1,0 +1,206 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import { models, dedupeSources, meta } from "@/lib/data";
+import type { ModelRow, CommercialUse } from "@/data/types";
+import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+// License ranking. Membership and every claim come from the sourced commercial_use
+// + license + license_note fields; this is a licensing summary, not legal advice.
+const tierOf = (t: CommercialUse) =>
+  models.filter((m) => m.commercial_use === t).sort((a, b) => b.params_b - a.params_b);
+const permissive = tierOf("yes");
+const conditional = tierOf("conditional");
+const nonCommercial = tierOf("no");
+
+const path = "/open-source-llms-for-commercial-use";
+const title = "Open LLMs you can use commercially (by license) · localmodel.run";
+const description = truncate(
+  `Which local LLMs are actually free to ship in a product. ${permissive.length} permissive (Apache, MIT), ${conditional.length} with conditions (Llama, Gemma, Qwen caps) and ${nonCommercial.length} non-commercial, each with its sourced license.`,
+);
+
+const sources = dedupeSources(
+  ...permissive.slice(0, 8).map((m) => m.sources),
+  ...conditional.map((m) => m.sources),
+  ...nonCommercial.map((m) => m.sources),
+).slice(0, 18);
+
+const faqs: FaqItem[] = [
+  {
+    q: "Can I use Llama models commercially?",
+    a: "Yes, with a condition. Llama models use Meta's community license, which is free for commercial use unless your product has more than 700 million monthly active users, at which point you must request a license from Meta. For almost everyone that cap never bites, but it is why Llama sits in the conditional tier, not the fully permissive one.",
+  },
+  {
+    q: "What is the most permissive license for a local LLM?",
+    a: "Apache-2.0 and MIT are the cleanest: free for commercial use, modification and redistribution with no user cap. Most Qwen3, Mistral and DeepSeek-distill models ship under Apache-2.0, which is why they fill the permissive tier here.",
+  },
+  {
+    q: "Which local models can I not use commercially?",
+    a: `${nonCommercial.map((m) => m.name).join(", ")} are non-commercial only under their licenses (research or CC BY-NC). Use them for evaluation and personal projects, not in a product you sell.`,
+  },
+  {
+    q: "Is this legal advice?",
+    a: "No. This is a plain-English summary of each model's stated license to help you shortlist. Licenses change and terms have edge cases, so confirm the current license on the model's HuggingFace page before you ship.",
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Commercial use", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "Open local LLMs you can use commercially, by license",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources,
+    speakableSelector: [".commercial-lede"],
+  }),
+  itemListLd({
+    name: "Local LLMs free for commercial use",
+    items: permissive.map((m) => ({ name: m.name, url: `/model/${m.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+
+const TIERS: { key: string; heading: string; blurb: string; models: ModelRow[]; vc: string }[] = [
+  {
+    key: "permissive",
+    heading: "Free to ship",
+    blurb: "Apache-2.0, MIT and similar. Commercial use, modification and redistribution, no user cap.",
+    models: permissive,
+    vc: "var(--color-verdict-yes)",
+  },
+  {
+    key: "conditional",
+    heading: "Free with conditions",
+    blurb: "Usable commercially, but with a caveat: a user cap, naming rules or a terms-of-use to accept.",
+    models: conditional,
+    vc: "var(--color-verdict-tight)",
+  },
+  {
+    key: "non-commercial",
+    heading: "Non-commercial only",
+    blurb: "Research or personal use only under their licenses. Not for a product you sell.",
+    models: nonCommercial,
+    vc: "var(--color-verdict-no)",
+  },
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle="Local LLMs by commercial license"
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt="Local LLMs grouped by whether you can use them commercially"
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Commercial use", url: path }]} />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Licensing &middot; Commercial use</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Local LLMs you can use commercially
+    </h1>
+    <p class="commercial-lede mt-4 text-pretty text-lg text-muted-foreground">
+      "Open" does not always mean "free to ship". Some local models are fully permissive, some carry a
+      user cap or terms to accept, and a few are research-only. Here they are, grouped by what their
+      license actually allows.
+    </p>
+
+    <div class="bp-wire mt-5" aria-hidden="true"></div>
+
+    <dl class="bp-stat-grid mt-4">
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Free to ship</dt>
+        <dd class="bp-stat-val bp-stat-yes">{permissive.length}</dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">With conditions</dt>
+        <dd class="bp-stat-val">{conditional.length}</dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Non-commercial</dt>
+        <dd class="bp-stat-val">{nonCommercial.length}</dd>
+      </div>
+    </dl>
+
+    {TIERS.map((tier) => (
+      <section class="mt-8">
+        <h2 class="flex items-center gap-2 text-xl font-semibold">
+          <span class="inline-block h-2.5 w-2.5 rounded-full" style={`background:${tier.vc}`} aria-hidden="true"></span>
+          {tier.heading}
+          <span class="bp-stat-label font-normal">{tier.models.length}</span>
+        </h2>
+        <p class="mt-1 text-sm text-muted-foreground">{tier.blurb}</p>
+        <div class="bp-panel mt-3 overflow-hidden">
+          <ul class="divide-y divide-border">
+            {tier.models.map((m) => (
+              <li>
+                <a href={`/model/${m.id}`} class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
+                  <EntityIcon maker={m.family} size={18} class="text-muted-foreground shrink-0" />
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-sm font-medium">{m.name} <span class="bp-stat-label">{m.params_b}B</span></div>
+                    <div class="mt-0.5 text-xs text-muted-foreground">
+                      <span class="font-mono">{m.license}</span>
+                      {m.license_note ? <span> &middot; {m.license_note}</span> : null}
+                    </div>
+                  </div>
+                  <span class="text-[var(--color-brand)] opacity-50 shrink-0" aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ))}
+
+    <div class="bp-panel mt-8">
+      <div class="bp-panel-header"><span class="bp-panel-label">Before you ship</span></div>
+      <p class="p-4 text-sm text-muted-foreground">
+        This is a plain-English summary to help you shortlist, <strong class="text-foreground">not legal
+        advice</strong>. Licenses change and have edge cases. Always confirm the current license on the
+        model's HuggingFace page before you build on it.
+      </p>
+    </div>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">FAQ</h2>
+      <div class="bp-panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="Related">
+      <h2 class="bp-stat-label mb-3">Next</h2>
+      <div class="flex flex-wrap gap-2">
+        <a href="/best-llm-for-ram" class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Which fits your memory →</a>
+        <a href="/leaderboard" class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Quality leaderboard →</a>
+      </div>
+    </nav>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Licenses are summarized from each model's card, validated {meta.updated}. See
+      <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

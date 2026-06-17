@@ -1,0 +1,263 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Sources from "@/components/Sources.astro";
+import { imageModels, videoModels, audioModels, dedupeSources, meta } from "@/lib/data";
+import { modalityNeed } from "@/lib/compute-mm";
+import type { ModelRow } from "@/data/types";
+import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return ["image-generation", "video-generation", "audio"].map((category) => ({
+    params: { category },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props as { category: string };
+
+const DC_LABEL: Record<string, string> = {
+  mac: "Mac",
+  nvidia: "NVIDIA",
+  amd: "AMD",
+  intel: "Intel",
+  laptop: "CPU laptop",
+  iphone: "iPhone",
+  android: "Android",
+};
+
+interface Row {
+  model: ModelRow;
+  need: number;
+  quant: string;
+  offload: number | null;
+  spec: string;
+  classes: string[];
+  tools: string[];
+}
+
+function rowFor(m: ModelRow): Row {
+  const need = modalityNeed(m)!;
+  const s = m.image ?? m.video ?? m.audio!;
+  let spec = "";
+  if (m.image) spec = `${m.image.native_resolution} · ${m.image.arch.toUpperCase()} · ${m.image.steps} steps`;
+  else if (m.video) spec = `${m.video.default_resolution} · ${m.video.default_frames} frames`;
+  else if (m.audio) spec = m.audio.task;
+  return {
+    model: m,
+    need: need.neededGb,
+    quant: need.quantLabel,
+    offload: need.offloadFloorGb,
+    spec,
+    classes: s.device_classes,
+    tools: s.tools.slice(0, 3),
+  };
+}
+
+const byNeed = (a: Row, b: Row) => a.need - b.need;
+
+// Page config per category. Audio is grouped by subtype (one strong page covers
+// speech-to-text, text-to-speech and music) rather than three thin ones.
+type Group = { heading: string; rows: Row[] };
+let noun: string;
+let lede: string;
+let groups: Group[];
+let allRows: Row[];
+
+if (category === "image-generation") {
+  noun = "image generation";
+  lede =
+    "Local diffusion models that turn a prompt into an image, ranked by the GPU memory a run actually uses. Lower is more accessible.";
+  allRows = imageModels.map(rowFor).sort(byNeed);
+  groups = [{ heading: "Models", rows: allRows }];
+} else if (category === "video-generation") {
+  noun = "video generation";
+  lede =
+    "Local text-to-video and image-to-video models, ranked by peak VRAM. Video is the most memory-hungry modality, and most needs a discrete GPU.";
+  allRows = videoModels.map(rowFor).sort(byNeed);
+  groups = [{ heading: "Models", rows: allRows }];
+} else {
+  noun = "speech & audio";
+  lede =
+    "Local speech-to-text, text-to-speech and music models, ranked by memory. The speech models are light enough to run on almost anything; music generation wants a GPU.";
+  allRows = audioModels.map(rowFor);
+  const sub = (s: string) => allRows.filter((r) => r.model.audio?.subtype === s).sort(byNeed);
+  groups = [
+    { heading: "Speech to text", rows: sub("stt") },
+    { heading: "Text to speech", rows: sub("tts") },
+    { heading: "Music generation", rows: sub("music") },
+  ].filter((g) => g.rows.length > 0);
+}
+
+const sorted = [...allRows].sort(byNeed);
+const path = `/best-local/${category}`;
+const year = new Date(meta.updated).getFullYear();
+const nounTitle = noun.charAt(0).toUpperCase() + noun.slice(1);
+const title = `Best local ${noun} models (${year}) · localmodel.run`;
+const description = truncate(
+  `Local ${noun} models ranked by the GPU memory a run uses, from ~${sorted[0].need} GB up. ${allRows.length} models with peak VRAM, the tools to run them and where they run.`,
+);
+
+const sources = dedupeSources(...allRows.map((r) => r.model.sources)).slice(0, 16);
+
+const faqs: FaqItem[] = [
+  {
+    q: `What is the most memory-efficient local ${noun} model?`,
+    a: `${sorted[0].model.name} uses the least: about ${sorted[0].need} GB at ${sorted[0].quant}. ${
+      sorted[0].offload != null
+        ? `With CPU offload it can drop to ~${sorted[0].offload} GB, more slowly.`
+        : "Lower memory means it runs on more hardware."
+    }`,
+  },
+  {
+    q: `How much GPU memory do I need for local ${noun}?`,
+    a: `It ranges from about ${sorted[0].need} GB to ${sorted[sorted.length - 1].need} GB of peak VRAM across the models here. The figure is the memory a run consumes, not the size of card you must buy, so match it to your usable VRAM with a gigabyte or two of margin.`,
+  },
+  {
+    q: "Is the memory figure the download size or the run size?",
+    a: "The run size: peak VRAM actually consumed during generation, which is the number that decides if it fits. Diffusion models can also offload parts to system RAM to run on less, slower. Every figure here is sourced.",
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Best local", url: "/best-local" },
+      { name: nounTitle, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `Best local ${noun} models by memory`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources,
+    speakableSelector: [".cat-lede"],
+  }),
+  itemListLd({
+    name: `Local ${noun} models`,
+    items: sorted.map((r) => ({ name: r.model.name, url: `/model/${r.model.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle={`Best local ${noun} models`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt={`Local ${noun} models ranked by GPU memory`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Best local", url: "/best-local" },
+        { name: nounTitle, url: path },
+      ]}
+    />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Catalog &middot; {nounTitle}</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Best local {noun} models
+    </h1>
+    <p class="cat-lede mt-4 text-pretty text-lg text-muted-foreground">{lede}</p>
+
+    <div class="bp-wire mt-5" aria-hidden="true"></div>
+
+    <dl class="bp-stat-grid mt-4">
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Models</dt>
+        <dd class="bp-stat-val">{allRows.length}</dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Lightest</dt>
+        <dd class="bp-stat-val bp-stat-yes">~{sorted[0].need} GB</dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Heaviest</dt>
+        <dd class="bp-stat-val">~{sorted[sorted.length - 1].need} GB</dd>
+      </div>
+    </dl>
+
+    {groups.map((g) => (
+      <section class="mt-8">
+        <h2 class="mb-3 text-lg font-semibold">{g.heading}</h2>
+        <div class="bp-panel overflow-hidden">
+          <div class="bp-panel-header">
+            <span class="bp-panel-label">Lightest first</span>
+            <span class="bp-panel-label">peak VRAM</span>
+          </div>
+          <ul class="divide-y divide-border">
+            {g.rows.map((r) => (
+              <li class="px-4 py-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <a href={`/model/${r.model.id}`} class="block truncate text-sm font-medium hover:underline">{r.model.name}</a>
+                    <div class="bp-stat-label mt-0.5">{r.spec}</div>
+                  </div>
+                  <div class="shrink-0 text-right">
+                    <div class="text-sm font-semibold">~{r.need} GB</div>
+                    <div class="bp-stat-label">{r.quant}</div>
+                  </div>
+                </div>
+                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span class="bp-stat-label">Runs on:</span>
+                  {r.classes.map((c) => (
+                    <span class="bp-stat-label text-foreground/70">{DC_LABEL[c] ?? c}</span>
+                  ))}
+                  {r.offload != null && (
+                    <span class="bp-stat-label">· offload floor ~{r.offload} GB</span>
+                  )}
+                </div>
+                <p class="mt-1 text-xs text-muted-foreground">Tools: {r.tools.join(", ")}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ))}
+
+    <p class="mt-4 text-sm text-muted-foreground">
+      Peak VRAM is the memory a run consumes, the same basis the site uses everywhere; see the
+      <a href="/methodology" class="text-[var(--color-brand)] hover:underline">methodology</a>. To check
+      a model against your exact device, open its <a href="/can-i-run" class="text-[var(--color-brand)] hover:underline">compatibility page</a>.
+    </p>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">FAQ</h2>
+      <div class="bp-panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="Other catalogs">
+      <h2 class="bp-stat-label mb-3">Other local model catalogs</h2>
+      <div class="flex flex-wrap gap-2">
+        {["image-generation", "video-generation", "audio"]
+          .filter((c) => c !== category)
+          .map((c) => (
+            <a href={`/best-local/${c}`} class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+              {c === "audio" ? "Speech & audio" : c === "image-generation" ? "Image generation" : "Video generation"}
+            </a>
+          ))}
+      </div>
+    </nav>
+
+    <Sources urls={sources} />
+  </div>
+</Base>

@@ -1,0 +1,96 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { imageModels, videoModels, audioModels, meta } from "@/lib/data";
+import { modalityNeed } from "@/lib/compute-mm";
+import type { ModelRow } from "@/data/types";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const minNeed = (arr: ModelRow[]) => Math.min(...arr.map((m) => modalityNeed(m)!.neededGb));
+const cats = [
+  {
+    slug: "image-generation",
+    title: "Image generation",
+    blurb: "Stable Diffusion, FLUX, Qwen-Image and more.",
+    count: imageModels.length,
+    min: minNeed(imageModels),
+  },
+  {
+    slug: "video-generation",
+    title: "Video generation",
+    blurb: "Wan, LTX-Video, HunyuanVideo, CogVideoX and more.",
+    count: videoModels.length,
+    min: minNeed(videoModels),
+  },
+  {
+    slug: "audio",
+    title: "Speech & audio",
+    blurb: "Whisper, Kokoro, Orpheus, MusicGen: speech and music.",
+    count: audioModels.length,
+    min: minNeed(audioModels),
+  },
+];
+
+const path = "/best-local";
+const title = "Best local AI models by type: image, video, audio · localmodel.run";
+const description = truncate(
+  "Local image, video and audio models ranked by the GPU memory each run uses, with the tools to run them. Find the lightest model for your hardware in each category.",
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Best local", url: path }], Astro.site!.href),
+  itemListLd({
+    name: "Local model catalogs by type",
+    items: cats.map((c) => ({ name: c.title, url: `/best-local/${c.slug}` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <section class="hub-intro relative overflow-hidden border-b border-border/60">
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Best local", url: path }]} />
+
+      <p class="bp-eyebrow mt-5 sm:mt-6">
+        <span class="bp-dot" aria-hidden="true"></span>
+        Beyond text &middot; {cats.length} types
+      </p>
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+        Best local <span class="bp-accent">image, video & audio</span> models
+      </h1>
+      <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
+        Text is not the only thing you can run locally. Pick a type to see the models ranked by the
+        GPU memory a run uses, with the tools and hardware each needs. Validated {meta.updated}.
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-4xl px-4 py-10">
+    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {cats.map((c) => (
+        <li>
+          <a
+            href={`/best-local/${c.slug}`}
+            class="bp-panel card-seam group flex h-full flex-col justify-between gap-3 px-4 py-4 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-medium">{c.title}</span>
+                <span class="text-[var(--color-brand)] opacity-60 group-hover:opacity-100 transition-opacity" aria-hidden="true">→</span>
+              </div>
+              <p class="mt-1 text-sm text-muted-foreground">{c.blurb}</p>
+            </div>
+            <div class="flex flex-wrap gap-x-3">
+              <span class="bp-stat-label">{c.count} models</span>
+              <span class="bp-stat-label">from ~{c.min} GB</span>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="mt-6 text-sm text-muted-foreground">
+      Looking for text models? <a href="/can-i-run" class="text-[var(--color-brand)] hover:underline">Browse all LLMs →</a>
+    </p>
+  </div>
+</Base>
