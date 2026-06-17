@@ -16,9 +16,9 @@ const conditional = tierOf("conditional");
 const nonCommercial = tierOf("no");
 
 const path = "/open-source-llms-for-commercial-use";
-const title = "Open LLMs you can use commercially (by license) · localmodel.run";
+const title = "Open-source LLMs for commercial use · localmodel.run";
 const description = truncate(
-  `Which local LLMs are actually free to ship in a product. ${permissive.length} permissive (Apache, MIT), ${conditional.length} with conditions (Llama, Gemma, Qwen caps) and ${nonCommercial.length} non-commercial, each with its sourced license.`,
+  `Which local LLMs are actually free to ship in a product. ${permissive.length} permissive (Apache, MIT), ${conditional.length} with conditions (Llama, Gemma and others) and ${nonCommercial.length} non-commercial, each with its sourced license.`,
 );
 
 const sources = dedupeSources(
@@ -30,15 +30,15 @@ const sources = dedupeSources(
 const faqs: FaqItem[] = [
   {
     q: "Can I use Llama models commercially?",
-    a: "Yes, with a condition. Llama models use Meta's community license, which is free for commercial use unless your product has more than 700 million monthly active users, at which point you must request a license from Meta. For almost everyone that cap never bites, but it is why Llama sits in the conditional tier, not the fully permissive one.",
+    a: "Yes, with a condition. Llama models use Meta's community license, which is free for commercial use unless your product has more than 700 million monthly active users, at which point you must request a license from Meta. For almost everyone that cap never bites. Llama 4 adds further use restrictions on top of the cap, so check the Llama 4 Community License before shipping. This is why Llama sits in the conditional tier, not the fully permissive one.",
   },
   {
     q: "What is the most permissive license for a local LLM?",
-    a: "Apache-2.0 and MIT are the cleanest: free for commercial use, modification and redistribution with no user cap. Most Qwen3, Mistral and DeepSeek-distill models ship under Apache-2.0, which is why they fill the permissive tier here.",
+    a: "Apache-2.0 and MIT are the cleanest: free for commercial use, modification and redistribution with no user cap. Most Qwen3 and Mistral models ship under Apache-2.0, and the DeepSeek-R1 distills ship under MIT, which is why they fill the permissive tier here.",
   },
   {
     q: "Which local models can I not use commercially?",
-    a: `${nonCommercial.map((m) => m.name).join(", ")} are non-commercial only under their licenses (research or CC BY-NC). Use them for evaluation and personal projects, not in a product you sell.`,
+    a: `${nonCommercial.map((m) => m.name).join(", ")} are non-commercial only. Their licenses (the Qwen Research License, the Sarvam non-commercial license, and CC BY-NC) restrict them to evaluation and personal projects, not a product you sell.`,
   },
   {
     q: "Is this legal advice?",

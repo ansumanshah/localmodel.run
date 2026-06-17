@@ -54,7 +54,8 @@ function rowFor(m: ModelRow): Row {
   };
 }
 
-const byNeed = (a: Row, b: Row) => a.need - b.need;
+// Lightest first; name as a stable tiebreak so equal-VRAM ties are deterministic.
+const byNeed = (a: Row, b: Row) => a.need - b.need || a.model.name.localeCompare(b.model.name);
 
 // Page config per category. Audio is grouped by subtype (one strong page covers
 // speech-to-text, text-to-speech and music) rather than three thin ones.
@@ -215,7 +216,7 @@ const jsonLd = [
                   {r.classes.map((c) => (
                     <span class="bp-stat-label text-foreground/70">{DC_LABEL[c] ?? c}</span>
                   ))}
-                  {r.offload != null && (
+                  {r.offload != null && r.offload < r.need && (
                     <span class="bp-stat-label">· offload floor ~{r.offload} GB</span>
                   )}
                 </div>

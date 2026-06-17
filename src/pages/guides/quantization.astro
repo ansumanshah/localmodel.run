@@ -30,7 +30,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "Is Q4_K_M good enough, or should I use Q8_0?",
-    a: "Q4_K_M keeps almost all of the model's quality at roughly a quarter of the FP16 size, so it is the right default. Q8_0 is near-lossless but about 1.7x larger, worth it only if you have memory to spare. Below Q4 (Q3, Q2) quality drops off faster and is a last resort for models that otherwise will not fit.",
+    a: "Q4_K_M keeps almost all of the model's quality at roughly a third of the FP16 size, so it is the right default. Q8_0 is near-lossless but about 1.7x the size of Q4_K_M, worth it only if you have memory to spare. Below Q4 (Q3, Q2) quality drops off faster and is a last resort for models that otherwise will not fit.",
   },
   {
     q: "Does a lower quant make the model faster?",
@@ -38,7 +38,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "What is FP16 and do I need it locally?",
-    a: "FP16 is the near-original 16-bit precision. It is roughly 4x the size of Q4_K_M for almost no quality gain you would notice in chat, so locally it is rarely worth the memory. It matters more for fine-tuning than for running.",
+    a: "FP16 is the near-original 16-bit precision. It is roughly 3.3x the size of Q4_K_M (16 bits versus an effective ~4.9 per weight) for almost no quality gain you would notice in chat, so locally it is rarely worth the memory. It matters more for fine-tuning than for running.",
   },
 ];
 
@@ -97,7 +97,7 @@ const jsonLd = [
       <div class="bp-panel-header"><span class="bp-panel-label">The short version</span></div>
       <p class="p-4 text-sm text-muted-foreground">
         Use <strong class="text-foreground">Q4_K_M</strong>. It keeps almost all of the quality at
-        about a quarter of the original size, so it fits where the full model never would. Step up to
+        about a third of the original size, so it fits where the full model never would. Step up to
         Q8_0 only if you have memory to spare; drop below Q4 only when nothing else fits.
       </p>
     </div>
@@ -179,7 +179,7 @@ const jsonLd = [
       <h2 class="text-xl font-semibold">How this changes what you can run</h2>
       <p class="mt-2 text-muted-foreground">
         Quant choice is the single biggest lever on whether a model fits your hardware. The same
-        model at Q4_K_M might fit a 16 GB machine where its FP16 version needs four times the memory.
+        model at Q4_K_M might fit a 16 GB machine where its FP16 version needs more than three times the memory.
         To see what fits yours, start from your
         <a href="/best-llm-for-ram" class="text-[var(--color-brand)] hover:underline">memory budget</a>
         or your <a href="/best-llm-for" class="text-[var(--color-brand)] hover:underline">exact device</a>.

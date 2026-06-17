@@ -29,7 +29,10 @@ export function families(): Family[] {
   for (const [name, members] of by) {
     if (members.length < 3) continue;
     out.push({
-      name,
+      // A few family fields are stored lowercase (llama, mistral, gemma); upcase
+      // the first letter for display. Already-cased names (Qwen3, SmolLM2,
+      // DeepSeek-R1-Distill) pass through unchanged.
+      name: name.charAt(0).toUpperCase() + name.slice(1),
       slug: familySlug(name),
       members: [...members].sort((a, b) => a.params_b - b.params_b),
     });

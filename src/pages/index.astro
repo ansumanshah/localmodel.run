@@ -188,11 +188,13 @@ const jsonLd = [
   <!-- Browse by: entry points into the editorial hubs -->
   <section class="mx-auto max-w-5xl px-4 py-12">
     <h2 class="text-2xl font-bold tracking-tight">Find your model another way</h2>
-    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {[
         { href: "/best-llm-for-ram", t: "By memory", d: "8, 16, 24 or 32 GB? See what fits, with the Mac vs GPU vs laptop split." },
         { href: "/family", t: "By family", d: "Qwen3, Llama, Gemma and more, every size compared by memory." },
         { href: "/most-efficient-llms", t: "Most efficient", d: "The models that give the most capability per gigabyte." },
+        { href: "/best-local", t: "Image, video, audio", d: "Local diffusion and speech models, ranked by GPU memory." },
+        { href: "/open-source-llms-for-commercial-use", t: "Commercial use", d: "Which local models you can actually ship, sorted by license." },
         { href: "/guides", t: "Guides", d: "Quantization, VRAM vs RAM, mixture of experts, in plain words." },
       ].map((c) => (
         <a href={c.href} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
