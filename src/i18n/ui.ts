@@ -12,6 +12,7 @@ export const ui = {
     "nav.devices": "Devices",
     "nav.tools": "Tools",
     "nav.rig": "Rig score",
+    "nav.guides": "Guides",
     "nav.methodology": "Methodology",
     "hero.badge":
       "{models} models across text, image, video, audio · {devices} devices · validated {date}",
@@ -41,6 +42,7 @@ export const ui = {
     "nav.devices": "Dispositivos",
     "nav.tools": "Herramientas",
     "nav.rig": "Rig score",
+    "nav.guides": "Guías",
     "nav.methodology": "Metodología",
     "hero.badge":
       "{models} modelos entre texto, imagen, video y audio · {devices} dispositivos · validado {date}",

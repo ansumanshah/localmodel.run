@@ -5,7 +5,7 @@ import type { ModelRow } from "@/data/types";
 // models sharing the `family` field (e.g. "Qwen3"); we only build a page when 3+
 // sizes are tracked, so the size-laddering narrative is real, not a stub.
 
-export function familySlug(family: string): string {
+function familySlug(family: string): string {
   return family
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")

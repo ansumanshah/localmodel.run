@@ -20,12 +20,20 @@ const cols = [
     ],
   },
   {
+    title: "Browse",
+    links: [
+      { href: "/best-llm-for-ram", label: "By memory" },
+      { href: "/family", label: "Model families" },
+      { href: "/most-efficient-llms", label: "Most efficient" },
+      { href: "/guides", label: "Guides" },
+    ],
+  },
+  {
     title: "Learn",
     links: [
       { href: "/methodology", label: "How we calculate" },
       { href: "/methodology#sources", label: "Data sources" },
       { href: "/developers", label: "API & agents" },
-      { href: "/llms.txt", label: "llms.txt" },
       { href: "/about", label: "About" },
     ],
   },
@@ -39,7 +47,7 @@ const cols = [
   <div class="bp-corner bp-corner--tl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
   <div class="bp-corner bp-corner--tr" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
 
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[2fr_1fr_1fr]">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[1.6fr_2.4fr]">
     <div>
       <div class="flex items-center gap-2 font-semibold">
         localmodel<span class="text-muted-foreground">.run</span>
@@ -48,7 +56,7 @@ const cols = [
       <p class="mt-2 max-w-xs text-sm text-muted-foreground">{t("footer.tagline")}</p>
       <p class="mt-3 font-mono text-[11px] text-muted-foreground">{t("footer.dataNote", { date: meta.updated })}</p>
     </div>
-    <nav aria-label="Footer" class="grid grid-cols-2 gap-8 sm:col-span-2">
+    <nav aria-label="Footer" class="grid grid-cols-2 gap-6 sm:grid-cols-3">
       {cols.map((c) => (
         <div>
           <div class="font-mono text-[11px] uppercase tracking-widest text-[var(--color-brand)]">{c.title}</div>

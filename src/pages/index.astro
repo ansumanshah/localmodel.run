@@ -185,6 +185,27 @@ const jsonLd = [
     </div>
   </section>
 
+  <!-- Browse by: entry points into the editorial hubs -->
+  <section class="mx-auto max-w-5xl px-4 py-12">
+    <h2 class="text-2xl font-bold tracking-tight">Find your model another way</h2>
+    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {[
+        { href: "/best-llm-for-ram", t: "By memory", d: "8, 16, 24 or 32 GB? See what fits, with the Mac vs GPU vs laptop split." },
+        { href: "/family", t: "By family", d: "Qwen3, Llama, Gemma and more, every size compared by memory." },
+        { href: "/most-efficient-llms", t: "Most efficient", d: "The models that give the most capability per gigabyte." },
+        { href: "/guides", t: "Guides", d: "Quantization, VRAM vs RAM, mixture of experts, in plain words." },
+      ].map((c) => (
+        <a href={c.href} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="font-semibold">{c.t}</h3>
+            <span aria-hidden="true" class="text-[var(--color-brand)] opacity-60 group-hover:opacity-100 transition-opacity">→</span>
+          </div>
+          <p class="mt-1 text-sm text-muted-foreground">{c.d}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
   <!-- How it works -->
   <section class="mx-auto max-w-5xl px-4 py-12">
     <h2 class="text-2xl font-bold tracking-tight">How it works</h2>
