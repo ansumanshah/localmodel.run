@@ -1,0 +1,75 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { meta } from "@/lib/data";
+import { families } from "@/lib/families";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const fams = families();
+const path = "/family";
+const title = "Local LLM families: pick the right size · localmodel.run";
+const description = truncate(
+  `Qwen3, Llama, Gemma, Mistral and more, each in several sizes. Compare every size in a family by memory and pick the largest that fits your hardware. ${fams.length} families.`,
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Families", url: path }], Astro.site!.href),
+  itemListLd({
+    name: "Local LLM families",
+    items: fams.map((f) => ({ name: f.name, url: `/family/${f.slug}` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <section class="hub-intro relative overflow-hidden border-b border-border/60">
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Families", url: path }]} />
+
+      <p class="bp-eyebrow mt-5 sm:mt-6">
+        <span class="bp-dot" aria-hidden="true"></span>
+        Family index &middot; {fams.length} families
+      </p>
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+        Local LLM <span class="bp-accent">families</span>
+      </h1>
+      <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
+        Most open models ship in a ladder of sizes. Pick a family to see every size side by side by
+        memory, then choose the largest that fits your hardware. Validated {meta.updated}.
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-4xl px-4 py-10">
+    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {fams.map((f) => {
+        const smallest = f.members[0];
+        const largest = f.members[f.members.length - 1];
+        return (
+          <li>
+            <a
+              href={`/family/${f.slug}`}
+              class="bp-panel card-seam group flex items-center justify-between px-4 py-3 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+            >
+              <div class="flex min-w-0 items-center gap-3">
+                <EntityIcon maker={f.name} size={18} class="text-muted-foreground shrink-0" />
+                <div class="min-w-0">
+                  <div class="truncate text-sm font-medium">{f.name}</div>
+                  <div class="bp-stat-label mt-0.5">
+                    {f.members.length} sizes &middot; {smallest.params_b}B to {largest.params_b}B
+                  </div>
+                </div>
+              </div>
+              <span class="text-[var(--color-brand)] opacity-60 group-hover:opacity-100 transition-opacity" aria-hidden="true">→</span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+
+    <p class="mt-6 text-sm text-muted-foreground">
+      Prefer to start from your hardware? <a href="/best-llm-for-ram" class="text-[var(--color-brand)] hover:underline">Browse by memory →</a>
+    </p>
+  </div>
+</Base>

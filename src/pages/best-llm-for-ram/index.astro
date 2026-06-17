@@ -1,36 +1,13 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
-import { devices, modelsBySize, meta } from "@/lib/data";
+import { modelsBySize, meta } from "@/lib/data";
 import { canRun } from "@/lib/compute";
-import type { DeviceRow, MemoryType } from "@/data/types";
+import { BUDGETS, interpretationsFor, TYPE_SHORT } from "@/lib/budgets";
 import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
 
-const BUDGETS = [8, 16, 24, 32];
-const DESKTOP_CATS = new Set(["mac", "nvidia", "amd", "intel", "laptop"]);
-const TYPE_ORDER: MemoryType[] = ["unified", "vram", "ram"];
-const CAT_PREF: Record<string, number> = { mac: 0, nvidia: 1, amd: 2, intel: 3, laptop: 4 };
-const TYPE_SHORT: Record<MemoryType, string> = { unified: "Mac", vram: "GPU", ram: "Laptop" };
-
-function interpsFor(size: number): { type: MemoryType; device: DeviceRow; usable: number }[] {
-  const pool = devices.filter((d) => d.memory_gb === size && DESKTOP_CATS.has(d.category));
-  const out: { type: MemoryType; device: DeviceRow; usable: number }[] = [];
-  for (const t of TYPE_ORDER) {
-    const cands = pool
-      .filter((d) => d.memory_type === t)
-      .sort(
-        (a, b) =>
-          (b.usable_memory_gb ?? 0) - (a.usable_memory_gb ?? 0) ||
-          (CAT_PREF[a.category] ?? 9) - (CAT_PREF[b.category] ?? 9) ||
-          (a.id < b.id ? 1 : -1),
-      );
-    if (cands[0]) out.push({ type: t, device: cands[0], usable: cands[0].usable_memory_gb ?? 0 });
-  }
-  return out;
-}
-
 const tiers = BUDGETS.map((gb) => {
-  const interps = interpsFor(gb);
+  const interps = interpretationsFor(gb);
   const most = interps.reduce((a, b) => (b.usable > a.usable ? b : a), interps[0]);
   const fits = modelsBySize.filter((m) => interps.some((i) => canRun(m, i.device).verdict !== "no"));
   let ceiling = null as null | (typeof modelsBySize)[number];

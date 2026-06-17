@@ -6,7 +6,8 @@ import EntityIcon from "@/components/EntityIcon.astro";
 import Sources from "@/components/Sources.astro";
 import { devices, modelsBySize, dedupeSources, meta } from "@/lib/data";
 import { canRun } from "@/lib/compute";
-import type { DeviceRow, MemoryType, ModelRow } from "@/data/types";
+import type { DeviceRow, ModelRow } from "@/data/types";
+import { BUDGETS, interpretationsFor, TYPE_LABEL, TYPE_SHORT, type Interp } from "@/lib/budgets";
 import {
   breadcrumbLd,
   faqLd,
@@ -19,58 +20,23 @@ import {
 // RAM-budget pages answer "what LLM fits in N GB?" The honest answer is that
 // N GB is not one number: a 16 GB Mac, a 16 GB GPU and a 16 GB CPU laptop each
 // expose a different usable pool. So every budget is anchored to REAL, sourced
-// devices at that exact size (one per memory type), and every model is verdicted
-// against each interpretation via the same canRun() engine the rest of the site
-// uses. No synthesized "usable fraction" anywhere on the page.
-const BUDGETS = [8, 16, 24, 32];
+// devices at that exact size (one per memory type, via @/lib/budgets), and every
+// model is verdicted against each interpretation through the same canRun() engine
+// the rest of the site uses. No synthesized "usable fraction" anywhere.
 
 export function getStaticPaths() {
   // Inlined (not BUDGETS) because Astro evaluates getStaticPaths in an isolated
-  // scope that does not close over module-level constants.
+  // scope that does not close over imported/module-level bindings.
   return [8, 16, 24, 32].map((gb) => ({ params: { budget: `${gb}gb` }, props: { gb } }));
 }
 
 const { gb } = Astro.props as { gb: number };
 
-// Desktop/laptop device classes only; phones get a separate aside (different
-// runtime story) so the primary interpretations stay apples-to-apples.
-const DESKTOP_CATS = new Set(["mac", "nvidia", "amd", "intel", "laptop"]);
-const TYPE_ORDER: MemoryType[] = ["unified", "vram", "ram"];
-const CAT_PREF: Record<string, number> = { mac: 0, nvidia: 1, amd: 2, intel: 3, laptop: 4 };
-const TYPE_LABEL: Record<MemoryType, string> = {
-  unified: "Apple unified memory",
-  vram: "GPU VRAM",
-  ram: "System RAM (CPU only)",
-};
-const TYPE_SHORT: Record<MemoryType, string> = { unified: "Mac", vram: "GPU", ram: "Laptop" };
-
-interface Interp {
-  type: MemoryType;
-  device: DeviceRow;
-  usable: number;
-}
-
-// One representative device per memory type at this size: highest usable wins,
-// ties broken by category preference then newest id, so the pick is stable and
-// data-driven (survives a cron data refresh without code edits).
-function interpretationsFor(size: number): Interp[] {
-  const pool = devices.filter((d) => d.memory_gb === size && DESKTOP_CATS.has(d.category));
-  const out: Interp[] = [];
-  for (const t of TYPE_ORDER) {
-    const cands = pool
-      .filter((d) => d.memory_type === t)
-      .sort(
-        (a, b) =>
-          (b.usable_memory_gb ?? 0) - (a.usable_memory_gb ?? 0) ||
-          (CAT_PREF[a.category] ?? 9) - (CAT_PREF[b.category] ?? 9) ||
-          (a.id < b.id ? 1 : -1),
-      );
-    if (cands[0]) out.push({ type: t, device: cands[0], usable: cands[0].usable_memory_gb ?? 0 });
-  }
-  return out;
-}
-
+// Phones get a separate aside (different runtime story) so the primary
+// interpretations stay apples-to-apples desktop/laptop classes.
 const interps = interpretationsFor(gb);
+// Reduce over the LOCAL interps array so the result is one of these instances
+// (later code compares interp identity by reference).
 const mostGenerous = interps.reduce((a, b) => (b.usable > a.usable ? b : a), interps[0]);
 const phones = devices.filter(
   (d) => d.memory_gb === gb && (d.category === "iphone" || d.category === "android"),
