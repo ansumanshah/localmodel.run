@@ -1,0 +1,423 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import { devices, modelsBySize, dedupeSources, meta } from "@/lib/data";
+import { canRun } from "@/lib/compute";
+import type { DeviceRow, MemoryType, ModelRow } from "@/data/types";
+import {
+  breadcrumbLd,
+  faqLd,
+  itemListLd,
+  techArticleLd,
+  truncate,
+  type FaqItem,
+} from "@/lib/seo";
+
+// RAM-budget pages answer "what LLM fits in N GB?" The honest answer is that
+// N GB is not one number: a 16 GB Mac, a 16 GB GPU and a 16 GB CPU laptop each
+// expose a different usable pool. So every budget is anchored to REAL, sourced
+// devices at that exact size (one per memory type), and every model is verdicted
+// against each interpretation via the same canRun() engine the rest of the site
+// uses. No synthesized "usable fraction" anywhere on the page.
+const BUDGETS = [8, 16, 24, 32];
+
+export function getStaticPaths() {
+  // Inlined (not BUDGETS) because Astro evaluates getStaticPaths in an isolated
+  // scope that does not close over module-level constants.
+  return [8, 16, 24, 32].map((gb) => ({ params: { budget: `${gb}gb` }, props: { gb } }));
+}
+
+const { gb } = Astro.props as { gb: number };
+
+// Desktop/laptop device classes only; phones get a separate aside (different
+// runtime story) so the primary interpretations stay apples-to-apples.
+const DESKTOP_CATS = new Set(["mac", "nvidia", "amd", "intel", "laptop"]);
+const TYPE_ORDER: MemoryType[] = ["unified", "vram", "ram"];
+const CAT_PREF: Record<string, number> = { mac: 0, nvidia: 1, amd: 2, intel: 3, laptop: 4 };
+const TYPE_LABEL: Record<MemoryType, string> = {
+  unified: "Apple unified memory",
+  vram: "GPU VRAM",
+  ram: "System RAM (CPU only)",
+};
+const TYPE_SHORT: Record<MemoryType, string> = { unified: "Mac", vram: "GPU", ram: "Laptop" };
+
+interface Interp {
+  type: MemoryType;
+  device: DeviceRow;
+  usable: number;
+}
+
+// One representative device per memory type at this size: highest usable wins,
+// ties broken by category preference then newest id, so the pick is stable and
+// data-driven (survives a cron data refresh without code edits).
+function interpretationsFor(size: number): Interp[] {
+  const pool = devices.filter((d) => d.memory_gb === size && DESKTOP_CATS.has(d.category));
+  const out: Interp[] = [];
+  for (const t of TYPE_ORDER) {
+    const cands = pool
+      .filter((d) => d.memory_type === t)
+      .sort(
+        (a, b) =>
+          (b.usable_memory_gb ?? 0) - (a.usable_memory_gb ?? 0) ||
+          (CAT_PREF[a.category] ?? 9) - (CAT_PREF[b.category] ?? 9) ||
+          (a.id < b.id ? 1 : -1),
+      );
+    if (cands[0]) out.push({ type: t, device: cands[0], usable: cands[0].usable_memory_gb ?? 0 });
+  }
+  return out;
+}
+
+const interps = interpretationsFor(gb);
+const mostGenerous = interps.reduce((a, b) => (b.usable > a.usable ? b : a), interps[0]);
+const phones = devices.filter(
+  (d) => d.memory_gb === gb && (d.category === "iphone" || d.category === "android"),
+);
+
+interface Row {
+  model: ModelRow;
+  verdicts: { interp: Interp; result: ReturnType<typeof canRun> }[];
+  fits: boolean;
+  q4Gb: number | null;
+}
+
+const rows: Row[] = modelsBySize.map((model) => {
+  const verdicts = interps.map((interp) => ({ interp, result: canRun(model, interp.device) }));
+  const fits = verdicts.some((v) => v.result.verdict !== "no");
+  const q4 = verdicts[0]?.result.estimate?.totalGb ?? null;
+  return { model, verdicts, fits, q4Gb: q4 };
+});
+
+// Biggest first: the page answers "what is the strongest model that fits?"
+const fitting = rows.filter((r) => r.fits).sort((a, b) => b.model.params_b - a.model.params_b);
+const tooLarge = rows.filter((r) => !r.fits).sort((a, b) => a.model.params_b - b.model.params_b);
+
+// Largest comfortably-running ("yes") model per interpretation = its ceiling.
+function ceilingFor(device: DeviceRow): ModelRow | null {
+  let best: ModelRow | null = null;
+  for (const m of modelsBySize) if (canRun(m, device).verdict === "yes") best = m;
+  return best;
+}
+const ceilings = interps.map((i) => ({ interp: i, model: ceilingFor(i.device) }));
+
+// Top pick: strongest model that runs comfortably on the most generous reading.
+const topPick =
+  fitting.find((r) => {
+    const v = r.verdicts.find((x) => x.interp === mostGenerous);
+    return v?.result.verdict === "yes";
+  }) ?? fitting[0];
+
+const usableList = interps.map((i) => `~${i.usable} GB on ${TYPE_SHORT[i.type]}`).join(", ");
+const path = `/best-llm-for-ram/${gb}gb`;
+const year = new Date(meta.updated).getFullYear();
+const title = `Best local LLMs for ${gb}GB (${year}) · localmodel.run`;
+const description = truncate(
+  `${gb}GB is not one number: ${usableList} usable. See which of ${rows.length} local LLMs fit ${gb}GB, ranked by size with a Mac / GPU / laptop verdict each.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `How much of ${gb}GB can a model actually use?`,
+    a: `It depends on the memory type. ${interps
+      .map((i) => `${TYPE_LABEL[i.type]}: about ${i.usable} GB (${i.device.name})`)
+      .join("; ")}. The rest is reserved for the OS, display and runtime overhead.`,
+  },
+  {
+    q: `What is the best local LLM for ${gb}GB?`,
+    a: topPick
+      ? `${topPick.model.name} (${topPick.model.params_b}B) is the strongest model that runs comfortably at Q4_K_M on the most capable ${gb}GB setup (${mostGenerous.device.name}, ~${mostGenerous.usable} GB usable). On a tighter ${gb}GB device the ceiling is lower, shown per row above.`
+      : `At ${gb}GB, stick to the smallest models; see the ranked list above.`,
+  },
+  {
+    q: `Why does a ${gb}GB GPU fit a bigger model than a ${gb}GB Mac?`,
+    a: `A discrete GPU gives almost all of its VRAM to the model (leave ~1 GB for the driver). Apple Silicon shares one unified pool with macOS, so roughly 66% is available to the GPU for weights. Same ${gb}GB sticker, different usable budget, so the model ceiling differs.`,
+  },
+];
+
+const sources = dedupeSources(
+  ...interps.map((i) => i.device.sources),
+  topPick?.model.sources ?? [],
+);
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "By memory", url: "/best-llm-for-ram" },
+      { name: `${gb}GB`, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `Best local LLMs for ${gb}GB`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources,
+    speakableSelector: [".budget-lede"],
+  }),
+  itemListLd({
+    name: `Local LLMs that fit in ${gb}GB`,
+    items: fitting
+      .slice(0, 25)
+      .map((r) => ({ name: r.model.name, url: `/model/${r.model.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle={`Best local LLMs for ${gb}GB`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt={`Local LLMs that fit in ${gb}GB of memory, ranked`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "By memory", url: "/best-llm-for-ram" },
+        { name: `${gb}GB`, url: path },
+      ]}
+    />
+
+    <p class="bp-eyebrow mt-4">
+      <span class="bp-dot" aria-hidden="true"></span>
+      Memory budget &middot; {gb} GB
+    </p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Best local LLMs for {gb}GB
+    </h1>
+    <p class="budget-lede mt-4 text-pretty text-lg text-muted-foreground">
+      {gb}GB is not a single ceiling. A {gb}GB Mac, a {gb}GB GPU and a {gb}GB laptop each leave a
+      different amount free for model weights, so the largest model you can run changes with the
+      memory <strong class="text-foreground">type</strong>, not just the number.
+    </p>
+
+    <div class="bp-wire mt-5" aria-hidden="true"></div>
+
+    <dl class="bp-stat-grid mt-4">
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Usable range</dt>
+        <dd class="bp-stat-val">
+          {Math.min(...interps.map((i) => i.usable))}–{Math.max(...interps.map((i) => i.usable))} GB
+        </dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Models that fit</dt>
+        <dd class="bp-stat-val">{fitting.length}</dd>
+      </div>
+      <div class="bp-stat-item">
+        <dt class="bp-stat-label">Memory types</dt>
+        <dd class="bp-stat-val">{interps.length}</dd>
+      </div>
+      {topPick && (
+        <div class="bp-stat-item">
+          <dt class="bp-stat-label">Top pick</dt>
+          <dd class="bp-stat-val bp-stat-yes">{topPick.model.params_b}B</dd>
+        </div>
+      )}
+    </dl>
+
+    <!-- What N GB means: the unique-math centerpiece, anchored to real devices -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">What {gb}GB actually gives you</h2>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {interps.map((i) => (
+          <a
+            href={`/best-llm-for/${i.device.id}`}
+            class="bp-panel card-seam group flex flex-col gap-1 px-4 py-3 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >
+            <span class="bp-stat-label">{TYPE_LABEL[i.type]}</span>
+            <span class="text-2xl font-bold tracking-tight">~{i.usable} GB</span>
+            <span class="text-xs text-muted-foreground">
+              usable on {i.device.name}
+            </span>
+            {ceilings.find((c) => c.interp === i)?.model && (
+              <span class="mt-1 text-xs text-muted-foreground">
+                Comfortable ceiling: <strong class="text-foreground">{ceilings.find((c) => c.interp === i)!.model!.params_b}B</strong>
+              </span>
+            )}
+          </a>
+        ))}
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">
+        Usable figures are sourced per device (tap a card for the full profile). Verdicts below use
+        Q4_K_M, the community-default quant.
+      </p>
+    </section>
+
+    {topPick && (
+      <div class="bp-panel mt-8">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Top pick for {gb}GB</span>
+          <span class="bp-panel-label">Q4_K_M</span>
+        </div>
+        <div class="p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <a href={`/model/${topPick.model.id}`} class="text-xl font-bold hover:underline">
+              {topPick.model.name}
+            </a>
+            <span class="bp-stat-label">{topPick.model.params_b}B{topPick.model.is_moe ? " MoE" : ""}</span>
+          </div>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Runs comfortably on the most capable {gb}GB setup ({mostGenerous.device.name},
+            ~{mostGenerous.usable} GB usable) at ~{topPick.q4Gb} GB. Check it against your exact
+            device on its <a href={`/model/${topPick.model.id}`} class="underline">model page</a>.
+          </p>
+        </div>
+      </div>
+    )}
+
+    <!-- Ranked fit matrix: one verdict per memory-type interpretation -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Models ranked for {gb}GB</h2>
+      <div class="bp-panel overflow-hidden">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Biggest that fits first</span>
+          <span class="bp-panel-label">{interps.map((i) => TYPE_SHORT[i.type]).join(" · ")}</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {fitting.map((r) => (
+            <li class="px-4 py-3">
+              <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <div class="min-w-0 flex items-center gap-3">
+                  <EntityIcon maker={r.model.family} size={18} class="text-muted-foreground shrink-0" />
+                  <div class="min-w-0">
+                    <a href={`/model/${r.model.id}`} class="block truncate text-sm font-medium hover:underline">
+                      {r.model.name}
+                    </a>
+                    <div class="bp-stat-label mt-0.5">
+                      {r.model.params_b}B{r.model.is_moe ? " MoE" : ""} &middot; ~{r.q4Gb} GB at Q4_K_M
+                      {r.model.arena_elo ? <> &middot; Elo {r.model.arena_elo}</> : null}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  {r.verdicts.map((v) => (
+                    <a
+                      href={`/can-i-run/${r.model.id}/${v.interp.device.id}`}
+                      class="inline-flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+                      aria-label={`${r.model.name} on a ${gb}GB ${TYPE_SHORT[v.interp.type]}: ${v.result.verdict}`}
+                    >
+                      <span class="bp-stat-label">{TYPE_SHORT[v.interp.type]}</span>
+                      <VerdictBadge verdict={v.result.verdict} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">
+        Each chip links to the full breakdown for that model on a real {gb}GB device. "Tight" means
+        it fits but with little headroom, close other apps.
+      </p>
+    </section>
+
+    <!-- Per-interpretation ceiling narrative (hand-framed, data-filled) -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">The ceiling, per memory type</h2>
+      <div class="bp-panel divide-y divide-border">
+        {ceilings.map(({ interp, model }) => (
+          <div class="p-4">
+            <p class="font-medium">{interp.device.name} <span class="text-muted-foreground">(~{interp.usable} GB usable)</span></p>
+            <p class="mt-1 text-sm text-muted-foreground">
+              {model ? (
+                <>Runs up to <a href={`/can-i-run/${model.id}/${interp.device.id}`} class="underline">{model.name}</a> ({model.params_b}B) comfortably at Q4_K_M. Larger models either sit tight or spill past the ~{interp.usable} GB it can give a model.</>
+              ) : (
+                <>Even the smallest tracked models are tight here; expect 1–3B class only.</>
+              )}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    {phones.length > 0 && (
+      <section class="mt-8">
+        <h2 class="bp-stat-label mb-3">{gb}GB phones &amp; tablets</h2>
+        <p class="mb-3 text-sm text-muted-foreground">
+          Phones report {gb}GB too, but iOS/Android reserve more and the runtimes differ. Their
+          usable pool is smaller:
+        </p>
+        <div class="flex flex-wrap gap-2">
+          {phones.map((d) => (
+            <a
+              href={`/best-llm-for/${d.id}`}
+              class="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+            >
+              <EntityIcon device={d.category} size={14} class="shrink-0" />
+              {d.name} <span class="bp-stat-label">~{d.usable_memory_gb} GB</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {tooLarge.length > 0 && (
+      <section class="mt-8">
+        <h2 class="bp-stat-label mb-3">Too large for any {gb}GB device</h2>
+        <div class="flex flex-wrap gap-2">
+          {tooLarge.map((r) => (
+            <a
+              href={`/model/${r.model.id}`}
+              class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+            >
+              {r.model.name} <span class="bp-stat-label">{r.model.params_b}B</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="mt-10">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="bp-panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="Other memory budgets">
+      <h2 class="bp-stat-label mb-3">Other memory budgets</h2>
+      <div class="flex flex-wrap gap-2">
+        {BUDGETS.filter((b) => b !== gb).map((b) => (
+          <a
+            href={`/best-llm-for-ram/${b}gb`}
+            class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >
+            {b}GB
+          </a>
+        ))}
+        <a
+          href="/best-llm-for"
+          class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+        >
+          Browse by device →
+        </a>
+      </div>
+    </nav>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Memory figures are estimates at Q4_K_M with a small context. See
+      <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>
