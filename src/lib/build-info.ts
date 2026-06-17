@@ -31,8 +31,18 @@ function pkgVersion(): string {
 // Format an ISO date ("2026-06-17") as "17 June 2026". Parsed from the string
 // parts so it is timezone-safe (no Date() drift across UTC boundaries).
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 export function humanDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
