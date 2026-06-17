@@ -1,0 +1,204 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import { models, modelsByArena, dedupeSources, meta } from "@/lib/data";
+import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+// Efficiency = LMArena Elo per GB of memory (sourced min_ram_q4_gb). Only models
+// with BOTH a public Elo and a memory figure qualify; the coverage caveat is led
+// with so this never reads as the full catalog.
+const rated = modelsByArena
+  .filter((m) => m.min_ram_q4_gb != null && m.min_ram_q4_gb > 0)
+  .map((m) => ({ m, eff: (m.arena_elo as number) / (m.min_ram_q4_gb as number) }));
+
+const byEfficiency = [...rated].sort((a, b) => b.eff - a.eff);
+
+// Pareto frontier: walking from least memory up, keep each model that raises the
+// best Elo seen so far. These are "the smallest model that beats this level."
+const frontier = (() => {
+  const byMem = [...rated].sort((a, b) => (a.m.min_ram_q4_gb as number) - (b.m.min_ram_q4_gb as number));
+  const out: typeof byMem = [];
+  let bestElo = -Infinity;
+  for (const r of byMem) {
+    if ((r.m.arena_elo as number) > bestElo) {
+      out.push(r);
+      bestElo = r.m.arena_elo as number;
+    }
+  }
+  return out;
+})();
+
+const top = byEfficiency[0];
+const path = "/most-efficient-llms";
+const title = "Most efficient local LLMs: best Elo per GB · localmodel.run";
+const description = truncate(
+  `The local models that deliver the most capability per gigabyte of memory. ${rated.length} models with a public LMArena Elo, ranked by Elo per GB, plus the efficient frontier.`,
+);
+
+const sources = dedupeSources(["https://lmarena.ai"], ...frontier.map((r) => r.m.sources)).slice(0, 14);
+
+const faqs: FaqItem[] = [
+  {
+    q: "What is the most efficient local LLM?",
+    a: top
+      ? `By capability per gigabyte, ${top.m.name} (${top.m.params_b}B) leads: an LMArena Elo of ${top.m.arena_elo} on roughly ${top.m.min_ram_q4_gb} GB of memory at Q4_K_M. Tiny models win this metric because they ask for so little memory; the frontier below shows the smallest model that beats each capability level.`
+      : "See the ranked list below.",
+  },
+  {
+    q: "Does this cover every model?",
+    a: `No. Only ${rated.length} of ${models.length} tracked models carry a public LMArena Elo, so only those can be scored for efficiency. Many strong small and distilled models have no arena score and are not shown here; this is a ranking of what can be measured, not the whole catalog.`,
+  },
+  {
+    q: "Why measure Elo per gigabyte?",
+    a: "Because on local hardware, memory is the binding constraint. Elo per GB answers a practical question: for the memory you can spare, what is the most capable model that fits? It rewards models that punch above their size.",
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Most efficient", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "Most efficient local LLMs by Elo per GB",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources,
+    speakableSelector: [".eff-lede"],
+  }),
+  itemListLd({
+    name: "Local LLMs by capability per GB",
+    items: byEfficiency.map((r) => ({ name: r.m.name, url: `/model/${r.m.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle="Most efficient local LLMs"
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt="Local LLMs ranked by capability per gigabyte of memory"
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Most efficient", url: path }]} />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Efficiency &middot; Elo per GB</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      The most efficient local LLMs
+    </h1>
+    <p class="eff-lede mt-4 text-pretty text-lg text-muted-foreground">
+      Capability per gigabyte, not raw score. This ranks the models that give the most quality for
+      the least memory, the metric that matters when memory is what limits you.
+    </p>
+
+    <div class="bp-panel mt-6">
+      <div class="bp-panel-header"><span class="bp-panel-label">Coverage</span></div>
+      <p class="p-4 text-sm text-muted-foreground">
+        Only <strong class="text-foreground">{rated.length} of {models.length}</strong> tracked
+        models carry a public <a href="https://lmarena.ai" rel="noopener nofollow" class="underline">LMArena</a>
+        Elo, so only those can be scored. Many strong small and distilled models have no arena score
+        and are not shown. Efficiency uses the sourced minimum memory at Q4_K_M.
+      </p>
+    </div>
+
+    <!-- The Pareto frontier: smallest model that beats each capability level -->
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">The efficient frontier</h2>
+      <p class="mt-2 text-muted-foreground">
+        Each step is the smallest model that beats every cheaper one on Elo. If you have this much
+        memory to spare, this is the most capable scored model that fits it.
+      </p>
+      <div class="bp-panel mt-3 overflow-hidden">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Memory floor</span>
+          <span class="bp-panel-label">Elo</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {frontier.map((r) => (
+            <li class="flex items-center gap-3 px-4 py-3">
+              <span class="w-16 shrink-0 text-sm font-semibold">~{r.m.min_ram_q4_gb} GB</span>
+              <EntityIcon maker={r.m.family} size={18} class="text-muted-foreground shrink-0" />
+              <a href={`/model/${r.m.id}`} class="min-w-0 flex-1 truncate text-sm font-medium hover:underline">
+                {r.m.name} <span class="bp-stat-label">{r.m.params_b}B</span>
+              </a>
+              <span class="bp-stat-val shrink-0 text-base">{r.m.arena_elo}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- Full efficiency ranking -->
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">Ranked by Elo per GB</h2>
+      <div class="bp-panel mt-3 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-[color-mix(in_oklch,var(--color-brand)_15%,transparent)]">
+              <th scope="col" class="px-4 py-2.5 text-left"><span class="bp-stat-label">#</span></th>
+              <th scope="col" class="px-4 py-2.5 text-left"><span class="bp-stat-label">Model</span></th>
+              <th scope="col" class="px-3 py-2.5 text-right"><span class="bp-stat-label">Min GB</span></th>
+              <th scope="col" class="px-3 py-2.5 text-right"><span class="bp-stat-label">Elo</span></th>
+              <th scope="col" class="px-4 py-2.5 text-right"><span class="bp-stat-label">Elo/GB</span></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {byEfficiency.map((r, i) => (
+              <tr class="transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_5%,transparent)]">
+                <td class="px-4 py-2.5 text-muted-foreground"><span class="num">{i + 1}</span></td>
+                <td class="px-4 py-2.5">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <EntityIcon maker={r.m.family} size={16} class="text-muted-foreground shrink-0" />
+                    <a href={`/model/${r.m.id}`} class="truncate font-medium hover:underline">{r.m.name}</a>
+                  </div>
+                </td>
+                <td class="px-3 py-2.5 text-right text-muted-foreground"><span class="num">{r.m.min_ram_q4_gb}</span></td>
+                <td class="px-3 py-2.5 text-right text-muted-foreground"><span class="num">{r.m.arena_elo}</span></td>
+                <td class="px-4 py-2.5 text-right"><span class="bp-stat-val text-base">{Math.round(r.eff)}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-3 text-muted-foreground">
+        Tiny models top this by asking for almost no memory. For raw quality regardless of size, see
+        the <a href="/leaderboard" class="text-[var(--color-brand)] hover:underline">Elo leaderboard</a>;
+        to fit a specific machine, start from your
+        <a href="/best-llm-for-ram" class="text-[var(--color-brand)] hover:underline">memory budget</a>.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">FAQ</h2>
+      <div class="bp-panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Elo is a snapshot from LMArena around {meta.updated} and drifts over time. Memory is the sourced
+      Q4_K_M minimum; see <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

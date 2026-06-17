@@ -1,0 +1,83 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { meta } from "@/lib/data";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const guides = [
+  {
+    slug: "quantization",
+    title: "Quantization explained",
+    blurb: "What Q4_K_M, Q8_0 and FP16 mean, and which to pick.",
+  },
+  {
+    slug: "vram-vs-ram",
+    title: "VRAM vs RAM vs unified memory",
+    blurb: "The three kinds of memory a model runs in, and why the gigabytes are not equal.",
+  },
+  {
+    slug: "mixture-of-experts",
+    title: "Mixture of experts",
+    blurb: "Why a 30B MoE runs at 3B speed but needs 30B of memory.",
+  },
+];
+
+const path = "/guides";
+const title = "Local LLM guides: quantization, memory, MoE · localmodel.run";
+const description = truncate(
+  "Plain-English guides to running local AI models: what quantization tags mean, VRAM vs RAM vs unified memory, and how mixture-of-experts models trade memory for speed.",
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Guides", url: path }], Astro.site!.href),
+  itemListLd({
+    name: "Local LLM guides",
+    items: guides.map((g) => ({ name: g.title, url: `/guides/${g.slug}` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <section class="hub-intro relative overflow-hidden border-b border-border/60">
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Guides", url: path }]} />
+
+      <p class="bp-eyebrow mt-5 sm:mt-6">
+        <span class="bp-dot" aria-hidden="true"></span>
+        Guides &middot; {guides.length}
+      </p>
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+        Local LLM <span class="bp-accent">guides</span>
+      </h1>
+      <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
+        The concepts behind the numbers, in plain words. Every figure here is the same one the
+        calculator uses, with sources. Validated {meta.updated}.
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-4xl px-4 py-10">
+    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {guides.map((g) => (
+        <li>
+          <a
+            href={`/guides/${g.slug}`}
+            class="bp-panel card-seam group flex h-full flex-col justify-between gap-2 px-4 py-4 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-medium">{g.title}</span>
+                <span class="text-[var(--color-brand)] opacity-60 group-hover:opacity-100 transition-opacity" aria-hidden="true">→</span>
+              </div>
+              <p class="mt-1 text-sm text-muted-foreground">{g.blurb}</p>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="mt-6 text-sm text-muted-foreground">
+      Ready to check your hardware? <a href="/best-llm-for-ram" class="text-[var(--color-brand)] hover:underline">Browse by memory →</a>
+    </p>
+  </div>
+</Base>

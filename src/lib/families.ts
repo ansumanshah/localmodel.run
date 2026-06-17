@@ -37,7 +37,3 @@ export function families(): Family[] {
   // Largest families first (most useful pages, most internal-link weight).
   return out.sort((a, b) => b.members.length - a.members.length);
 }
-
-export function familyBySlug(slug: string): Family | undefined {
-  return families().find((f) => f.slug === slug);
-}
