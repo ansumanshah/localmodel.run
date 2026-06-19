@@ -640,6 +640,14 @@
   }
 }
 
+/* On phones the floating gauge label can overrun the clipped panel edge; the
+   readout row beneath already states usable memory, so drop the label there. */
+@media (max-width: 480px) {
+  .gauge-mark::after {
+    content: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bar-fill {
     animation: none;
