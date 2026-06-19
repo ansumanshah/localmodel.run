@@ -67,8 +67,8 @@ const jsonLd = [
           Can I run this AI model <span class="bp-accent">locally</span>?
         </h1>
         <p class="bp-sub bp-enter" style="--delay:180ms">
-          Pick your device. Pick a model. Get a <strong>yes</strong>, a <strong>tight</strong>,
-          or a <strong>no</strong>, plus the exact command to run it. No guessing. No signup.
+          Pick a model and your device. Get a <strong>yes</strong>, <strong>tight</strong>,
+          or <strong>no</strong>, plus the command to run it.
         </p>
         <div class="bp-stats bp-enter" style="--delay:280ms">
           <div class="bp-wire" aria-hidden="true"></div>
@@ -117,7 +117,7 @@ const jsonLd = [
   </div>
 
   <!-- Featured models -->
-  <section class="mx-auto max-w-5xl px-4 py-12">
+  <section class="mx-auto max-w-5xl px-4 py-16">
     <div class="flex items-end justify-between">
       <h2 class="text-2xl font-bold tracking-tight">Popular models</h2>
       <a href="/can-i-run" class="text-sm text-[var(--color-brand)] hover:underline">All {allModels.length} models →</a>
@@ -142,7 +142,7 @@ const jsonLd = [
 
   <!-- Featured devices -->
   <section class="border-y border-border/60 bg-card/30">
-    <div class="mx-auto max-w-5xl px-4 py-12">
+    <div class="mx-auto max-w-5xl px-4 py-16">
       <div class="flex items-end justify-between">
         <h2 class="text-2xl font-bold tracking-tight">Popular hardware</h2>
         <a href="/best-llm-for" class="text-sm text-[var(--color-brand)] hover:underline">All {devices.length} devices →</a>
@@ -172,7 +172,7 @@ const jsonLd = [
   </section>
 
   <!-- Browse by: entry points into the editorial hubs -->
-  <section class="mx-auto max-w-5xl px-4 py-12">
+  <section class="mx-auto max-w-5xl px-4 py-16">
     <h2 class="text-2xl font-bold tracking-tight">Find your model another way</h2>
     <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {[
@@ -195,13 +195,13 @@ const jsonLd = [
   </section>
 
   <!-- How it works -->
-  <section class="mx-auto max-w-5xl px-4 py-12">
+  <section class="mx-auto max-w-5xl px-4 py-16">
     <h2 class="text-2xl font-bold tracking-tight">How it works</h2>
     <div class="mt-5 grid gap-4 sm:grid-cols-3">
       {[
-        { n: "1", t: "Real sizes", d: "Quant sizes come from HuggingFace GGUF repos, Ollama (text models) and vendor specs, not guesses. Every number is sourced." },
-        { n: "2", t: "Honest memory math", d: "We add KV cache and runtime overhead, and use realistic usable memory (Apple unified ~66-75% depending on chip, GPU VRAM minus driver)." },
-        { n: "3", t: "The right tool", d: "Every platform has a different winner. MLX on Mac, CUDA on Windows, vLLM on Linux, PocketPal on phones. Wrong choice and you lose half your tokens per second." },
+        { n: "1", t: "Real sizes", d: "Quant sizes from HuggingFace GGUF repos, Ollama and vendor specs. Every number sourced, never guessed." },
+        { n: "2", t: "Honest memory math", d: "KV cache and overhead included, on realistic usable memory (Apple unified ~66-75%, GPU VRAM minus driver)." },
+        { n: "3", t: "The right tool", d: "A different winner per platform: MLX on Mac, CUDA on Windows, vLLM on Linux, PocketPal on phones." },
       ].map((s) => (
         <div class="rounded-xl border border-border bg-card p-5">
           <div class="grid h-8 w-8 place-items-center rounded-lg bg-[var(--color-brand)] font-bold text-[oklch(0.18_0.01_270)]">{s.n}</div>
@@ -214,7 +214,7 @@ const jsonLd = [
 
   <!-- Platform tools -->
   <section class="border-t border-border/60 bg-card/30">
-    <div class="mx-auto max-w-5xl px-4 py-12">
+    <div class="mx-auto max-w-5xl px-4 py-16">
       <div class="flex items-end justify-between">
         <h2 class="text-2xl font-bold tracking-tight">Best LLM runtime per platform</h2>
         <a href="/tools" class="text-sm text-[var(--color-brand)] hover:underline">LLM runtimes guide →</a>
@@ -235,7 +235,7 @@ const jsonLd = [
   </section>
 
   <!-- FAQ -->
-  <section class="mx-auto max-w-3xl px-4 py-12">
+  <section class="mx-auto max-w-3xl px-4 py-16">
     <h2 class="text-2xl font-bold tracking-tight">Frequently asked</h2>
     <div class="mt-5 divide-y divide-border rounded-xl border border-border bg-card">
       {faqs.map((f) => (

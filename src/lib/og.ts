@@ -44,7 +44,7 @@ export async function renderOg(markup: string, width = 1200, height = 630): Prom
 const shell = (inner: string) => `
 <div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:64px;background:${C.bg};background-image:radial-gradient(60% 60% at 50% 0%, #231d54 0%, ${C.bg} 60%);font-family:Geist;color:${C.text}">
   <div style="display:flex;align-items:center;gap:14px">
-    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:${C.brand}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="3.5" fill="none" stroke="${C.bg}" stroke-width="2.2"/><rect x="8.4" y="12.4" width="7.2" height="2.8" rx="1.1" fill="${C.bg}"/></svg></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:${C.brand}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M6.5 12.4l3.4 3.4L17.8 7.6" stroke="${C.bg}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div style="display:flex;font-size:28px;font-weight:700">localmodel<span style="color:${C.muted}">.run</span></div>
   </div>
   ${inner}
