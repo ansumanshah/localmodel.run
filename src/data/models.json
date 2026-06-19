@@ -2,7 +2,7 @@
   {
     "id": "llama-3.1-8b",
     "name": "Llama 3.1 8B",
-    "family": "llama",
+    "family": "Llama",
     "params_b": 8,
     "is_moe": false,
     "active_params_b": null,
@@ -34,7 +34,7 @@
   {
     "id": "llama-3.3-70b",
     "name": "Llama 3.3 70B",
-    "family": "llama",
+    "family": "Llama",
     "params_b": 70,
     "is_moe": false,
     "active_params_b": null,
@@ -66,7 +66,7 @@
   {
     "id": "llama-3.2-3b",
     "name": "Llama 3.2 3B",
-    "family": "llama",
+    "family": "Llama",
     "params_b": 3,
     "is_moe": false,
     "active_params_b": null,
@@ -98,7 +98,7 @@
   {
     "id": "llama-3.2-1b",
     "name": "Llama 3.2 1B",
-    "family": "llama",
+    "family": "Llama",
     "params_b": 1,
     "is_moe": false,
     "active_params_b": null,
@@ -130,7 +130,7 @@
   {
     "id": "mistral-7b",
     "name": "Mistral 7B",
-    "family": "mistral",
+    "family": "Mistral",
     "params_b": 7,
     "is_moe": false,
     "active_params_b": null,
@@ -161,7 +161,7 @@
   {
     "id": "mistral-small-3-24b",
     "name": "Mistral Small 3 24B",
-    "family": "mistral",
+    "family": "Mistral",
     "params_b": 24,
     "is_moe": false,
     "active_params_b": null,
@@ -254,7 +254,7 @@
   {
     "id": "gemma-2-9b",
     "name": "Gemma 2 9B",
-    "family": "gemma",
+    "family": "Gemma",
     "params_b": 9,
     "is_moe": false,
     "active_params_b": null,
@@ -286,7 +286,7 @@
   {
     "id": "gemma-2-27b",
     "name": "Gemma 2 27B",
-    "family": "gemma",
+    "family": "Gemma",
     "params_b": 27,
     "is_moe": false,
     "active_params_b": null,
@@ -318,7 +318,7 @@
   {
     "id": "gemma-3-4b",
     "name": "Gemma 3 4B",
-    "family": "gemma",
+    "family": "Gemma",
     "params_b": 4,
     "is_moe": false,
     "active_params_b": null,
@@ -350,7 +350,7 @@
   {
     "id": "gemma-3-12b",
     "name": "Gemma 3 12B",
-    "family": "gemma",
+    "family": "Gemma",
     "params_b": 12,
     "is_moe": false,
     "active_params_b": null,
@@ -382,7 +382,7 @@
   {
     "id": "gemma-3-27b",
     "name": "Gemma 3 27B",
-    "family": "gemma",
+    "family": "Gemma",
     "params_b": 27,
     "is_moe": false,
     "active_params_b": null,
@@ -1026,7 +1026,7 @@
   {
     "id": "gemma-2-2b",
     "name": "Gemma 2 2B",
-    "family": "gemma",
+    "family": "Gemma",
     "params_b": 2.61,
     "is_moe": false,
     "active_params_b": null,
@@ -1058,7 +1058,7 @@
   {
     "id": "gemma-3-1b",
     "name": "Gemma 3 1B",
-    "family": "gemma",
+    "family": "Gemma",
     "params_b": 1,
     "is_moe": false,
     "active_params_b": null,
@@ -1547,7 +1547,7 @@
   {
     "id": "mistral-nemo-12b",
     "name": "Mistral Nemo 12B",
-    "family": "mistral",
+    "family": "Mistral",
     "params_b": 12.2,
     "is_moe": false,
     "active_params_b": null,
@@ -1577,7 +1577,7 @@
   {
     "id": "mixtral-8x7b",
     "name": "Mixtral 8x7B",
-    "family": "mistral",
+    "family": "Mistral",
     "params_b": 46.7,
     "is_moe": true,
     "active_params_b": 12.9,

@@ -1,6 +1,12 @@
 ---
 import { getLangFromUrl, useTranslations, localizedPath } from "@/i18n/utils";
-const lang = getLangFromUrl(Astro.url);
+import type { Lang } from "@/i18n/ui";
+interface Props {
+  lang?: Lang;
+}
+// Prefer the explicit prop from Base; only fall back to URL derivation (which
+// loses the locale prefix at build time) when rendered without one.
+const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 // Nav targets are English canonical pages (only the homepage is translated so
 // far); labels are localized. Logo + switcher are locale-aware.

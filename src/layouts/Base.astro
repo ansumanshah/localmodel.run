@@ -29,6 +29,10 @@ interface Props {
   mdPath?: string;
   /** Locales this page is translated into (emits hreflang). Omit for English-only pages. */
   altLocales?: Lang[];
+  /** Active locale. Pass explicitly on localized pages; shared components must
+   *  receive it as a prop rather than re-derive it from Astro.url, which does not
+   *  carry the locale prefix at SSG build time (build.format "file"). */
+  lang?: Lang;
 }
 
 const {
@@ -44,14 +48,21 @@ const {
   articleModified,
   mdPath,
   altLocales,
+  lang: langProp,
 } = Astro.props;
 const site = Astro.site ?? new URL("https://localmodel.run");
-const canonical = new URL(path, site).href;
+// Absolute URL with the root as the bare origin (no trailing slash) to match
+// trailingSlash:"never" and the sitemap (which strips the slash from every URL
+// including root). new URL("/", site) would force "<origin>/" and split the
+// crawl signal. Used for canonical, og:url and every hreflang so all root
+// references agree on one slash-free URL.
+const abs = (p: string) => (p === "/" ? site.origin : new URL(p, site).href);
+const canonical = abs(path);
 const ogImage = new URL(ogImagePath, site).href;
 const year = new Date().getFullYear();
-const lang = getLangFromUrl(Astro.url);
+const lang = langProp ?? getLangFromUrl(Astro.url);
 const enPath = stripLocale(path);
-const hreflangs = (altLocales ?? []).map((l) => ({ lang: l, href: new URL(localizedPath(enPath, l), site).href }));
+const hreflangs = (altLocales ?? []).map((l) => ({ lang: l, href: abs(localizedPath(enPath, l)) }));
 // Optional GSC verification (set GSC_VERIFICATION at build time). Backup to the
 // DNS TXT domain-property method.
 const gscVerification = import.meta.env.GSC_VERIFICATION;
@@ -70,7 +81,7 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {hreflangs.map((h) => <link rel="alternate" hreflang={h.lang} href={h.href} />)}
-    {hreflangs.length > 0 && <link rel="alternate" hreflang="x-default" href={new URL(enPath, site).href} />}
+    {hreflangs.length > 0 && <link rel="alternate" hreflang="x-default" href={abs(enPath)} />}
     {noindex && <meta name="robots" content="noindex,nofollow" />}
     {gscVerification && <meta name="google-site-verification" content={gscVerification} />}
     <meta name="theme-color" content="#16181d" />
@@ -149,11 +160,11 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     >
       Skip to content
     </a>
-    <Header />
+    <Header lang={lang} />
     <main id="main-content" class="flex-1">
       <slot />
     </main>
-    <Footer year={year} />
+    <Footer year={year} lang={lang} />
     <script is:inline>
       // Delegated copy-to-clipboard for [data-copy] buttons. Guarded so the
       // single document listener is not re-bound across view-transition swaps.

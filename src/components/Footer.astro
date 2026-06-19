@@ -1,13 +1,15 @@
 ---
 import { meta } from "@/lib/data";
 import { getLangFromUrl, useTranslations } from "@/i18n/utils";
+import type { Lang } from "@/i18n/ui";
 import { BUILD_VERSION, BUILD_COMMIT, BUILD_DATE, humanDate } from "@/lib/build-info";
 const siteUpdated = humanDate(meta.site_updated ?? meta.updated);
 interface Props {
   year: number;
+  lang?: Lang;
 }
 const { year } = Astro.props;
-const lang = getLangFromUrl(Astro.url);
+const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const cols = [
   {
