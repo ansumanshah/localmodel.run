@@ -16,16 +16,16 @@ const fontRegular = readFileSync(join(fontsDir, "geist-sans-latin-400-normal.wof
 const fontBold = readFileSync(join(fontsDir, "geist-sans-latin-700-normal.woff"));
 
 const C = {
-  bg: "#16181d",
-  bg2: "#1b1e25",
-  card: "#20232a",
+  bg: "#16161e",
+  bg2: "#1b1b25",
+  card: "#201f2b",
   text: "#f4f4f5",
   muted: "#a1a1aa",
-  brand: "#818cf8",
+  brand: "#7d6bf3",
   green: "#34d399",
   amber: "#fbbf24",
   red: "#f87171",
-  border: "#2a2e37",
+  border: "#2a2935",
 };
 
 export async function renderOg(markup: string, width = 1200, height = 630): Promise<Uint8Array> {
@@ -42,7 +42,7 @@ export async function renderOg(markup: string, width = 1200, height = 630): Prom
 }
 
 const shell = (inner: string) => `
-<div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:64px;background:${C.bg};background-image:radial-gradient(60% 60% at 50% 0%, #1e1b4b 0%, ${C.bg} 60%);font-family:Geist;color:${C.text}">
+<div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:64px;background:${C.bg};background-image:radial-gradient(60% 60% at 50% 0%, #231d54 0%, ${C.bg} 60%);font-family:Geist;color:${C.text}">
   <div style="display:flex;align-items:center;gap:14px">
     <div style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:${C.brand}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="3.5" fill="none" stroke="${C.bg}" stroke-width="2.2"/><rect x="8.4" y="12.4" width="7.2" height="2.8" rx="1.1" fill="${C.bg}"/></svg></div>
     <div style="display:flex;font-size:28px;font-weight:700">localmodel<span style="color:${C.muted}">.run</span></div>

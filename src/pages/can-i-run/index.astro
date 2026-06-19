@@ -30,9 +30,8 @@ const jsonLd = [
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd}>
-  <!-- Intro band: faint blueprint grid behind heading only -->
+  <!-- Intro band -->
   <section class="hub-intro">
-    <div class="bp-grid" aria-hidden="true"></div>
     <div class="hub-intro-inner">
       <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Models", url: path }]} />
       <p class="bp-eyebrow mt-4 bp-enter" style="--delay:0ms">
@@ -136,7 +135,7 @@ const jsonLd = [
 </Base>
 
 <style>
-  /* Scoped layout for the intro band only. The bp-grid sits behind; content is above. */
+  /* Scoped layout for the intro band only. */
   .hub-intro {
     position: relative;
     isolation: isolate;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { canRun, usableGb, QUANT_LABEL, verdictLabelShort } from "@/lib/compute";
 import { models, devices, devicePlatform, getTool, platformLabel } from "@/lib/data";
 import type { Verdict } from "@/data/types";
@@ -194,34 +194,36 @@ export default function Detector() {
           {verdictLabelShort(result.verdict)}
         </div>
 
-        <div className="mt-4 space-y-1 font-mono text-xs tabular-nums text-muted-foreground">
-          <div className="flex gap-4">
-            <span className="w-16 text-muted-foreground/70">NEEDS</span>
-            <span className="text-foreground">{result.estimate?.totalGb} GB</span>
-          </div>
-          <div className="flex gap-4">
-            <span className="w-16 text-muted-foreground/70">USABLE</span>
-            <span className="text-foreground">{usable} GB</span>
-          </div>
-        </div>
-
-        <div
-          className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted"
-          role="img"
-          aria-label={`Memory: needs ${needGb} GB, device has ${usable} GB usable`}
-        >
+        {/* Fit gauge: how much of the device's usable memory this model needs,
+            with a threshold mark at the usable ceiling. */}
+        <div className="mt-7">
           <div
-            className="bar-fill h-full rounded-full"
-            style={{
-              transform: `scaleX(${needPct / 100})`,
-              background: `color-mix(in oklch, ${result.verdict === "no" ? "var(--color-verdict-no)" : "var(--color-verdict-yes)"} 80%, transparent)`,
-            }}
-          />
-          <div
-            className="absolute inset-y-0 w-px bg-foreground/70"
-            style={{ left: `${usablePct}%` }}
-            aria-hidden="true"
-          />
+            className="gauge"
+            role="img"
+            aria-label={`Memory: needs ${needGb} GB, device has ${usable} GB usable`}
+          >
+            <div
+              className="gauge-fill bar-fill"
+              style={{
+                transform: `scaleX(${needPct / 100})`,
+                background: `color-mix(in oklch, ${result.verdict === "no" ? "var(--color-verdict-no)" : "var(--color-verdict-yes)"} 88%, transparent)`,
+              }}
+            />
+            <div
+              className="gauge-mark"
+              data-label={`usable ${usable} GB`}
+              style={{ "--at": `${usablePct}%` } as CSSProperties}
+              aria-hidden="true"
+            />
+          </div>
+          <div className="mt-2.5 flex justify-between font-mono text-xs tabular-nums text-muted-foreground">
+            <span>
+              needs <span className="text-foreground">{result.estimate?.totalGb} GB</span>
+            </span>
+            <span>
+              usable <span className="text-foreground">{usable} GB</span>
+            </span>
+          </div>
         </div>
 
         <p className="mt-3 text-sm text-muted-foreground">{result.reason}</p>

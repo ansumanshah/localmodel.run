@@ -53,23 +53,9 @@ const jsonLd = [
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]}>
-  <!-- Hero: Blueprint Console. The live detector is the instrument; the page
-       frames it like precision hardware and puts the indigo brand to work. -->
-  <section class="bp-hero" id="hero-spotlight" style="--mx:50%;--my:50%">
-    <!-- Blueprint grid -->
-    <div class="bp-grid" aria-hidden="true"></div>
-
-    <!-- Corner registration ticks -->
-    <div class="bp-corner bp-corner--tl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
-    <div class="bp-corner bp-corner--tr" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
-    <div class="bp-corner bp-corner--bl" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
-    <div class="bp-corner bp-corner--br" aria-hidden="true"><span class="bp-tick bp-tick--h"></span><span class="bp-tick bp-tick--v"></span></div>
-
-    <!-- Indigo brand glow -->
-    <div class="bp-glow" aria-hidden="true"></div>
-    <!-- Cursor-follow spotlight -->
-    <div class="bp-spotlight" aria-hidden="true"></div>
-
+  <!-- Hero: "Gauge". The live detector is the instrument; the page frames it
+       cleanly and puts the electric-iris brand to work. -->
+  <section class="bp-hero">
     <div class="bp-inner">
       <!-- Copy column -->
       <div class="bp-copy">
@@ -267,24 +253,3 @@ const jsonLd = [
     </p>
   </section>
 </Base>
-
-<!-- Cursor-follow spotlight for the blueprint hero -->
-<script is:inline data-astro-rerun>
-  (function () {
-    var hero = document.getElementById("hero-spotlight");
-    var spotlight = hero && hero.querySelector(".bp-spotlight");
-    if (!hero || !spotlight) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (hero.dataset.spotBound) return;
-    hero.dataset.spotBound = "1";
-    hero.addEventListener("pointermove", function (e) {
-      var r = hero.getBoundingClientRect();
-      spotlight.style.setProperty("--mx", (((e.clientX - r.left) / r.width) * 100).toFixed(1) + "%");
-      spotlight.style.setProperty("--my", (((e.clientY - r.top) / r.height) * 100).toFixed(1) + "%");
-      spotlight.style.opacity = "1";
-    });
-    hero.addEventListener("pointerleave", function () {
-      spotlight.style.opacity = "0";
-    });
-  })();
-</script>
