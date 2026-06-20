@@ -1,0 +1,181 @@
+---
+import type { DeviceRow } from "@/data/types";
+import type { RigScore } from "@/lib/rig";
+import { GRADE_COLOR } from "@/lib/rig";
+
+interface Props {
+  score: RigScore;
+  device: DeviceRow;
+}
+const { score, device } = Astro.props;
+// PNG download filename (mirrors the prototype, real device slug).
+const dlName = `rig-score-${device.id}.png`;
+// Pure-string facts for the canvas exporter, read from data-* on the card.
+const biggest = score.biggest?.name ?? "";
+---
+
+<div class="rig-stage enter">
+  <div
+    class="rig-card"
+    data-tilt
+    data-grade={score.grade}
+    data-pct={String(score.pct)}
+    data-runnable={String(score.runnable)}
+    data-total={String(score.total)}
+    data-device={device.name}
+    data-mem={String(device.memory_gb)}
+    data-biggest={biggest}
+  >
+    <div class="rig-top">
+      <span class="rig-eyebrow">Rig Score</span>
+      <span
+        class="rig-grade"
+        style={`border-color:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 65%, white)`}
+        aria-label={`Grade ${score.grade}`}>{score.grade}&nbsp;tier</span
+      >
+    </div>
+    <div class="rig-score">{score.pct}<span style="font-size:0.42em;opacity:0.62">%</span></div>
+    <div class="rig-dev">{device.name} · {device.memory_gb} GB</div>
+    <div class="rig-meta">
+      runs {score.runnable} of {score.total} models{biggest ? ` · biggest ${biggest}` : ""}
+    </div>
+    <div class="rig-foot">
+      <span>localmodel.run/rig</span>
+      <span>models covered</span>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4 flex flex-wrap justify-center gap-3 sm:justify-start">
+  <button type="button" id="rig-download" class="gbtn gbtn--primary">
+    Download card (PNG)
+  </button>
+  <button type="button" id="rig-share" class="gbtn">Copy share link</button>
+</div>
+
+<script define:vars={{ dlName }}>
+  function initRigCard() {
+    const card = document.querySelector(".rig-card[data-tilt]");
+    if (!card) return;
+    const d = card.dataset;
+
+    const share = document.getElementById("rig-share");
+    if (share && !share.dataset.bound) {
+      share.dataset.bound = "1";
+      share.addEventListener("click", () => {
+        const url = location.origin + location.pathname;
+        if (navigator.clipboard) navigator.clipboard.writeText(url);
+        const prev = share.textContent;
+        share.textContent = "Link copied";
+        setTimeout(() => {
+          share.textContent = prev;
+        }, 1400);
+      });
+    }
+
+    const dl = document.getElementById("rig-download");
+    if (dl && !dl.dataset.bound) {
+      dl.dataset.bound = "1";
+      dl.addEventListener("click", () => drawCard(d));
+    }
+  }
+
+  // Draw the rig card to a canvas and trigger a PNG download. All numbers come
+  // from the SSR-rendered data-* (real rig.ts score) — nothing is recomputed.
+  function drawCard(d) {
+    const W = 720;
+    const H = 1008;
+    const scale = 2;
+    const c = document.createElement("canvas");
+    c.width = W * scale;
+    c.height = H * scale;
+    const x = c.getContext("2d");
+    if (!x) return;
+    x.scale(scale, scale);
+    const rr = (rx, ry, rw, rh, rad) => {
+      x.beginPath();
+      x.moveTo(rx + rad, ry);
+      x.arcTo(rx + rw, ry, rx + rw, ry + rh, rad);
+      x.arcTo(rx + rw, ry + rh, rx, ry + rh, rad);
+      x.arcTo(rx, ry + rh, rx, ry, rad);
+      x.arcTo(rx, ry, rx + rw, ry, rad);
+      x.closePath();
+    };
+    const g = x.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#5a40c8");
+    g.addColorStop(0.6, "#3a2a78");
+    g.addColorStop(1, "#4a3a96");
+    rr(0, 0, W, H, 40);
+    x.fillStyle = g;
+    x.fill();
+    const sh = x.createRadialGradient(W * 0.2, H * 0.08, 0, W * 0.2, H * 0.08, W * 0.9);
+    sh.addColorStop(0, "rgba(255,255,255,0.22)");
+    sh.addColorStop(1, "rgba(255,255,255,0)");
+    rr(0, 0, W, H, 40);
+    x.fillStyle = sh;
+    x.fill();
+    const pad = 64;
+    x.textBaseline = "alphabetic";
+    x.fillStyle = "rgba(255,255,255,0.72)";
+    x.font = "600 26px ui-monospace, Menlo, monospace";
+    x.fillText("RIG SCORE", pad, pad + 22);
+    const gp = d.grade + " TIER";
+    x.font = "600 24px ui-monospace, Menlo, monospace";
+    const gw = x.measureText(gp).width + 36;
+    x.strokeStyle = "rgba(255,255,255,0.5)";
+    x.lineWidth = 2;
+    rr(W - pad - gw, pad - 8, gw, 44, 22);
+    x.stroke();
+    x.fillStyle = "#fff";
+    x.fillText(gp, W - pad - gw + 18, pad + 22);
+    // big coverage % (the real, sourced figure)
+    x.fillStyle = "#fff";
+    x.font = "700 220px ui-monospace, Menlo, monospace";
+    const pctStr = String(d.pct);
+    x.fillText(pctStr, pad - 6, pad + 290);
+    const pw = x.measureText(pctStr).width;
+    x.fillStyle = "rgba(255,255,255,0.55)";
+    x.font = "500 56px ui-monospace, Menlo, monospace";
+    x.fillText("%", pad - 6 + pw + 12, pad + 290);
+    x.fillStyle = "#fff";
+    x.font = "600 40px system-ui, sans-serif";
+    x.fillText(d.device + " · " + d.mem + " GB", pad, pad + 380);
+    x.fillStyle = "rgba(255,255,255,0.7)";
+    x.font = "400 26px ui-monospace, Menlo, monospace";
+    const meta = "runs " + d.runnable + " of " + d.total + " models" + (d.biggest ? " · biggest " + d.biggest : "");
+    x.fillText(meta, pad, pad + 424);
+    const by = H - 220;
+    const bw = W - pad * 2;
+    x.fillStyle = "rgba(255,255,255,0.22)";
+    rr(pad, by, bw, 16, 8);
+    x.fill();
+    x.fillStyle = "rgba(255,255,255,0.92)";
+    rr(pad, by, bw * Math.min(1, Number(d.pct) / 100), 16, 8);
+    x.fill();
+    x.strokeStyle = "rgba(255,255,255,0.2)";
+    x.lineWidth = 2;
+    x.beginPath();
+    x.moveTo(pad, H - 120);
+    x.lineTo(W - pad, H - 120);
+    x.stroke();
+    x.fillStyle = "rgba(255,255,255,0.7)";
+    x.font = "500 26px ui-monospace, Menlo, monospace";
+    x.fillText("localmodel.run/rig", pad, H - 76);
+    const sb = "models covered";
+    x.fillText(sb, W - pad - x.measureText(sb).width, H - 76);
+
+    c.toBlob((blob) => {
+      if (!blob) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = dlName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }, "image/png");
+  }
+
+  initRigCard();
+  document.addEventListener("astro:page-load", initRigCard);
+</script>

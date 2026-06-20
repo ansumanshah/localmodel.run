@@ -82,7 +82,9 @@ function initGlass(): void {
   }
 
   // Count-up on .num[data-count] when scrolled into view.
-  const counters = document.querySelectorAll<HTMLElement>(".num[data-count]:not([data-glass-count])");
+  const counters = document.querySelectorAll<HTMLElement>(
+    ".num[data-count]:not([data-glass-count])",
+  );
   if (counters.length) {
     const fmtNum = (n: number, dec: number) =>
       Number(n.toFixed(dec)).toLocaleString("en-US", {
@@ -197,7 +199,8 @@ function initGlass(): void {
   document.querySelectorAll<HTMLElement>("[data-toggle-glass]").forEach((b) => {
     if (b.dataset.glassToggle) return;
     b.dataset.glassToggle = "1";
-    const sync = () => b.setAttribute("aria-pressed", root.classList.contains("degraded") ? "true" : "false");
+    const sync = () =>
+      b.setAttribute("aria-pressed", root.classList.contains("degraded") ? "true" : "false");
     sync();
     b.addEventListener("click", () => {
       root.classList.toggle("degraded");
@@ -218,7 +221,11 @@ function initGlass(): void {
 let lastFocus: HTMLElement | null = null;
 function focusables(m: Element): HTMLElement[] {
   return Array.prototype.slice
-    .call(m.querySelectorAll('a[href],button:not([disabled]),select,input,[tabindex]:not([tabindex="-1"])'))
+    .call(
+      m.querySelectorAll(
+        'a[href],button:not([disabled]),select,input,[tabindex]:not([tabindex="-1"])',
+      ),
+    )
     .filter((el: HTMLElement) => el.offsetParent !== null);
 }
 function openModal(m: HTMLElement): void {

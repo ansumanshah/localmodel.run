@@ -3,6 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
+import RigCard from "@/components/RigCard.astro";
 import { devices, modelsBySize, meta } from "@/lib/data";
 import { canRun } from "@/lib/compute";
 import { rigScore, GRADE_BLURB, GRADE_COLOR } from "@/lib/rig";
@@ -76,19 +77,9 @@ const jsonLd = [
       </div>
 
       <div class="p-6 sm:p-8">
-        <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
-          <!-- Grade dial -->
-          <div
-            class="grid h-36 w-36 shrink-0 place-items-center rounded-2xl border-2"
-            style={`border-color:${GRADE_COLOR[score.grade]};background:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 8%, transparent)`}
-            role="img"
-            aria-label={`Rig score: ${score.grade}`}
-          >
-            <div class="text-center">
-              <div class="bp-stat-label">Rig Score</div>
-              <div class="mt-1 font-mono text-7xl font-bold leading-none" style={`color:${GRADE_COLOR[score.grade]}`}>{score.grade}</div>
-            </div>
-          </div>
+        <div class="grid items-center gap-6 sm:grid-cols-[300px_1fr]">
+          <!-- Iridescent collectible Rig card (shareable showpiece, no heading) -->
+          <RigCard score={score} device={device} />
 
           <!-- Device summary -->
           <div class="text-center sm:text-left">
