@@ -12,6 +12,17 @@
        body — uses the cheap glass-lite twin (NO backdrop-filter, zero INP cost).
    ══════════════════════════════════════════════════════════════════════════ */
 
+/* ── CLS fix: pin the aurora backdrop to the viewport, not the document ──────
+   glass.css renders .aurora-bg as position:absolute;inset:0, so it sizes to the
+   full document height. As content settles after first paint (island hydration,
+   font swap) the body grows, the aurora resizes, and its full-bleed gradient
+   ::before repaints at a new position — Lighthouse scores that as a large CLS.
+   Fixing it to the viewport makes it scroll-stable and resize-proof (CLS ~0),
+   and reads as a nicer fixed aurora behind the scrolling glass. */
+.aurora > .aurora-bg {
+  position: fixed;
+}
+
 @layer components {
   /* ── .bp-panel → cheap-tier glass-lite material ────────────────────────── */
   /* Translucent gradient fill + hairline rim + inner specular + soft lift. No
