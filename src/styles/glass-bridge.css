@@ -143,6 +143,36 @@
   min-width: 0;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   HERO H1 model-name rotator. The sizer (visibility:hidden) reserves the widest
+   name's width so the absolutely-positioned word crossfades in place — the rest
+   of the headline never reflows, so this adds ZERO CLS.
+   ══════════════════════════════════════════════════════════════════════════ */
+.hero-rot {
+  position: relative;
+  display: inline-block;
+  vertical-align: bottom;
+}
+.hero-rot-sizer {
+  visibility: hidden;
+}
+.hero-rot-word {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  transition: opacity 0.34s var(--spring), transform 0.34s var(--spring);
+}
+.hero-rot-word.hr-out {
+  opacity: 0;
+  transform: translateY(-0.16em);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-rot-word {
+    transition: none;
+  }
+}
+
 /* ── Footer chrome (cheap tier — sits below scrolling content, no blur) ──── */
 .gfooter {
   background-color: transparent;

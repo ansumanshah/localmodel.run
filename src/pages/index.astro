@@ -64,7 +64,14 @@ const jsonLd = [
           VRAM and RAM, calculated
         </p>
         <h1 class="bp-h1 bp-enter" style="--delay:80ms">
-          Can I run this AI model <span class="bp-accent">locally</span>?
+          Can I run{" "}
+          <span class="hero-rot" id="hero-rot">
+            {/* invisible sizer reserves the widest name's width so the rotating
+                word crossfades in place without reflowing "locally?" (CLS 0) */}
+            <span class="hero-rot-sizer" aria-hidden="true">DeepSeek R1</span>
+            <span class="hero-rot-word bp-accent" aria-hidden="true">Llama 3.3</span>
+          </span>
+          <span class="sr-only">any AI model</span> locally?
         </h1>
         <p class="bp-sub bp-enter" style="--delay:180ms">
           Pick a model and your device. Get a <strong>yes</strong>, <strong>tight</strong>,
@@ -97,6 +104,36 @@ const jsonLd = [
       </div>
     </div>
   </section>
+
+  <!-- Hero H1: cycle real model names through the headline (CLS-safe crossfade;
+       static under reduced-motion; the sr-only "any AI model" carries meaning) -->
+  <script is:inline>
+    (function () {
+      if (window.__heroRotInt) {
+        clearInterval(window.__heroRotInt);
+        window.__heroRotInt = null;
+      }
+      var el = document.getElementById("hero-rot");
+      if (!el) return;
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      var word = el.querySelector(".hero-rot-word");
+      var models = ["Llama 3.3", "Qwen 3", "DeepSeek R1", "Gemma 3", "Mistral", "Phi-4"];
+      var i = 0;
+      window.__heroRotInt = setInterval(function () {
+        if (!document.body.contains(word)) {
+          clearInterval(window.__heroRotInt);
+          window.__heroRotInt = null;
+          return;
+        }
+        word.classList.add("hr-out");
+        setTimeout(function () {
+          i = (i + 1) % models.length;
+          word.textContent = models[i];
+          word.classList.remove("hr-out");
+        }, 360);
+      }, 2400);
+    })();
+  </script>
 
   <!-- Slim coverage strip: a quiet transition into the catalog below -->
   <div class="bp-strip">
