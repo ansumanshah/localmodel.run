@@ -176,6 +176,12 @@ const biggest = score.biggest?.name ?? "";
     }, "image/png");
   }
 
+  // define:vars makes this script re-run on every navigation to a rig page, so
+  // register the page-load listener only once per session (else it accumulates),
+  // but still init directly on each run.
+  if (!window.__rigCardListenerBound) {
+    window.__rigCardListenerBound = true;
+    document.addEventListener("astro:page-load", initRigCard);
+  }
   initRigCard();
-  document.addEventListener("astro:page-load", initRigCard);
 </script>

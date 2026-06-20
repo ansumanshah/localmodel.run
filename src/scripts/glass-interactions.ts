@@ -14,20 +14,50 @@
  */
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function initGlass(): void {
-  const rm = reduceMotion();
+// rAF-throttled pointer tracking. Caches the measured rect (refreshed on enter,
+// invalidated on resize) and coalesces every move within a frame into ONE layout
+// read + ONE write, so a 120Hz pointer can't push the callback past the long-task
+// threshold and spike INP. All four pointer effects go through this.
+function trackPointer(
+  listenEl: HTMLElement,
+  measureEl: HTMLElement,
+  onFrame: (e: PointerEvent, rect: DOMRect) => void,
+  onLeave?: () => void,
+): void {
+  let rect: DOMRect | null = null;
+  let raf = 0;
+  let last: PointerEvent | null = null;
+  const measure = () => {
+    rect = measureEl.getBoundingClientRect();
+  };
+  listenEl.addEventListener("pointerenter", measure);
+  listenEl.addEventListener("pointermove", (e) => {
+    last = e;
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      if (!rect) measure();
+      if (last && rect) onFrame(last, rect);
+    });
+  });
+  if (onLeave) listenEl.addEventListener("pointerleave", onLeave);
+  new ResizeObserver(() => {
+    rect = null;
+  }).observe(measureEl);
+}
 
+function initGlass(): void {
   // Moving-spotlight layer on every .spotlight surface.
   document.querySelectorAll<HTMLElement>(".spotlight").forEach((el) => {
     if (!el.querySelector(":scope > .spot")) {
       const s = document.createElement("span");
       s.className = "spot";
+      s.setAttribute("aria-hidden", "true");
       el.insertBefore(s, el.firstChild);
     }
     if (el.dataset.glassSpot) return;
     el.dataset.glassSpot = "1";
-    el.addEventListener("pointermove", (e) => {
-      const r = el.getBoundingClientRect();
+    trackPointer(el, el, (e, r) => {
       el.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
       el.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
     });
@@ -39,33 +69,39 @@ function initGlass(): void {
     card.dataset.glassTilt = "1";
     const stage = (card.closest(".rig-stage") as HTMLElement) || card;
     const max = parseFloat(getComputedStyle(card).getPropertyValue("--rig-tilt")) || 9;
-    stage.addEventListener("pointermove", (e) => {
-      const r = card.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width;
-      const py = (e.clientY - r.top) / r.height;
-      card.style.setProperty("--mx", px * 100 + "%");
-      card.style.setProperty("--my", py * 100 + "%");
-      if (!reduceMotion()) {
-        card.style.setProperty("--ry", (px - 0.5) * max * 2 + "deg");
-        card.style.setProperty("--rx", -(py - 0.5) * max * 2 + "deg");
-      }
-    });
-    stage.addEventListener("pointerleave", () => {
-      card.style.setProperty("--rx", "0deg");
-      card.style.setProperty("--ry", "0deg");
-      card.style.setProperty("--mx", "50%");
-      card.style.setProperty("--my", "50%");
-    });
+    trackPointer(
+      stage,
+      card,
+      (e, r) => {
+        const px = (e.clientX - r.left) / r.width;
+        const py = (e.clientY - r.top) / r.height;
+        card.style.setProperty("--mx", px * 100 + "%");
+        card.style.setProperty("--my", py * 100 + "%");
+        if (!reduceMotion()) {
+          card.style.setProperty("--ry", (px - 0.5) * max * 2 + "deg");
+          card.style.setProperty("--rx", -(py - 0.5) * max * 2 + "deg");
+        }
+      },
+      () => {
+        card.style.setProperty("--rx", "0deg");
+        card.style.setProperty("--ry", "0deg");
+        card.style.setProperty("--mx", "50%");
+        card.style.setProperty("--my", "50%");
+      },
+    );
   });
 
-  // Magnetic buttons (skip entirely under reduced-motion).
-  if (!rm) {
-    document.querySelectorAll<HTMLElement>(".magnetic").forEach((btn) => {
-      if (btn.dataset.glassMag) return;
-      btn.dataset.glassMag = "1";
-      const R = 14;
-      btn.addEventListener("pointermove", (e) => {
-        const r = btn.getBoundingClientRect();
+  // Magnetic buttons — bound unconditionally, motion gated LIVE inside the frame
+  // (honors a mid-session reduced-motion change without needing a navigation).
+  document.querySelectorAll<HTMLElement>(".magnetic").forEach((btn) => {
+    if (btn.dataset.glassMag) return;
+    btn.dataset.glassMag = "1";
+    const R = 14;
+    trackPointer(
+      btn,
+      btn,
+      (e, r) => {
+        if (reduceMotion()) return;
         const dx = e.clientX - (r.left + r.width / 2);
         const dy = e.clientY - (r.top + r.height / 2);
         btn.style.transform =
@@ -74,12 +110,12 @@ function initGlass(): void {
           "px," +
           Math.max(-R, Math.min(R, dy * 0.3)) +
           "px)";
-      });
-      btn.addEventListener("pointerleave", () => {
+      },
+      () => {
         btn.style.transform = "";
-      });
-    });
-  }
+      },
+    );
+  });
 
   // Count-up on .num[data-count] when scrolled into view.
   const counters = document.querySelectorAll<HTMLElement>(
@@ -145,15 +181,18 @@ function initGlass(): void {
   document.querySelectorAll<HTMLElement>(".card-holo[data-holo]").forEach((card) => {
     if (card.dataset.glassHolo) return;
     card.dataset.glassHolo = "1";
-    card.addEventListener("pointermove", (e) => {
-      const r = card.getBoundingClientRect();
-      card.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
-      card.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
-    });
-    card.addEventListener("pointerleave", () => {
-      card.style.setProperty("--mx", "50%");
-      card.style.setProperty("--my", "50%");
-    });
+    trackPointer(
+      card,
+      card,
+      (e, r) => {
+        card.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
+        card.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
+      },
+      () => {
+        card.style.setProperty("--mx", "50%");
+        card.style.setProperty("--my", "50%");
+      },
+    );
   });
 
   // How-it-works diagram: add .in to start the SVG line-draw when scrolled in.

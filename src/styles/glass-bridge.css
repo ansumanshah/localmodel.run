@@ -23,6 +23,14 @@
   position: fixed;
 }
 
+/* a11y: the .gfield native <select> is opacity:0, so its own :focus-visible
+   outline is invisible. Put the keyboard focus ring on the visible wrapper
+   (unlayered so it wins the cascade over the @layer base outline). */
+.gfield:has(:focus-visible) {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
 @layer components {
   /* ── .bp-panel → cheap-tier glass-lite material ────────────────────────── */
   /* Translucent gradient fill + hairline rim + inner specular + soft lift. No
