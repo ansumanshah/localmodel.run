@@ -18,69 +18,83 @@ const links = [
   { href: "/rig", label: t("nav.rig") },
   { href: "/methodology", label: t("nav.methodology") },
 ];
+// Active-nav highlight: match the current path against each canonical link
+// (locale prefix stripped) so the right pill gets `.on`.
+const path = Astro.url.pathname.replace(/^\/(es)(?=\/|$)/, "") || "/";
+const isActive = (href: string) => href !== "/" && path.startsWith(href);
 ---
 
-<header class="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-  <div class="relative mx-auto flex h-14 max-w-6xl items-center gap-2 px-4">
-    <a href={localizedPath("/", lang)} class="flex items-center gap-2 rounded-md font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]">
-      <span class="grid h-7 w-7 place-items-center rounded-md bg-[var(--color-brand)] text-[oklch(0.18_0.01_270)]">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6.5 12.4l3.4 3.4L17.8 7.6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </span>
-      <span class="whitespace-nowrap">localmodel<span class="text-muted-foreground">.run</span></span>
-    </a>
-
-    <span class="ml-3 hidden items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground md:flex" aria-hidden="true">
-      <span class="h-1.5 w-1.5 rounded-full bg-[var(--color-verdict-yes)]"></span>
-      model compatibility
+<!--
+  Gauge·Glass floating capsule header. The <header> banner landmark IS the
+  sticky glass pill (.gh) so it floats over scrolling content; the mobile nav
+  is an absolute dropdown beneath it. --shell matches the site content column
+  (max-w-6xl = 72rem) so the capsule aligns to content. Semantics, i18n, focus
+  rings, aria state, and the delegated script are all preserved from before.
+-->
+<header class="gh glass spotlight" style="--shell: 72rem" data-glass-header>
+  <a
+    href={localizedPath("/", lang)}
+    class="gh-brand rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+    style="view-transition-name: lmr-brand"
+  >
+    <span class="sq">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6.5 12.4l3.4 3.4L17.8 7.6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
     </span>
+    <span class="whitespace-nowrap">localmodel<span class="run">.run</span></span>
+  </a>
 
-    <nav class="ml-auto hidden items-center gap-0.5 sm:flex" aria-label="Primary">
-      {links.map((l) => (
-        <a
-          href={l.href}
-          class="rounded-md px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
-        >
-          {l.label}
-        </a>
-      ))}
-    </nav>
+  <span class="gh-status" aria-hidden="true">
+    <span class="dot"></span>
+    model compatibility
+  </span>
 
-    <div class="ml-auto flex items-center gap-1 sm:ml-2">
-      <button
-        id="theme-toggle"
-        type="button"
-        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
-        aria-label="Toggle theme"
+  <nav class="gh-nav hidden sm:flex" aria-label="Primary">
+    {links.map((l) => (
+      <a
+        href={l.href}
+        class:list={[isActive(l.href) && "on", "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"]}
+        aria-current={isActive(l.href) ? "page" : undefined}
       >
-        <svg class="hidden dark:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-        <svg class="block dark:hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"></path></svg>
-      </button>
-      <button
-        id="mobile-menu-btn"
-        type="button"
-        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] sm:hidden"
-        aria-label="Open menu"
-        aria-expanded="false"
-        aria-controls="mobile-nav"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
-      </button>
-    </div>
+        {l.label}
+      </a>
+    ))}
+  </nav>
 
-    <!-- Blueprint brand wire along the header's bottom edge -->
-    <div class="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-[color-mix(in_oklch,var(--color-brand)_50%,transparent)] to-transparent"></div>
-  </div>
+  <button
+    id="theme-toggle"
+    type="button"
+    class="icon-btn p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+    aria-label="Toggle theme"
+  >
+    <svg class="hidden dark:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <svg class="block dark:hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"></path></svg>
+  </button>
+  <button
+    id="mobile-menu-btn"
+    type="button"
+    class="icon-btn p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] sm:hidden"
+    aria-label="Open menu"
+    aria-expanded="false"
+    aria-controls="mobile-nav"
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+  </button>
 
-  <!-- Mobile nav panel (toggled by the hamburger; hidden at sm and up) -->
-  <nav id="mobile-nav" aria-label="Primary mobile" class="hidden border-t border-border/60 px-4 py-2 sm:hidden">
+  <!-- Mobile nav: absolute dropdown beneath the capsule (cheap-tier glass) -->
+  <nav
+    id="mobile-nav"
+    aria-label="Primary mobile"
+    class="glass-lite absolute left-0 right-0 top-full mt-2 hidden px-3 py-2 sm:hidden"
+  >
     <ul class="flex flex-col">
       {links.map((l) => (
         <li>
           <a
             href={l.href}
-            class="block rounded-md px-2 py-2.5 font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+            class:list={["block rounded-md px-3 py-2.5 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]", isActive(l.href) ? "text-[var(--brand-ink)]" : "text-muted-foreground"]}
+            aria-current={isActive(l.href) ? "page" : undefined}
           >
             {l.label}
           </a>

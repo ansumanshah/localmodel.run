@@ -2,6 +2,9 @@
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
 import "@/styles/global.css";
+// Gauge·Glass liquid-glass layer — loads AFTER global.css so it inherits Gauge
+// tokens (it only adds --glass-*/--lite-*/--rig-* + .glass*/.g*/.rig-* classes).
+import "@/styles/glass.css";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import { getLangFromUrl, localizedPath, stripLocale } from "@/i18n/utils";
@@ -153,7 +156,10 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
          disables these automatically under prefers-reduced-motion. -->
     <ClientRouter />
   </head>
-  <body class="min-h-screen flex flex-col">
+  <body class="aurora min-h-screen flex flex-col">
+    <!-- Gauge·Glass page backdrop: layered iris/violet/cyan blooms the floating
+         glass chrome refracts against. pointer-events:none, z-0, behind all. -->
+    <div class="aurora-bg" aria-hidden="true"></div>
     <a
       href="#main-content"
       class="sr-only z-50 rounded-md bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-[oklch(0.18_0.01_270)] focus:not-sr-only focus:absolute focus:left-4 focus:top-3"
