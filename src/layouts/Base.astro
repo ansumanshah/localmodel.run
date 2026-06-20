@@ -5,6 +5,9 @@ import "@/styles/global.css";
 // Gauge·Glass liquid-glass layer — loads AFTER global.css so it inherits Gauge
 // tokens (it only adds --glass-*/--lite-*/--rig-* + .glass*/.g*/.rig-* classes).
 import "@/styles/glass.css";
+// Site-wide bridge — maps the .bp-* primitives onto the glass material so every
+// template reskins centrally. Loads AFTER glass.css so its overrides win.
+import "@/styles/glass-bridge.css";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import { getLangFromUrl, localizedPath, stripLocale } from "@/i18n/utils";
