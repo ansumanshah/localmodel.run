@@ -10,6 +10,7 @@ export const ui = {
   en: {
     "nav.models": "Models",
     "nav.devices": "Devices",
+    "nav.compare": "Compare",
     "nav.tools": "Tools",
     "nav.rig": "Rig score",
     "nav.guides": "Guides",
@@ -40,6 +41,7 @@ export const ui = {
   es: {
     "nav.models": "Modelos",
     "nav.devices": "Dispositivos",
+    "nav.compare": "Comparar",
     "nav.tools": "Herramientas",
     "nav.rig": "Rig score",
     "nav.guides": "Guías",
