@@ -116,6 +116,45 @@ const jsonLd = [
     </div>
   </div>
 
+  <!-- Runtime marquee: the tools these models run with -->
+  <div class="border-b border-border/60 py-3">
+    <div class="mx-auto flex max-w-5xl items-center gap-4 px-4">
+      <span class="shrink-0 font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">Runs with</span>
+      <div class="marquee min-w-0 flex-1">
+        <div class="marquee-track">
+          {["Ollama", "LM Studio", "llama.cpp", "MLX", "vLLM", "Jan", "KoboldCpp", "GPT4All", "Ollama", "LM Studio", "llama.cpp", "MLX", "vLLM", "Jan", "KoboldCpp", "GPT4All"].map((t) => (
+            <span class="marquee-item"><span class="mq-dot" aria-hidden="true"></span>{t}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works: the memory math, in three steps (animated line-draw) -->
+  <section class="mx-auto max-w-5xl px-4 py-16">
+    <p class="bp-eyebrow"><span class="bp-dot" aria-hidden="true"></span>How it works</p>
+    <div class="bp-panel mt-4 overflow-x-auto p-6 sm:p-8">
+      <svg class="hiw-diagram mx-auto block h-auto w-full" style="max-width:660px;min-width:520px" viewBox="0 0 720 132" fill="none" role="img" aria-label="How it works: model size and quant, then memory math, then verdict">
+        <path class="draw" d="M200 66 H260" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
+        <path class="draw" d="M460 66 H520" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
+        <rect x="14" y="30" width="186" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
+        <text x="34" y="60" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;fill:var(--brand-ink)">01 · MODEL</text>
+        <text x="34" y="84" style="font-family:var(--font-sans);font-size:15px;font-weight:600;fill:var(--foreground)">Size × quant</text>
+        <rect x="260" y="30" width="200" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
+        <text x="280" y="60" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;fill:var(--brand-ink)">02 · MEMORY MATH</text>
+        <text x="280" y="84" style="font-family:var(--font-sans);font-size:15px;font-weight:600;fill:var(--foreground)">Weights + KV + overhead</text>
+        <rect x="520" y="30" width="186" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
+        <text x="540" y="56" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;fill:var(--brand-ink)">03 · VERDICT</text>
+        <text x="540" y="78" style="font-family:var(--font-sans);font-size:14px;font-weight:600;fill:var(--foreground)">Yes · Tight · No</text>
+        <rect x="540" y="86" width="146" height="6" rx="3" style="fill:var(--gauge-track)"></rect>
+        <rect x="540" y="86" width="86" height="6" rx="3" style="fill:var(--color-verdict-yes)"></rect>
+      </svg>
+    </div>
+    <p class="mt-4 text-sm text-muted-foreground">
+      Every verdict comes from this math, sourced and documented. <a href="/methodology" class="text-[var(--color-brand)] hover:underline">See the full methodology →</a>
+    </p>
+  </section>
+
   <!-- Featured models -->
   <section class="mx-auto max-w-5xl px-4 py-16">
     <div class="flex items-end justify-between">
