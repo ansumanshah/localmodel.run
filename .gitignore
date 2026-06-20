@@ -15,8 +15,8 @@ node_modules/
 .claude/
 
 # design-sync workspace (local artifact for claude.ai/design; not site source)
+# holds config.json + NOTES.md (control state) and bundle/ (the uploaded artifact)
 .design-sync/
-ds-bundle/
 
 # os / editor
 .DS_Store
