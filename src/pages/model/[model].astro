@@ -185,7 +185,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                 <a href={`https://huggingface.co/${model.hf_id}`} rel="noopener nofollow" class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground">
                   {fmtNum(model.hf_downloads) && <span>&#8595; {fmtNum(model.hf_downloads)}/mo</span>}
                   {fmtNum(model.hf_likes) && <span>&#9829; {fmtNum(model.hf_likes)}</span>}
-                  <span class="opacity-70">on HuggingFace</span>
+                  <span>on HuggingFace</span>
                 </a>
               )}
             </div>

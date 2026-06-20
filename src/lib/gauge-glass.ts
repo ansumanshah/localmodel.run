@@ -36,7 +36,11 @@ const SPEED_LABEL: Record<SpeedClass, string> = {
 
 /** Reshape canRun() into the flat paint shape. The track formula matches the
  *  Gauge·Glass mock: a little headroom past max(need, usable). */
-export function gaugeCompute(model: ModelRow, device: DeviceRow, ctxK = DEFAULT_CONTEXT_K): GaugeResult {
+export function gaugeCompute(
+  model: ModelRow,
+  device: DeviceRow,
+  ctxK = DEFAULT_CONTEXT_K,
+): GaugeResult {
   const maxCtxK = model.default_context_k ?? 128;
   const effCtxK = Math.min(ctxK, maxCtxK);
   const r = canRun(model, device, effCtxK);
