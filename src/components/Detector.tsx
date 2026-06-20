@@ -1,5 +1,12 @@
 import { useMemo, useState, type CSSProperties } from "react";
-import { canRun, usableGb, QUANT_LABEL, verdictLabelShort } from "@/lib/compute";
+import {
+  canRun,
+  usableGb,
+  QUANT_LABEL,
+  verdictLabel,
+  DEFAULT_CONTEXT_K,
+  type SpeedClass,
+} from "@/lib/compute";
 import { models, devices, devicePlatform, getTool, platformLabel } from "@/lib/data";
 import type { Verdict } from "@/data/types";
 
@@ -17,9 +24,26 @@ const VERDICT_TEXT: Record<Verdict, string> = {
   no: "var(--verdict-no-fg)",
   unknown: "var(--muted-foreground)",
 };
+const VERDICT_COLOR: Record<Verdict, string> = {
+  yes: "var(--color-verdict-yes)",
+  tight: "var(--color-verdict-tight)",
+  no: "var(--color-verdict-no)",
+  unknown: "var(--muted-foreground)",
+};
+// Qualitative speed, NOT a tok/s number. The site has no sourced per-device
+// throughput (it's a documented, deferred data item), and the project rule is
+// never to show a guessed figure — so the engine's SpeedClass is the honest
+// readout next to the verdict.
+const SPEED_LABEL: Record<SpeedClass, string> = {
+  fast: "fast",
+  ok: "runs",
+  slow: "slow",
+  none: "",
+};
+
 // Inline lucide icons (the React island can't use astro-icon); these mirror the
 // circle-check / circle-alert / circle-x / circle-help marks in VerdictBadge.astro.
-function VerdictIcon({ verdict, size = 15 }: { verdict: Verdict; size?: number }) {
+function VerdictIcon({ verdict, size = 22 }: { verdict: Verdict; size?: number }) {
   return (
     <svg
       width={size}
@@ -57,9 +81,6 @@ function VerdictIcon({ verdict, size = 15 }: { verdict: Verdict; size?: number }
   );
 }
 
-// Custom dropdown chevron: native <select> arrows render inconsistently and
-// sit misaligned against our padding, so we hide the native one (appearance-none)
-// and position our own, vertically centered against the control.
 function ChevronDown() {
   return (
     <svg
@@ -86,7 +107,6 @@ function guessDeviceId(): string {
     if (/iPad/.test(navigator.userAgent)) return "ipad-pro-m4-16gb";
     return "android-generic-12gb";
   }
-  // deviceMemory is coarse (caps at 8). Use it as a floor.
   const gb = typeof dm === "number" ? dm : 16;
   if (isMac) {
     if (gb <= 8) return "apple-m1-8gb";
@@ -98,24 +118,68 @@ function guessDeviceId(): string {
   return "laptop-32gb";
 }
 
+const fmtCtx = (k: number) => (k >= 1000 ? `${k / 1000}M` : `${k}k`);
+
+// Glass field: a styled native <select> (accessible, id-based, the source of
+// truth) faced as a .gfield with the selected label shown and a custom chevron.
+function GlassField({
+  label,
+  value,
+  displayValue,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  displayValue: string;
+  onChange: (id: string) => void;
+  options: { id: string; label: string }[];
+}) {
+  return (
+    <label className="block">
+      <span className="gfield-label">{label}</span>
+      <div className="gfield">
+        <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
+          {options.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <span className="truncate">{displayValue}</span>
+        <ChevronDown />
+      </div>
+    </label>
+  );
+}
+
 export default function Detector() {
   const [deviceId, setDeviceId] = useState("apple-m4-16gb");
   const [modelId, setModelId] = useState("llama-3.1-8b");
+  const [ctxK, setCtxK] = useState(DEFAULT_CONTEXT_K);
   const [detected, setDetected] = useState(false);
 
   const device = devices.find((d) => d.id === deviceId)!;
   const model = models.find((m) => m.id === modelId)!;
-  const result = useMemo(() => canRun(model, device), [model, device]);
+  const maxCtxK = model.default_context_k ?? 128;
+  const effCtxK = Math.min(ctxK, maxCtxK);
+
+  const result = useMemo(() => canRun(model, device, effCtxK), [model, device, effCtxK]);
   const usable = usableGb(device);
   const platform = devicePlatform(device);
   const tool = getTool(platform);
   const canOllama =
     (platform === "mac" || platform === "windows" || platform === "linux") && model.ollama_tag;
 
-  const needGb = result.neededGb ?? result.estimate?.totalGb ?? 0;
-  const max = Math.max(needGb, usable) * 1.08;
-  const needPct = Math.min(100, (needGb / max) * 100);
-  const usablePct = Math.min(100, (usable / max) * 100);
+  const needGb = result.estimate?.totalGb ?? 0;
+  // Match the Gauge·Glass track formula: a little headroom past the larger of
+  // need/usable so the fill and the usable-threshold mark both sit on-track.
+  const trackMax = Math.max(needGb, usable) * 1.14;
+  const fillScale = Math.min(1, needGb / trackMax);
+  const markAt = Math.min(100, (usable / trackMax) * 100);
+  const speed = SPEED_LABEL[result.speed];
+  const cmd = canOllama ? `ollama run ${model.ollama_tag}` : null;
+  const vc = result.verdict === "no" ? VERDICT_COLOR.no : VERDICT_COLOR[result.verdict];
 
   function detect() {
     setDeviceId(guessDeviceId());
@@ -123,117 +187,115 @@ export default function Detector() {
   }
 
   return (
-    <div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            Your device
-          </span>
-          <div className="relative">
-            <select
-              id="detector-device"
-              name="device"
-              value={deviceId}
-              onChange={(e) => setDeviceId(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-input bg-background px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {sortedDevices.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown />
-          </div>
-        </label>
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            Model to run
-          </span>
-          <div className="relative">
-            <select
-              id="detector-model"
-              name="model"
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-input bg-background px-3 py-2.5 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {sortedModels.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} ({m.params_b}B)
-                </option>
-              ))}
-            </select>
-            <ChevronDown />
-          </div>
-        </label>
+    <div className="det-body">
+      <div className="det-selects">
+        <GlassField
+          label="Model"
+          value={modelId}
+          displayValue={model.name}
+          onChange={setModelId}
+          options={sortedModels.map((m) => ({ id: m.id, label: `${m.name} (${m.params_b}B)` }))}
+        />
+        <GlassField
+          label="Device"
+          value={deviceId}
+          displayValue={device.name}
+          onChange={setDeviceId}
+          options={sortedDevices.map((d) => ({ id: d.id, label: d.name }))}
+        />
       </div>
 
       <div className="mt-3 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={detect}
-          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
+        <button type="button" onClick={detect} className="gbtn text-xs">
           Auto-detect my device
         </button>
         {detected && (
-          <span className="text-xs text-muted-foreground">
-            Detected approximately, adjust if needed.
-          </span>
+          <span className="text-xs text-muted-foreground">Detected approximately, adjust if needed.</span>
         )}
       </div>
 
-      <div className="mt-5 border-t border-border/60 pt-5" aria-live="polite" aria-atomic="true">
+      <div className="det-result" aria-live="polite" aria-atomic="true">
         <div
           key={result.verdict}
-          className="verdict-word flex items-center gap-3 font-mono text-5xl font-bold leading-none tracking-tight sm:text-6xl"
+          className="verdict-hero"
+          data-v={result.verdict}
           style={{ color: VERDICT_TEXT[result.verdict] }}
         >
-          <VerdictIcon verdict={result.verdict} size={42} />
-          {verdictLabelShort(result.verdict)}
+          <VerdictIcon verdict={result.verdict} size={22} />
+          <span>{verdictLabel(result.verdict)}</span>
+          {speed && <span className="tok">{speed}</span>}
         </div>
 
-        {/* Fit gauge: how much of the device's usable memory this model needs,
-            with a threshold mark at the usable ceiling. */}
-        <div className="mt-7">
+        {/* Fit gauge with a glass lens edge: how much usable memory this model
+            needs, with a threshold mark at the usable ceiling. */}
+        <div
+          className="gauge lens mt-4"
+          role="img"
+          aria-label={`Memory: needs ${needGb} GB, device has ${usable} GB usable`}
+        >
           <div
-            className="gauge"
-            role="img"
-            aria-label={`Memory: needs ${needGb} GB, device has ${usable} GB usable`}
-          >
-            <div
-              className="gauge-fill bar-fill"
-              style={{
-                transform: `scaleX(${needPct / 100})`,
-                background: `color-mix(in oklch, ${result.verdict === "no" ? "var(--color-verdict-no)" : "var(--color-verdict-yes)"} 88%, transparent)`,
-              }}
-            />
-            <div
-              className="gauge-mark"
-              data-label={`usable ${usable} GB`}
-              style={{ "--at": `${usablePct}%` } as CSSProperties}
-              aria-hidden="true"
-            />
+            className="gauge-fill bar-fill"
+            style={{
+              transform: `scaleX(${fillScale})`,
+              background: `color-mix(in oklch, ${vc} 88%, transparent)`,
+              "--vc": vc,
+            } as CSSProperties}
+          />
+          <div
+            className="gauge-mark"
+            data-label={`usable ${usable} GB`}
+            style={{ "--at": `${markAt}%` } as CSSProperties}
+            aria-hidden="true"
+          />
+        </div>
+        <div className="read">
+          <span>
+            needs <b className="num">{needGb} GB</b>
+          </span>
+          <span>
+            usable <b className="num">{usable} GB</b>
+          </span>
+        </div>
+
+        {/* Context-length slider: KV cache grows with context, so a long context
+            can flip a tight fit to no. Defensible (kvCacheGb is sourced). */}
+        <div className="ctx-control">
+          <div className="ctx-head">
+            <label htmlFor="det-ctx">Context length</label>
+            <span className="ctx-val">{fmtCtx(effCtxK)}</span>
           </div>
-          <div className="mt-2.5 flex justify-between font-mono text-xs tabular-nums text-muted-foreground">
-            <span>
-              needs <span className="text-foreground">{result.estimate?.totalGb} GB</span>
-            </span>
-            <span>
-              usable <span className="text-foreground">{usable} GB</span>
-            </span>
-          </div>
+          <input
+            type="range"
+            id="det-ctx"
+            min={1}
+            max={maxCtxK}
+            step={1}
+            value={effCtxK}
+            onChange={(e) => setCtxK(parseInt(e.target.value, 10))}
+            aria-label="Context length in thousands of tokens"
+          />
         </div>
 
         <p className="mt-3 text-sm text-muted-foreground">{result.reason}</p>
 
-        {result.verdict !== "no" && canOllama && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-mono text-sm">
-            <span className="text-[var(--color-brand)]">$</span>
-            <code className="flex-1 overflow-x-auto">ollama run {model.ollama_tag}</code>
-          </div>
-        )}
+        <div className="det-cta">
+          <a href={`/can-i-run/${model.id}/${device.id}`} className="gbtn gbtn--primary magnetic">
+            See the full breakdown
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+          {cmd && (
+            <div className="cmd-chip" data-cmd={cmd}>
+              <span className="d">$</span>
+              <span className="overflow-x-auto">{cmd}</span>
+              <button type="button" className="copy" aria-label="Copy command">
+                copy
+              </button>
+            </div>
+          )}
+        </div>
+
         {tool && (
           <p className="mt-3 text-xs text-muted-foreground">
             Best on {platformLabel(platform)}:{" "}
@@ -243,12 +305,6 @@ export default function Detector() {
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <a
-            href={`/can-i-run/${model.id}/${device.id}`}
-            className="text-sm font-medium text-[var(--color-brand)] hover:underline"
-          >
-            See the full breakdown <span aria-hidden="true">→</span>
-          </a>
           <a
             href={`/rig/${device.id}`}
             className="text-sm font-medium text-muted-foreground hover:text-foreground"

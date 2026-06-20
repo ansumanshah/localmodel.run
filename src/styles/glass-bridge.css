@@ -83,6 +83,47 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   DETECTOR ISLAND LAYOUT (the mock's inline det-* rules, kept out of glass.css)
+   The .bp-detector-wrap already pads 1.25rem, so .det-body adds no padding.
+   ══════════════════════════════════════════════════════════════════════════ */
+.det-selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.det-result {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in oklch, var(--glass-rim) 70%, transparent);
+}
+.read {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.read b {
+  color: var(--foreground);
+  font-weight: 500;
+}
+.det-cta {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.det-cta .gbtn--primary {
+  text-decoration: none;
+}
+.det-cta .cmd-chip {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── Footer chrome (cheap tier — sits below scrolling content, no blur) ──── */
 .gfooter {
   background-color: transparent;
