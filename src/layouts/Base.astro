@@ -208,6 +208,11 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
       }
     </script>
 
+    <!-- Gauge·Glass micro-interactions (bundled module; re-inits on astro:page-load) -->
+    <script>
+      import "@/scripts/glass-interactions";
+    </script>
+
     {cfBeaconToken && (
       <script
         is:inline
