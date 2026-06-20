@@ -21,7 +21,9 @@ const refModel = models.find((m) => m.id === "llama-3.1-8b");
 if (!refModel) throw new Error("index.astro: reference model 'llama-3.1-8b' not found in models.json");
 
 const path = "/";
-const title = "Can I run this AI model locally? · localmodel.run";
+// Homepage only: brand-first (the homepage IS the brand page). pSEO/content
+// pages deliberately keep their keyword-first titles for SERP CTR.
+const title = "LocalModel.run | Can I run any AI model locally?";
 const description = truncate(
   `Instantly check if your computer or phone can run a local AI model, from text LLMs like Llama, Qwen and DeepSeek to image, video and audio models, and which tool to use on Mac, Windows, Linux, iOS or Android. Free, no signup. ${allModels.length} models across text, image, video and audio, ${devices.length} devices, validated data.`,
 );
