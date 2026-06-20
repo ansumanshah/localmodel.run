@@ -210,7 +210,9 @@ export default function Detector() {
           Auto-detect my device
         </button>
         {detected && (
-          <span className="text-xs text-muted-foreground">Detected approximately, adjust if needed.</span>
+          <span className="text-xs text-muted-foreground">
+            Detected approximately, adjust if needed.
+          </span>
         )}
       </div>
 
@@ -235,11 +237,13 @@ export default function Detector() {
         >
           <div
             className="gauge-fill bar-fill"
-            style={{
-              transform: `scaleX(${fillScale})`,
-              background: `color-mix(in oklch, ${vc} 88%, transparent)`,
-              "--vc": vc,
-            } as CSSProperties}
+            style={
+              {
+                transform: `scaleX(${fillScale})`,
+                background: `color-mix(in oklch, ${vc} 88%, transparent)`,
+                "--vc": vc,
+              } as CSSProperties
+            }
           />
           <div
             className="gauge-mark"
@@ -281,7 +285,15 @@ export default function Detector() {
         <div className="det-cta">
           <a href={`/can-i-run/${model.id}/${device.id}`} className="gbtn gbtn--primary magnetic">
             See the full breakdown
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden="true">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.4}
+              aria-hidden="true"
+            >
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </a>
