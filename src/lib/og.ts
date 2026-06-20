@@ -44,7 +44,7 @@ export async function renderOg(markup: string, width = 1200, height = 630): Prom
 const shell = (inner: string) => `
 <div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:64px;background:${C.bg};background-image:radial-gradient(60% 60% at 50% 0%, #231d54 0%, ${C.bg} 60%);font-family:Geist;color:${C.text}">
   <div style="display:flex;align-items:center;gap:14px">
-    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:${C.brand}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M6.5 12.4l3.4 3.4L17.8 7.6" stroke="${C.bg}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:${C.brand}"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="15.5" height="10" rx="3" fill="none" stroke="#fff" stroke-width="2"/><rect x="5" y="9" width="9" height="6" rx="1.4" fill="#16e07f"/><rect x="20" y="10.2" width="1.8" height="3.6" rx="0.9" fill="#fff"/><path d="M12.2 6.6 8.2 12.8 11 12.8 10 17.4 14.6 11 11.8 11Z" fill="${C.bg}"/></svg></div>
     <div style="display:flex;font-size:28px;font-weight:700">localmodel<span style="color:${C.muted}">.run</span></div>
   </div>
   ${inner}

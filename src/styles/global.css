@@ -470,8 +470,9 @@
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    background: var(--background);
-    /* One calm ambient: a soft brand wash off the top, no grid, no vignette. */
+    /* Transparent base so the page aurora flows continuously through the hero.
+       (It used to paint an opaque var(--background), which cut the aurora off at
+       the header edge.) The transparent-based brand wash below still layers on. */
     background-image: radial-gradient(
       110% 70% at 50% -10%,
       color-mix(in oklch, var(--color-brand) 13%, transparent) 0%,
