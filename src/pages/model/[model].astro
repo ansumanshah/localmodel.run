@@ -22,6 +22,7 @@ import {
 } from "@/lib/data";
 import { canRun, estimateMemory, quantLadderSizes } from "@/lib/compute";
 import { canRunModality, modalityNeed, modalitySpec } from "@/lib/compute-mm";
+import { gaugeCompute } from "@/lib/gauge-glass";
 import {
   breadcrumbLd,
   faqLd,
@@ -61,6 +62,31 @@ const fmtNum = (n: number | null | undefined): string | null => {
 };
 const COMMERCIAL_LABEL: Record<string, string> = { yes: "Commercial OK", conditional: "Conditional", no: "Non-commercial" };
 const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "tight", no: "no" };
+
+// Interactive "will it run on your device?" card — ALL device verdicts are
+// precomputed here at build (SSG), so the high-traffic model page ships a tiny
+// JSON blob instead of the whole compute engine + dataset. The picker swaps
+// results from that blob in the browser (no client-side recompute).
+const fitDevices = isText ? devicesByMemory : [];
+const fitData = fitDevices.map((d) => {
+  const r = gaugeCompute(model, d);
+  return {
+    id: d.id,
+    name: d.name,
+    verdict: r.verdict,
+    need: r.need,
+    usable: r.usable,
+    fillScale: +r.fillScale.toFixed(3),
+    markAt: +r.markAt.toFixed(1),
+    speed: r.speedLabel,
+    rec: r.rec,
+    cmd: r.cmd,
+  };
+});
+const fitDefault = fitData.find((d) => d.id === "apple-m4-16gb") ?? fitData[Math.floor(fitData.length / 2)];
+const VERDICT_FG: Record<string, string> = { yes: "var(--verdict-yes-fg)", tight: "var(--verdict-tight-fg)", no: "var(--verdict-no-fg)" };
+const VERDICT_COL: Record<string, string> = { yes: "var(--color-verdict-yes)", tight: "var(--color-verdict-tight)", no: "var(--color-verdict-no)" };
+const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes, but tight", no: "No, not enough memory" };
 ---
 {
   isText ? (
@@ -179,6 +205,112 @@ const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "t
                 </div>
               ))}
             </section>
+
+            {fitDefault && (
+              <section class="mt-8">
+                <h2 class="mb-3 text-lg font-semibold">Will it run on your device?</h2>
+                <div class="bp-instrument" id="fit-check" data-model-id={model.id}>
+                  <div class="bp-panel-header">
+                    <span class="bp-panel-label">Fit check</span>
+                    <span class="bp-panel-label">Q4_K_M</span>
+                  </div>
+                  <div class="p-5">
+                    <label class="block" style="max-width:340px">
+                      <span class="gfield-label">Your device</span>
+                      <div class="gfield">
+                        <select id="fc-device" aria-label="Your device">
+                          {fitData.map((d) => (
+                            <option value={d.id} selected={d.id === fitDefault.id}>{d.name}</option>
+                          ))}
+                        </select>
+                        <span class="truncate" id="fc-device-name">{fitDefault.name}</span>
+                        <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                      </div>
+                    </label>
+                    <div class="det-result" aria-live="polite" style="border-top:none;padding-top:16px">
+                      <div class="verdict-hero" id="fc-verdict" data-v={fitDefault.verdict} style={`color:${VERDICT_FG[fitDefault.verdict]}`}>
+                        <svg id="fc-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={fitDefault.verdict === "yes" ? '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>' : fitDefault.verdict === "tight" ? '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>' : '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>'} />
+                        <span id="fc-word">{VERDICT_WORD[fitDefault.verdict]}</span>
+                        {fitDefault.verdict !== "no" && fitDefault.speed && <span class="tok" id="fc-speed">{fitDefault.speed}</span>}
+                        {(fitDefault.verdict === "no" || !fitDefault.speed) && <span class="tok" id="fc-speed"></span>}
+                      </div>
+                      <div class="gauge lens mt-4" role="img" aria-label={`Memory: needs ${fitDefault.need} GB, device has ${fitDefault.usable} GB usable`}>
+                        <div class="gauge-fill" id="fc-fill" style={`transform:scaleX(${fitDefault.fillScale});background:color-mix(in oklch, ${VERDICT_COL[fitDefault.verdict]} 88%, transparent);--vc:${VERDICT_COL[fitDefault.verdict]}`}></div>
+                        <div class="gauge-mark" id="fc-mark" style={`--at:${fitDefault.markAt}%`} data-label={`usable ${fitDefault.usable} GB`} aria-hidden="true"></div>
+                      </div>
+                      <div class="read">
+                        <span>needs <b class="num" id="fc-need">{fitDefault.need} GB</b></span>
+                        <span>usable <b class="num" id="fc-usable">{fitDefault.usable} GB</b></span>
+                      </div>
+                      <div class="det-cta">
+                        <a id="fc-link" href={`/can-i-run/${model.id}/${fitDefault.id}`} class="gbtn gbtn--primary magnetic">
+                          See the full breakdown
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                        </a>
+                        <div class="cmd-chip" id="fc-cmd" data-cmd={fitDefault.cmd ?? ""} style={fitDefault.cmd && fitDefault.verdict !== "no" ? "" : "display:none"}>
+                          <span class="d">$</span><span class="fc-cmd-text overflow-x-auto">{fitDefault.cmd}</span>
+                          <button type="button" class="copy" aria-label="Copy command">copy</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <script type="application/json" id="fc-data" set:html={JSON.stringify(fitData)} is:inline />
+                <script is:inline>
+                  (function () {
+                    const ICONS = {
+                      yes: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+                      tight: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+                      no: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+                    };
+                    const FG = { yes: "var(--verdict-yes-fg)", tight: "var(--verdict-tight-fg)", no: "var(--verdict-no-fg)" };
+                    const COL = { yes: "var(--color-verdict-yes)", tight: "var(--color-verdict-tight)", no: "var(--color-verdict-no)" };
+                    const WORD = { yes: "Yes, it runs", tight: "Yes, but tight", no: "No, not enough memory" };
+                    function initFit() {
+                      const root = document.getElementById("fit-check");
+                      const blob = document.getElementById("fc-data");
+                      const sel = document.getElementById("fc-device");
+                      if (!root || !blob || !sel || root.dataset.fcBound) return;
+                      root.dataset.fcBound = "1";
+                      const data = JSON.parse(blob.textContent || "[]");
+                      const byId = {};
+                      data.forEach((d) => (byId[d.id] = d));
+                      const modelId = root.dataset.modelId;
+                      const set = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+                      sel.addEventListener("change", () => {
+                        const d = byId[sel.value];
+                        if (!d) return;
+                        set("fc-device-name", (el) => (el.textContent = d.name));
+                        set("fc-verdict", (el) => { el.setAttribute("data-v", d.verdict); el.style.color = FG[d.verdict]; });
+                        set("fc-icon", (el) => (el.innerHTML = ICONS[d.verdict]));
+                        set("fc-word", (el) => (el.textContent = WORD[d.verdict]));
+                        set("fc-speed", (el) => (el.textContent = d.verdict === "no" ? "" : d.speed || ""));
+                        set("fc-fill", (el) => {
+                          el.style.transform = "scaleX(" + d.fillScale + ")";
+                          el.style.background = "color-mix(in oklch, " + COL[d.verdict] + " 88%, transparent)";
+                          el.style.setProperty("--vc", COL[d.verdict]);
+                        });
+                        set("fc-mark", (el) => { el.style.setProperty("--at", d.markAt + "%"); el.setAttribute("data-label", "usable " + d.usable + " GB"); });
+                        set("fc-need", (el) => (el.textContent = d.need + " GB"));
+                        set("fc-usable", (el) => (el.textContent = d.usable + " GB"));
+                        set("fc-link", (el) => el.setAttribute("href", "/can-i-run/" + modelId + "/" + d.id));
+                        set("fc-cmd", (el) => {
+                          if (d.cmd && d.verdict !== "no") {
+                            el.style.display = "";
+                            el.setAttribute("data-cmd", d.cmd);
+                            const t = el.querySelector(".fc-cmd-text");
+                            if (t) t.textContent = d.cmd;
+                          } else {
+                            el.style.display = "none";
+                          }
+                        });
+                      });
+                    }
+                    initFit();
+                  })();
+                </script>
+              </section>
+            )}
 
             <section class="mt-8 grid gap-6 sm:grid-cols-2">
               <div>
