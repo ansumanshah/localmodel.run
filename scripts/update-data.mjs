@@ -76,6 +76,7 @@ async function main() {
 
   let okOllama = 0;
   let okHf = 0;
+  const drift = []; // size moves worth a human glance before the cron commit deploys
   for (const m of models) {
     if (m.ollama_tag) {
       try {
@@ -95,6 +96,14 @@ async function main() {
         if (m.subtype === "vlm" && sizes.mmproj_gb) {
           if (q4) q4 = round2(q4 + sizes.mmproj_gb);
           if (q8) q8 = round2(q8 + sizes.mmproj_gb);
+        }
+        // Drift guard: a bad HF filename match can 10x a size and silently flip
+        // verdicts across thousands of pair pages. A normal re-quant moves ~2-5%;
+        // flag a >15% move so a human eyeballs it before this commit deploys.
+        if (q4 && m.q4_k_m_gb) {
+          const delta = Math.abs(q4 - m.q4_k_m_gb) / m.q4_k_m_gb;
+          if (delta > 0.15)
+            drift.push(`${m.id}: q4_k_m_gb ${m.q4_k_m_gb} -> ${q4} GB (${Math.round(delta * 100)}% change)`);
         }
         if (q4) m.q4_k_m_gb = q4;
         if (q8) m.q8_0_gb = q8;
@@ -119,6 +128,20 @@ async function main() {
         console.warn("  [hf-stats]", e instanceof Error ? e.message : e);
       }
     }
+  }
+
+  // The ollama default tag and our Q4 anchor should track each other; a >2 GB
+  // gap usually means the ollama tag was re-quantized to a different bit-width.
+  for (const m of models) {
+    if (m.ollama_default_gb && m.q4_k_m_gb && Math.abs(m.ollama_default_gb - m.q4_k_m_gb) > 2)
+      drift.push(
+        `${m.id}: ollama_default_gb ${m.ollama_default_gb} vs q4_k_m_gb ${m.q4_k_m_gb} GB diverge >2 GB (re-quantized tag?)`,
+      );
+  }
+  if (drift.length) {
+    console.log(`::group::Data drift (${drift.length}) — review before this commit deploys`);
+    for (const d of drift) console.log(`::warning title=data drift::${d}`);
+    console.log("::endgroup::");
   }
 
   meta.updated = today();
