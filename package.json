@@ -19,6 +19,7 @@
     "check": "astro check",
     "update-data": "node scripts/update-data.mjs",
     "validate-data": "node scripts/validate-data.mjs",
+    "audit:links": "bun scripts/audit-links.ts",
     "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
@@ -27,7 +28,7 @@
     "@astrojs/sitemap": "3.7.3",
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
-    "@iconify-json/lucide": "^1.2.112",
+    "@iconify-json/lucide": "^1.2.114",
     "@iconify-json/simple-icons": "^1.2.86",
     "@resvg/resvg-js": "^2.6.2",
     "astro": "^6.4.8",
