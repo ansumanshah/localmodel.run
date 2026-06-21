@@ -6,7 +6,7 @@ import EntityIcon from "@/components/EntityIcon.astro";
 import RigCard from "@/components/RigCard.astro";
 import { devices, modelsBySize, meta } from "@/lib/data";
 import { canRun } from "@/lib/compute";
-import { rigScore, GRADE_BLURB, GRADE_COLOR } from "@/lib/rig";
+import { rigScore, GRADE_BLURB, GRADE_COLOR, GRADE_FG } from "@/lib/rig";
 import { breadcrumbLd, techArticleLd, faqLd, truncate, type FaqItem } from "@/lib/seo";
 
 export function getStaticPaths() {
@@ -103,7 +103,7 @@ const jsonLd = [
           <dl class="bp-stat-grid mt-4">
             <div class="bp-stat-item">
               <dt class="bp-stat-label">Grade</dt>
-              <dd class="bp-stat-val" style={`color:${GRADE_COLOR[score.grade]}`}>{score.grade}</dd>
+              <dd class="bp-stat-val" style={`color:${GRADE_FG[score.grade]}`}>{score.grade}</dd>
             </div>
             <div class="bp-stat-item">
               <dt class="bp-stat-label">Runnable</dt>

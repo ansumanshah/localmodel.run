@@ -1,7 +1,7 @@
 {
   "schema_version": "v1",
   "version": "1",
-  "last_updated": "2026-06-16",
+  "last_updated": "2026-06-20",
   "name": "localmodel.run",
   "description": "Check whether a computer or phone can run a given local LLM, and which tool to use, across macOS, Windows, Linux, iOS and Android.",
   "use_case": "Hardware compatibility check for running local AI models (LLMs, image, video, audio) on a specific computer or phone.",

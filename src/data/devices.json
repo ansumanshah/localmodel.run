@@ -380,7 +380,7 @@
       "https://www.androidpolice.com/google-pixel-9-pro-ram-partition-gemini/",
       "https://mlc.ai/blog/2024/05/08/mlc-llm-android"
     ],
-    "notes": "16GB LPDDR5X confirmed via GSMArena. Android Police investigation confirmed 2.6GB hardware-partitioned for Google Gemini/on-device ML features, not available to apps. Android OS overhead ~3-4GB additional; usable estimate ~10-10.5GB (community estimate). Practical ceiling: 7B Q4_K_M fits (~7GB runtime); 13B Q4_K_M tight (~11.7GB) may OOM. MLC-LLM leverages Adreno GPU for faster inference vs CPU-only path. Tensor G4 chip handles 1B-4B models well natively via Google AI Edge."
+    "notes": "16GB LPDDR5X confirmed via GSMArena. Android Police investigation confirmed 2.6GB hardware-partitioned for Google Gemini/on-device ML features, not available to apps. Android OS overhead ~3-4GB additional; usable estimate ~10-10.5GB (community estimate). Practical ceiling: 7B Q4_K_M fits (~7GB runtime); 13B Q4_K_M tight (~11.7GB) may OOM. MLC-LLM uses the Adreno GPU for faster inference vs CPU-only path. Tensor G4 chip handles 1B-4B models well natively via Google AI Edge."
   },
   {
     "id": "samsung-s24-ultra",
@@ -440,7 +440,7 @@
       "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF",
       "https://github.com/a-ghorbani/pocketpal-ai"
     ],
-    "notes": "Representative of upper-mid and flagship Android devices (e.g., OnePlus 12, Pixel 9, Samsung S24+). LPDDR5 or LPDDR5X depending on SoC. Android OS overhead ~3-4GB; usable ~8-8.5GB (community estimate). Practical ceiling: 7B Q4_K_M models. Llama 3.1 8B Q4_K_M (~7GB runtime) fits with ~1.5GB headroom. 13B Q4_K_M (~11.7GB) will OOM. MLC-LLM leverages GPU (Adreno or Mali) for faster inference if supported. CPU-only inference on 7B is slow (~3-8 tok/s); GPU path via MLC-LLM can reach ~15-25 tok/s on flagship Adreno."
+    "notes": "Representative of upper-mid and flagship Android devices (e.g., OnePlus 12, Pixel 9, Samsung S24+). LPDDR5 or LPDDR5X depending on SoC. Android OS overhead ~3-4GB; usable ~8-8.5GB (community estimate). Practical ceiling: 7B Q4_K_M models. Llama 3.1 8B Q4_K_M (~7GB runtime) fits with ~1.5GB headroom. 13B Q4_K_M (~11.7GB) will OOM. MLC-LLM uses the GPU (Adreno or Mali) for faster inference if supported. CPU-only inference on 7B is slow (~3-8 tok/s); GPU path via MLC-LLM can reach ~15-25 tok/s on flagship Adreno."
   },
   {
     "id": "apple-m5-16gb",

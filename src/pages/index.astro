@@ -173,7 +173,7 @@ const jsonLd = [
   <section class="mx-auto max-w-5xl px-4 py-16">
     <p class="bp-eyebrow"><span class="bp-dot" aria-hidden="true"></span>How it works</p>
     <div class="bp-panel mt-4 overflow-x-auto p-6 sm:p-8">
-      <svg class="hiw-diagram mx-auto block h-auto w-full" style="max-width:660px;min-width:520px" viewBox="0 0 720 132" fill="none" role="img" aria-label="How it works: model size and quant, then memory math, then verdict">
+      <svg class="hiw-diagram mx-auto block h-auto w-full" style="max-width:660px;min-width:0" viewBox="0 0 720 132" fill="none" role="img" aria-label="How it works: model size and quant, then memory math, then verdict">
         <path class="draw" d="M200 66 H260" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
         <path class="draw" d="M460 66 H520" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
         <rect x="14" y="30" width="186" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
@@ -219,7 +219,7 @@ const jsonLd = [
   </section>
 
   <!-- Featured devices -->
-  <section class="border-y border-border/60 bg-card/30">
+  <section class="border-y border-border/60">
     <div class="mx-auto max-w-5xl px-4 py-16">
       <div class="flex items-end justify-between">
         <h2 class="text-2xl font-bold tracking-tight">Popular hardware</h2>
@@ -235,7 +235,7 @@ const jsonLd = [
                   <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
                   <span class="truncate">{d.name}</span>
                 </h3>
-                <span class="shrink-0 text-xs text-muted-foreground">~{usableGb(d)} GB</span>
+                <span class="shrink-0 text-xs text-muted-foreground"><span class="font-semibold text-foreground">~{usableGb(d)}</span> GB</span>
               </div>
               <div class="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                 <span>Llama 3.1 8B:</span>
@@ -291,7 +291,7 @@ const jsonLd = [
   </section>
 
   <!-- Platform tools -->
-  <section class="border-t border-border/60 bg-card/30">
+  <section class="border-t border-border/60">
     <div class="mx-auto max-w-5xl px-4 py-16">
       <div class="flex items-end justify-between">
         <h2 class="text-2xl font-bold tracking-tight">Best LLM runtime per platform</h2>

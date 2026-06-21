@@ -31,7 +31,7 @@ const jsonLd = [softwareAppLd(Astro.site!.href), faqLd(faqs)];
 
 const steps = [
   { n: "1", t: "Tamaños reales", d: "Los tamaños por cuantización vienen de Ollama y HuggingFace, no de suposiciones. Cada número tiene su fuente." },
-  { n: "2", t: "Cálculo de memoria honesto", d: "Sumamos la caché KV y el overhead, y usamos memoria utilizable realista (Apple unificada ~66-75% (segun el chip), VRAM menos el driver)." },
+  { n: "2", t: "Cálculo de memoria honesto", d: "Sumamos la caché KV y el overhead, y usamos memoria utilizable realista (Apple unificada ~66-75% (según el chip), VRAM menos el driver)." },
   { n: "3", t: "La herramienta adecuada", d: "Por plataforma: MLX/Ollama en Mac, CUDA en Windows, vLLM en Linux, PocketPal en el móvil." },
 ];
 ---

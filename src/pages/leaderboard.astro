@@ -3,7 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import { modelsByArena, meta } from "@/lib/data";
-import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+import { breadcrumbLd, itemListLd, techArticleLd, truncate } from "@/lib/seo";
 
 const path = "/leaderboard";
 const title = "Local LLM quality leaderboard (LMArena Elo) · localmodel.run";
@@ -12,6 +12,14 @@ const description = truncate(
 );
 const jsonLd = [
   breadcrumbLd([{ name: "Home", url: "/" }, { name: "Leaderboard", url: path }], Astro.site!.href),
+  techArticleLd({
+    headline: "Local LLM quality leaderboard ranked by LMArena Elo",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+  }),
   itemListLd({
     name: "Local LLMs ranked by LMArena Elo",
     items: modelsByArena.map((m) => ({ name: m.name, url: `/model/${m.id}` })),

@@ -3,7 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import { devices, meta } from "@/lib/data";
-import { rigScore, GRADE_BLURB, GRADE_COLOR, type Grade } from "@/lib/rig";
+import { rigScore, GRADE_BLURB, GRADE_COLOR, GRADE_FG, type Grade } from "@/lib/rig";
 import { breadcrumbLd, itemListLd, techArticleLd, truncate } from "@/lib/seo";
 
 const path = "/rig";
@@ -111,7 +111,7 @@ const jsonLd = [
               class="grid h-12 w-12 shrink-0 place-items-center rounded-xl border"
               style={`border-color:${GRADE_COLOR[score.grade]};background:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 12%, transparent)`}
             >
-              <span class="text-xl font-bold leading-none" style={`color:${GRADE_COLOR[score.grade]}`}>
+              <span class="text-xl font-bold leading-none" style={`color:${GRADE_FG[score.grade]}`}>
                 {score.grade}
               </span>
             </div>
@@ -146,7 +146,7 @@ const jsonLd = [
             <div class="flex items-start gap-4 p-4">
               <span
                 class="mt-0.5 shrink-0 font-mono text-lg font-bold"
-                style={`color:${GRADE_COLOR[grade]}`}
+                style={`color:${GRADE_FG[grade]}`}
               >
                 {grade}
               </span>

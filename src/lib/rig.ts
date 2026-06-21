@@ -7,8 +7,8 @@ import { models } from "@/lib/data";
 
 export type Grade = "S" | "A" | "B" | "C" | "D" | "F";
 
-// Grade -> brand color, shared by the rig pages. OG cards keep their own hex
-// copy (Satori has no CSS variables); keep the two in sync with global.css.
+// Grade fill color (icon-box border/background, RigCard border) — vivid is fine
+// on those non-text surfaces. OG cards keep their own hex (Satori has no vars).
 export const GRADE_COLOR: Record<Grade, string> = {
   S: "var(--color-verdict-yes)",
   A: "var(--color-verdict-yes)",
@@ -16,6 +16,17 @@ export const GRADE_COLOR: Record<Grade, string> = {
   C: "var(--color-verdict-tight)",
   D: "#fdba74",
   F: "var(--color-verdict-no)",
+};
+
+// Grade TEXT color — the AA-tuned verdict foreground tokens (the vivid fills
+// above fail AA as text on warm-paper). Use this anywhere a grade renders as text.
+export const GRADE_FG: Record<Grade, string> = {
+  S: "var(--verdict-yes-fg)",
+  A: "var(--verdict-yes-fg)",
+  B: "var(--verdict-yes-fg)",
+  C: "var(--verdict-tight-fg)",
+  D: "var(--verdict-tight-fg)",
+  F: "var(--verdict-no-fg)",
 };
 
 export interface RigScore {

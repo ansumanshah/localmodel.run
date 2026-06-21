@@ -31,6 +31,19 @@
   outline-offset: 2px;
 }
 
+/* AA: brand-ink active nav text on the dark glass header is too dim (3.2:1). */
+.dark .gh-nav a.on {
+  color: oklch(0.9 0.08 272);
+}
+
+/* Perf: .bp-instrument already blurs at hero tier; cancel child backdrop-filters
+   (detector button, gauge lens) so they don't allocate invisible blur layers. */
+.bp-instrument .gbtn:not(.gbtn--primary),
+.bp-instrument .gauge.lens {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 @layer components {
   /* ── .bp-panel → cheap-tier glass-lite material ────────────────────────── */
   /* Translucent gradient fill + hairline rim + inner specular + soft lift. No
