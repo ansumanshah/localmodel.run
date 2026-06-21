@@ -101,7 +101,9 @@ for (const targets of brokenBySource.values()) {
 
 // ---- Report -------------------------------------------------------------
 const SHOW = 40;
-console.log(`\nLink audit — ${pageSet.size} pages, ${assetSet.size} assets, ${linkedSet.size} distinct internal links\n`);
+console.log(
+  `\nLink audit — ${pageSet.size} pages, ${assetSet.size} assets, ${linkedSet.size} distinct internal links\n`,
+);
 
 if (brokenTargets.size === 0) {
   console.log("✓ No broken internal links.");
