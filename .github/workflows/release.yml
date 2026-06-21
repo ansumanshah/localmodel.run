@@ -61,16 +61,24 @@ jobs:
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
 
-      # For manual runs, create + push the tag first so the release attaches to it.
-      - name: Tag (manual dispatch only)
+      # For manual runs: bump package.json to the version, commit it, then tag
+      # that commit. The footer reads package.json, so this keeps
+      # package.json == git tag == footer for every release.
+      - name: Bump package.json + tag (manual dispatch only)
         if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          VERSION="${{ steps.ver.outputs.tag }}"
+          NUM="${VERSION#v}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "${{ steps.ver.outputs.tag }}" -m "${{ steps.ver.outputs.tag }}"
-          git push origin "${{ steps.ver.outputs.tag }}"
+          npm version "$NUM" --no-git-tag-version --allow-same-version
+          git add package.json
+          git commit -m "chore(release): v$NUM"
+          git push origin HEAD:main
+          git tag -a "$VERSION" -m "$VERSION"
+          git push origin "$VERSION"
 
       - name: Create release with generated notes
         env:
