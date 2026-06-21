@@ -3,7 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Sources from "@/components/Sources.astro";
 import { allModels, devices, meta, dedupeSources } from "@/lib/data";
-import { BPW } from "@/lib/compute";
+import { BPW, DEFAULT_KWH_USD, DEFAULT_CLOUD_USD_PER_MTOK } from "@/lib/compute";
 import { breadcrumbLd, datasetLd, faqLd, truncate, type FaqItem } from "@/lib/seo";
 
 const path = "/methodology";
@@ -126,6 +126,36 @@ const jsonLd = [
           We do not put a tok/s number on Mixture-of-Experts models: only the active experts are read per
           token, so this bound overestimates them. Their pages show the active-parameter count instead (a
           30B-A3B activates ~3.3B params per token, so it generates faster than its total size suggests).
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+          Speed also drops with context. Every token re-reads the KV cache, so the per-token traffic is
+          weights plus KV. At a long context the KV can dwarf the weights, which is why a model page shows
+          generation falling to a fraction of its short-context speed at 128k. The retention ratio,
+          weights &divide; (weights + KV), is the same on any device, so we show it without one.
+        </p>
+      </div>
+
+      <div>
+        <p class="bp-stat-label">Step 07</p>
+        <h2 class="mt-1 text-xl font-semibold">Running cost, power and offload</h2>
+        <p class="mt-2 text-muted-foreground">
+          Each device carries a sourced TDP (peak watts) and street price. From the estimated tok/s we work
+          out the electricity to generate a million tokens:
+          <span class="font-mono text-sm">cost = (TDP &divide; 1000) &times; hours &times; $/kWh</span>, at an
+          assumed <strong class="text-foreground">${DEFAULT_KWH_USD}/kWh</strong> (near the US average). TDP is
+          the peak draw, so this is an upper bound. The breakeven figure divides the device price by the
+          per-million-token saving versus a hosted API assumed at
+          <strong class="text-foreground">${DEFAULT_CLOUD_USD_PER_MTOK}/million tokens</strong>; both
+          assumptions are stated so you can rescale them. The takeaway is usually that local hardware is a
+          fixed cost, not a per-token one.
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+          When a model is too big for a discrete GPU's VRAM, llama.cpp can keep some layers on the card and
+          stream the rest from system RAM. We estimate that offloaded speed by splitting the per-token read:
+          the resident fraction at VRAM bandwidth, the spilled fraction at a conservative
+          <strong class="text-foreground">~60 GB/s</strong> system-RAM bandwidth (deliberately low so we never
+          overstate it). It is shown only on discrete GPUs, where there is a faster tier to fall back from;
+          Apple unified memory has none, so an oversize model there simply does not fit.
         </p>
       </div>
 

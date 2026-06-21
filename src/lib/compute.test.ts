@@ -2,8 +2,11 @@ import { test, expect, describe } from "bun:test";
 import type { DeviceRow, ModelRow } from "@/data/types";
 import {
   BPW,
+  breakevenMtok,
   canRun,
+  electricityCostPerMtokUsd,
   estimateMemory,
+  estOffloadTokPerSec,
   estTokPerSec,
   kvCacheGb,
   quantLadderSizes,
@@ -192,5 +195,57 @@ describe("estTokPerSec", () => {
       device({ category: "mac", bandwidth_gbs: 120 }),
     );
     expect(fast!).toBeGreaterThan(slow!);
+  });
+  test("longer context slows generation (KV re-read each token)", () => {
+    const m4max = device({ category: "mac", bandwidth_gbs: 546 });
+    const m = model({ params_b: 8 });
+    const peak = estTokPerSec(m, m4max, "q4_k_m", 0)!;
+    const at128k = estTokPerSec(m, m4max, "q4_k_m", 128)!;
+    expect(at128k).toBeLessThan(peak);
+  });
+});
+
+describe("estOffloadTokPerSec", () => {
+  const rtx4090 = device({
+    category: "nvidia",
+    bandwidth_gbs: 1008,
+    memory_gb: 24,
+    memory_type: "vram",
+  });
+  test("a 70B too big for a 24 GB GPU still gets a slow offload estimate", () => {
+    const t = estOffloadTokPerSec(model({ params_b: 70 }), rtx4090);
+    expect(t).not.toBeNull();
+    // Offloaded must be far slower than the same card running a model that fits.
+    expect(t!).toBeLessThan(estTokPerSec(model({ params_b: 8 }), rtx4090)!);
+  });
+  test("null when the model already fits, for Macs, and for MoE", () => {
+    expect(estOffloadTokPerSec(model({ params_b: 8 }), rtx4090)).toBeNull(); // fits in 24 GB
+    expect(
+      estOffloadTokPerSec(model({ params_b: 70 }), device({ category: "mac", bandwidth_gbs: 546 })),
+    ).toBeNull();
+    expect(
+      estOffloadTokPerSec(model({ params_b: 70, is_moe: true, active_params_b: 8 }), rtx4090),
+    ).toBeNull();
+  });
+});
+
+describe("running cost", () => {
+  const rtx4090 = device({ category: "nvidia", bandwidth_gbs: 1008, tdp_w: 450, msrp_usd: 1599 });
+  test("electricity per Mtok scales with TDP and inverse tok/s", () => {
+    const cheap = electricityCostPerMtokUsd(rtx4090, 100);
+    const pricey = electricityCostPerMtokUsd(rtx4090, 10); // 10x slower = 10x the energy
+    expect(cheap).not.toBeNull();
+    expect(pricey!).toBeGreaterThan(cheap!);
+  });
+  test("null without a TDP or a tok/s", () => {
+    expect(electricityCostPerMtokUsd(device({ tdp_w: null }), 100)).toBeNull();
+    expect(electricityCostPerMtokUsd(rtx4090, null)).toBeNull();
+  });
+  test("breakeven Mtok = price / per-Mtok saving vs cloud", () => {
+    const be = breakevenMtok(rtx4090, 0.5, 1.5); // saves $1/Mtok -> 1599 Mtok
+    expect(be).toBe(1599);
+  });
+  test("null when local isn't cheaper per token", () => {
+    expect(breakevenMtok(rtx4090, 2.0, 0.5)).toBeNull();
   });
 });

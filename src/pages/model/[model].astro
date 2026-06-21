@@ -20,7 +20,7 @@ import {
   formatRelease,
   meta,
 } from "@/lib/data";
-import { canRun, estimateMemory, quantLadderSizes } from "@/lib/compute";
+import { canRun, estimateMemory, quantLadderSizes, weightsGb, kvCacheGb } from "@/lib/compute";
 import { canRunModality, modalityNeed, modalitySpec } from "@/lib/compute-mm";
 import { gaugeCompute } from "@/lib/gauge-glass";
 import {
@@ -114,6 +114,11 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
       // Memory at the recommended quant across context lengths — the long-context
       // KV blow-up is the #1 OOM gotcha, so show it explicitly.
       const ctxRows = [4, 32, 128].map((k) => estimateMemory(model, "q4_k_m", k));
+      // Speed retention at long context is device-independent: the tok/s ratio is
+      // weights / (weights + KV), since device bandwidth and efficiency cancel.
+      // Dense models only (we don't put a tok/s bound on MoE).
+      const w4 = weightsGb(model, "q4_k_m");
+      const speed128Pct = !model.is_moe ? Math.round((w4 / (w4 + kvCacheGb(model, 128))) * 100) : null;
       const commands = installCommands(model, "linux");
       const title = `${model.name}: RAM, VRAM & how to run locally · localmodel.run`;
       const description = truncate(
@@ -390,6 +395,9 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                     ))}
                   </div>
                   <p class="mt-2 text-xs text-muted-foreground">Longer context grows the KV cache. A large context window can need more memory than the weights, so it can push {model.name} past a device that fits it at 4k.</p>
+                  {speed128Pct != null && (
+                    <p class="mt-1 text-xs text-muted-foreground">Speed drops too: every token re-reads the KV cache, so at 128k context {model.name} generates at roughly <span class="num">~{speed128Pct}%</span> of its short-context speed. <a href="/methodology" class="underline">How this is estimated</a>.</p>
+                  )}
                 </div>
               </div>
             </section>

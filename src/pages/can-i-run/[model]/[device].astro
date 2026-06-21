@@ -21,7 +21,17 @@ import {
   modelModality,
   meta,
 } from "@/lib/data";
-import { estimateMemory, usableGb, QUANT_LABEL, estTokPerSec } from "@/lib/compute";
+import {
+  estimateMemory,
+  usableGb,
+  QUANT_LABEL,
+  estTokPerSec,
+  estOffloadTokPerSec,
+  electricityCostPerMtokUsd,
+  breakevenMtok,
+  DEFAULT_KWH_USD,
+  DEFAULT_CLOUD_USD_PER_MTOK,
+} from "@/lib/compute";
 import { canRunModality, modalitySpec } from "@/lib/compute-mm";
 import {
   breadcrumbLd,
@@ -50,6 +60,13 @@ const tool = getTool(platform);
 const fits = result.verdict !== "no";
 // Estimated generation speed (dense text models that fit; null for MoE / no bandwidth).
 const tps = isText && fits ? estTokPerSec(model, device) : null;
+// Running cost (dense text that fits, device has TDP/price): electricity per Mtok
+// and the breakeven vs a hosted API. All build-time, no client JS.
+const elecPerMtok = isText && fits ? electricityCostPerMtokUsd(device, tps) : null;
+const breakeven = elecPerMtok != null ? breakevenMtok(device, elecPerMtok) : null;
+// Offload path (dense text that does NOT fit a discrete GPU): a much-slower tok/s
+// from streaming spilled layers out of system RAM. Keeps the verdict "No".
+const offloadTps = isText && !fits ? estOffloadTokPerSec(model, device) : null;
 
 // Verdict color drives the primary panel's tint (border, top glow, status
 // stripe) so the yes/tight/no answer is scannable before reading a word.
@@ -280,6 +297,11 @@ if (fits && commands.length > 0) {
             <MemoryBar neededGb={neededGb} usableGb={usable} fits={fits} />
             <p class="mt-3 text-sm text-muted-foreground">{result.reason}</p>
             {varianceNote && <p class="mt-2 text-xs text-muted-foreground">{varianceNote}</p>}
+            {offloadTps != null && (
+              <p class="mt-2 text-xs text-muted-foreground">
+                Too big for {device.name}'s VRAM, but you could offload some layers to system RAM and still run it at roughly <span class="num">~{offloadTps}</span> tok/s, far slower than a model that fits. <a href="/methodology" class="underline">How this is estimated</a>.
+              </p>
+            )}
           </div>
         )}
         {result.noRuntime && (
@@ -316,6 +338,43 @@ if (fits && commands.length > 0) {
         )}
       </dl>
     </div>
+
+    {elecPerMtok != null && (
+      <section class="mt-8">
+        <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Running cost &middot; estimate</p>
+        <div class="bp-panel">
+          <div class="bp-panel-header">
+            <span class="bp-panel-label">Power &amp; economics</span>
+            <span class="bp-panel-label">est.</span>
+          </div>
+          <div class="p-5">
+            <dl class="flex flex-wrap gap-x-6 gap-y-3">
+              {device.tdp_w != null && (
+                <div class="bp-stat-item">
+                  <dt class="bp-stat-label">Power draw</dt>
+                  <dd class="bp-stat-val num text-base">~{device.tdp_w} W</dd>
+                </div>
+              )}
+              <div class="bp-stat-item">
+                <dt class="bp-stat-label">Electricity / 1M tokens</dt>
+                <dd class="bp-stat-val num text-base">~${elecPerMtok}</dd>
+              </div>
+              {breakeven != null && (
+                <div class="bp-stat-item">
+                  <dt class="bp-stat-label">Pays for itself after</dt>
+                  <dd class="bp-stat-val num text-base">~{breakeven.toLocaleString()}M tok</dd>
+                </div>
+              )}
+            </dl>
+            <p class="mt-3 text-xs text-muted-foreground">
+              At ~${DEFAULT_KWH_USD}/kWh and the estimated ~{tps} tok/s, a million generated tokens costs about ${elecPerMtok} in electricity.
+              {breakeven != null && device.msrp_usd != null && <> Versus a hosted API at ~${DEFAULT_CLOUD_USD_PER_MTOK} per million tokens, the ~${device.msrp_usd.toLocaleString()} {device.name} pays for itself after roughly {breakeven.toLocaleString()} million tokens, so local hardware is mostly a fixed cost, not a per-token one.</>}
+              {" "}TDP is the peak draw, so this is an upper bound. <a href="/methodology" class="underline">Assumptions</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+    )}
 
     {isText && fits && commands.length > 0 && (
       <section class="mt-8">
@@ -439,6 +498,12 @@ if (fits && commands.length > 0) {
               <dt class="bp-stat-label self-center">Usable for weights</dt>
               <dd class="num text-foreground">~{usable} GB</dd>
             </div>
+            {device.tdp_w != null && (
+              <div class="flex justify-between">
+                <dt class="bp-stat-label self-center">Power draw</dt>
+                <dd class="num text-foreground">~{device.tdp_w} W</dd>
+              </div>
+            )}
             {device.best_runtime && (
               <div class="flex justify-between gap-4">
                 <dt class="bp-stat-label self-center">Best runtime</dt>

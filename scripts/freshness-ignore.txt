@@ -1,0 +1,6 @@
+# Ollama library slugs we've reviewed and intentionally NOT added to the catalog.
+# The weekly freshness check skips these so they stop resurfacing in the issue.
+# One slug per line (the part before any ":"), lowercase. Lines starting with # are comments.
+#
+# Reasons we skip: cloud-only (no GGUF), embeddings/rerankers, duplicates of a tracked
+# family, or fine-tune spam. Add a trailing comment after the slug if you like.
