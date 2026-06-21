@@ -1,0 +1,52 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { models, devices, meta } from "@/lib/data";
+import { USE_CASES, USE_CASE_META, useCasesFor } from "@/lib/usecases";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const MIN = 5;
+const tasks = USE_CASES.filter((uc) => models.filter((m) => useCasesFor(m).includes(uc)).length >= MIN).map(
+  (uc) => ({ uc, count: models.filter((m) => useCasesFor(m).includes(uc)).length }),
+);
+const path = "/best-for";
+const title = "Best local LLMs by use case: coding, reasoning, multilingual · localmodel.run";
+const description = truncate(
+  `Pick a local AI model by what you need it for, not just whether it fits. Best open coding, reasoning and multilingual models, each with the memory it needs across ${devices.length} devices.`,
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "By use case", url: path }], Astro.site!.href),
+  itemListLd({
+    name: "Local LLMs by use case",
+    items: tasks.map((t) => ({ name: `Best local ${USE_CASE_META[t.uc].title} models`, url: `/best-for/${t.uc}` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogTitle="Best local LLMs by use case" ogType="website">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "By use case", url: path }]} />
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>By use case</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Best local LLMs by use case</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Hardware fit is half the question. The other half is what the model is for. Pick a use case to see the
+      strongest open models for it, ranked, each with the memory it needs.
+    </p>
+
+    <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {tasks.map((t) => (
+        <a href={`/best-for/${t.uc}`} class="bp-panel card-seam group flex flex-col gap-1 px-4 py-4 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+          <span class="text-lg font-semibold">Best for {USE_CASE_META[t.uc].title}</span>
+          <span class="text-sm text-muted-foreground">{USE_CASE_META[t.uc].blurb}</span>
+          <span class="bp-stat-label mt-1">{t.count} models →</span>
+        </a>
+      ))}
+    </div>
+
+    <p class="mt-8 text-sm text-muted-foreground">
+      Or browse <a href="/best-llm-for" class="underline">by device</a>, <a href="/best-llm-for-ram" class="underline">by memory budget</a>, or the full <a href="/can-i-run" class="underline">model list</a>.
+    </p>
+    <p class="mt-6 text-xs text-muted-foreground">Models tagged by their stated purpose; memory computed at Q4_K_M, validated {meta.updated}.</p>
+  </div>
+</Base>

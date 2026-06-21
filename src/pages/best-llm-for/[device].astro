@@ -38,7 +38,14 @@ const ranked = modelsBySize
   .sort((a, b) => b.model.params_b - a.model.params_b);
 const fitting = ranked.filter((r) => r.result.verdict !== "no");
 const notFitting = ranked.filter((r) => r.result.verdict === "no");
-const topPick = fitting.find((r) => r.result.speed === "fast" || r.result.speed === "ok") ?? fitting[0];
+// "Best" pick = the highest-quality model that runs comfortably (LMArena Elo where
+// we have it), not just the biggest. Falls back to fast-and-fitting, then anything that fits.
+const topPick =
+  [...fitting]
+    .filter((r) => r.result.verdict === "yes" && r.model.arena_elo != null)
+    .sort((a, b) => (b.model.arena_elo ?? 0) - (a.model.arena_elo ?? 0))[0] ??
+  fitting.find((r) => r.result.speed === "fast" || r.result.speed === "ok") ??
+  fitting[0];
 
 const path = `/best-llm-for/${device.id}`;
 const year = new Date(meta.updated).getFullYear();

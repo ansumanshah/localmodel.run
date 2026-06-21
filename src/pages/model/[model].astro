@@ -215,7 +215,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
               <strong>{model.name} needs about {q4.totalGb} GB to run at Q4_K_M</strong> (weights ~{model.q4_k_m_gb ?? q4.weightsGb} GB plus KV cache and overhead), or about {q8.totalGb} GB at Q8_0. The lightest hardware that runs it is <strong>{minDevice ? minDevice.name : "a high-memory machine"}</strong>.
             </p>
             <p class="mt-2 text-pretty text-muted-foreground">
-              {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
+              {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts: ${model.params_b}B total, but runs at the speed of a ~${model.active_params_b}B model)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
             </p>
             <p class="mt-3">
               <a href={`/rig-for/${model.id}`} class="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-ink)] hover:underline">

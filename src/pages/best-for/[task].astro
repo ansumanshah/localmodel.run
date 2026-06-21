@@ -1,0 +1,184 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { models, devices, meta, dedupeSources } from "@/lib/data";
+import { canRun, estimateMemory } from "@/lib/compute";
+import { USE_CASES, USE_CASE_META, useCasesFor, type UseCase } from "@/lib/usecases";
+import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+// "Best local <task> model" pages. Models are tagged by their own stated purpose
+// (name/subtype), ranked by quality (LMArena Elo) then size, each with the memory
+// it needs and how many devices run it. Only tasks with enough models get a page.
+const MIN = 5;
+export function getStaticPaths() {
+  // Inlined threshold (getStaticPaths runs in an isolated scope, can't see `MIN`).
+  return USE_CASES.filter((uc) => models.filter((m) => useCasesFor(m).includes(uc)).length >= 5).map(
+    (task) => ({ params: { task }, props: { task } }),
+  );
+}
+
+const { task } = Astro.props as { task: UseCase };
+const m = USE_CASE_META[task];
+const path = `/best-for/${task}`;
+const year = new Date(meta.updated).getFullYear();
+
+const tagged = models
+  .filter((x) => useCasesFor(x).includes(task))
+  .map((model) => {
+    const q4 = estimateMemory(model, "q4_k_m");
+    const runs = devices.filter((d) => canRun(model, d).verdict !== "no").length;
+    const minDevice = devices
+      .map((d) => ({ d, r: canRun(model, d) }))
+      .filter((x) => x.r.verdict !== "no")
+      .sort((a, b) => a.r.usableGb - b.r.usableGb)[0]?.d;
+    return { model, q4Gb: q4.totalGb, runs, minDevice };
+  })
+  // Rank by quality where we have it (Elo), then by size.
+  .sort((a, b) => (b.model.arena_elo ?? 0) - (a.model.arena_elo ?? 0) || b.model.params_b - a.model.params_b);
+
+const best = tagged[0];
+const smallest = [...tagged].sort((a, b) => a.q4Gb - b.q4Gb)[0];
+const sources = dedupeSources(...tagged.slice(0, 8).map((t) => t.model.sources));
+
+const title = `Best local ${m.title} models (${year}) · localmodel.run`;
+const description = truncate(
+  `${tagged.length} local ${m.title} models you can run on your own hardware, ranked, with the memory each needs at Q4_K_M and which of ${devices.length} devices run it. ${m.blurb}`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `What is the best local ${m.title} model?`,
+    a: best
+      ? `${best.model.name} leads on quality among the open ${m.title} models tracked here. It needs ~${best.q4Gb} GB at Q4_K_M${best.minDevice ? `, so the lightest hardware that runs it is ${best.minDevice.name}` : ""}. Pick by what fits your memory using the list above.`
+      : `See the ranked list above.`,
+  },
+  {
+    q: `What is the smallest ${m.title} model that runs on a laptop?`,
+    a: smallest
+      ? `${smallest.model.name} is the lightest, at ~${smallest.q4Gb} GB at Q4_K_M, so it fits a 16 GB machine comfortably.`
+      : `Most ${m.title} models here need a mid-range GPU or Apple Silicon.`,
+  },
+  {
+    q: `How were these ${m.title} models chosen?`,
+    a: `They are open-weight models whose own design targets ${m.title} (by name, family or model card). Memory figures are computed at Q4_K_M and sourced; see the methodology page.`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "By use case", url: "/best-for" },
+      { name: m.label, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `Best local ${m.title} models`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    speakableSelector: [".verdict-text"],
+    sources,
+  }),
+  itemListLd({
+    name: `Best local ${m.title} models`,
+    items: tagged.map((t) => ({ name: t.model.name, url: `/model/${t.model.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle={`Best local ${m.title} models`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt={`Best local ${m.title} models ranked by quality with memory requirements`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "By use case", url: "/best-for" },
+        { name: m.label, url: path },
+      ]}
+    />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>By use case &middot; {m.label}</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Best local {m.title} models</h1>
+    <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+      {tagged.length} open {m.title} models you can run locally, ranked by quality. {best && (
+        <>The strongest is <strong>{best.model.name}</strong> (~{best.q4Gb} GB at Q4_K_M); the lightest is <strong>{smallest.model.name}</strong> (~{smallest.q4Gb} GB).</>
+      )}
+    </p>
+    <p class="mt-2 text-pretty text-muted-foreground">{m.blurb}</p>
+
+    <div class="bp-wire mt-5" aria-hidden="true"></div>
+
+    <section class="mt-6">
+      <div class="bp-panel overflow-hidden">
+        <div class="bp-panel-header">
+          <span class="bp-panel-label">Ranked by quality</span>
+          <span class="bp-panel-label">memory at Q4_K_M</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {tagged.map((t, i) => (
+            <li>
+              <a
+                href={`/model/${t.model.id}`}
+                class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]"
+              >
+                <span class="w-5 shrink-0 text-center font-mono text-sm text-muted-foreground">{i + 1}</span>
+                <EntityIcon maker={t.model.family} size={18} class="text-muted-foreground shrink-0" />
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm font-medium">{t.model.name}</div>
+                  <div class="bp-stat-label mt-0.5">
+                    {t.model.params_b}B{t.model.is_moe ? ` MoE` : ""}
+                    {t.model.arena_elo ? <> &middot; Elo {t.model.arena_elo}</> : null}
+                    &middot; runs on {t.runs}/{devices.length} devices
+                  </div>
+                </div>
+                <span class="shrink-0 text-sm font-semibold"><span class="num">~{t.q4Gb}</span> GB</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Tagged by each model's stated purpose. "Runs on N devices" counts the {devices.length} tracked devices that fit it at Q4_K_M.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="bp-panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="Other use cases">
+      <h2 class="bp-section-label mb-3">Other use cases</h2>
+      <div class="flex flex-wrap gap-2">
+        {USE_CASES.filter((uc) => uc !== task && models.filter((x) => useCasesFor(x).includes(uc)).length >= MIN).map((uc) => (
+          <a href={`/best-for/${uc}`} class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">{USE_CASE_META[uc].label}</a>
+        ))}
+        <a href="/best-llm-for" class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">Browse by device →</a>
+      </div>
+    </nav>
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Memory is computed at Q4_K_M, validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>
