@@ -303,6 +303,17 @@
     text-transform: uppercase;
     color: var(--muted-foreground);
   }
+  /* Section headings: same mono/uppercase texture as the 10px stat-label but at
+     a readable heading size so <h2>s carry real document structure, not caption
+     weight. (bp-stat-label stays for panel chrome + <th> column headers.) */
+  .bp-section-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
   .bp-stat-val {
     font-family: var(--font-mono);
     font-size: 1.375rem;

@@ -3,7 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Detector from "@/components/Detector.tsx";
 import { allModels, devices, meta } from "@/lib/data";
 import { useTranslations } from "@/i18n/utils";
-import { faqLd, softwareAppLd, truncate, type FaqItem } from "@/lib/seo";
+import { faqLd, softwareAppLd, datasetLd, truncate, type FaqItem } from "@/lib/seo";
 
 const t = useTranslations("es");
 const path = "/es";
@@ -27,7 +27,11 @@ const faqs: FaqItem[] = [
   },
 ];
 
-const jsonLd = [softwareAppLd(Astro.site!.href), faqLd(faqs)];
+const jsonLd = [
+  softwareAppLd(Astro.site!.href),
+  datasetLd({ origin: Astro.site!.href, dateModified: meta.updated, sources: meta.sources }),
+  faqLd(faqs),
+];
 
 const steps = [
   { n: "1", t: "Tamaños reales", d: "Los tamaños por cuantización vienen de Ollama y HuggingFace, no de suposiciones. Cada número tiene su fuente." },

@@ -226,6 +226,8 @@
   background: radial-gradient(120% 120% at 0% 0%, var(--glass-tint), transparent 55%);
   opacity: 0.6;
 }
+/* tame the white chromatic rim on dark glass (the light-mode corners are too hot). */
+.dark .glass::after { opacity: 0.35; }
 .dark .glass-lite::before { display: none; }
 
 /* Spotlight glow following the cursor — pointer var, not a filter. */
@@ -454,7 +456,7 @@
   letter-spacing: -0.01em;
   animation: verdict-pop 0.34s var(--spring) both;
 }
-.verdict-hero .tok { color: var(--muted-foreground); font-weight: 400; font-size: 0.6em; font-family: var(--font-mono); }
+.verdict-hero .tok { color: var(--muted-foreground); font-weight: 500; font-size: 0.7em; font-family: var(--font-mono); }
 @keyframes verdict-pop {
   from { opacity: 0; transform: translateY(7px) scale(0.97); }
 }
@@ -652,13 +654,13 @@
 }
 .rig-card > * { position: relative; z-index: 3; }
 .rig-top { display: flex; align-items: center; justify-content: space-between; }
-.rig-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); }
+.rig-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.85); }
 .rig-grade { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: white; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 999px; padding: 3px 11px; }
 .rig-score { font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-size: clamp(48px, 9vw, 68px); margin: 16px 0 4px; background: linear-gradient(120deg, #fff, oklch(0.85 0.12 300)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .rig-dev { font-size: 15px; font-weight: 600; color: white; }
-.rig-meta { font-family: var(--font-mono); font-size: 12px; color: rgba(255, 255, 255, 0.68); margin-top: 3px; }
+.rig-meta { font-family: var(--font-mono); font-size: 12px; color: rgba(255, 255, 255, 0.82); margin-top: 3px; }
 .rig-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 13px; border-top: 1px solid rgba(255, 255, 255, 0.18); }
-.rig-foot span { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.68); }
+.rig-foot span { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.82); }
 
 /* ── page-enter stagger (transform/opacity only) ────────────────────────── */
 @media (prefers-reduced-motion: no-preference) {
@@ -788,18 +790,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
   .gh { gap: 6px; padding: 8px 8px 8px 14px; border-radius: 26px; width: calc(100% - 16px); margin: 8px auto 2px; top: 8px; }
-  /* nav collapses to a horizontal scroll strip; brand + theme stay pinned */
-  .gh-nav {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-  .gh-nav::-webkit-scrollbar { display: none; }
-  .gh-nav a { white-space: nowrap; flex: none; padding: 8px 11px; }
+  /* .gh-nav is hidden on mobile (the hamburger panel is used) — no scroll strip. */
   .gh-brand { font-size: 14px; }
   .gh > .icon-btn { margin-left: auto; }
 

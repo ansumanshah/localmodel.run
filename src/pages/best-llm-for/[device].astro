@@ -175,7 +175,7 @@ const jsonLd = [
 
     {notFitting.length > 0 && (
       <section class="mt-8">
-        <h2 class="bp-stat-label mb-3">Too large for this device</h2>
+        <h2 class="bp-section-label mb-3">Too large for this device</h2>
         <div class="flex flex-wrap gap-2">
           {notFitting.map((r) => (
             <a href={`/can-i-run/${r.model.id}/${device.id}`} class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">{r.model.name}</a>

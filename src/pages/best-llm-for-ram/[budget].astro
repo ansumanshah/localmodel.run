@@ -330,7 +330,7 @@ const jsonLd = [
 
     {phones.length > 0 && (
       <section class="mt-8">
-        <h2 class="bp-stat-label mb-3">{gb}GB phones &amp; tablets</h2>
+        <h2 class="bp-section-label mb-3">{gb}GB phones &amp; tablets</h2>
         <p class="mb-3 text-sm text-muted-foreground">
           Phones report {gb}GB too, but iOS/Android reserve more and the runtimes differ. Their
           usable pool is smaller:
@@ -351,7 +351,7 @@ const jsonLd = [
 
     {tooLarge.length > 0 && (
       <section class="mt-8">
-        <h2 class="bp-stat-label mb-3">Too large for any {gb}GB device</h2>
+        <h2 class="bp-section-label mb-3">Too large for any {gb}GB device</h2>
         <div class="flex flex-wrap gap-2">
           {tooLarge.map((r) => (
             <a
@@ -378,7 +378,7 @@ const jsonLd = [
     </section>
 
     <nav class="mt-8" aria-label="Other memory budgets">
-      <h2 class="bp-stat-label mb-3">Other memory budgets</h2>
+      <h2 class="bp-section-label mb-3">Other memory budgets</h2>
       <div class="flex flex-wrap gap-2">
         {BUDGETS.filter((b) => b !== gb).map((b) => (
           <a

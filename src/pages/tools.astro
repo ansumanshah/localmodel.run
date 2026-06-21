@@ -154,7 +154,7 @@ const jsonLd = [
         How fast a model runs comes down to four things: your hardware, the model size, the quant, and how many requests hit it at once. The numbers below are <strong class="text-foreground">decode speed</strong>, the tokens per second you actually watch stream out, for one request at a time. Two things worth knowing before you read them: decode and prefill are not the same metric, and one-user speed tells you nothing about how a tool holds up under a crowd.
       </p>
 
-      <h2 class="bp-stat-label mb-2 mt-6">Apple Silicon &middot; 4-bit, single user (tok/s)</h2>
+      <h2 class="bp-section-label mb-2 mt-6">Apple Silicon &middot; 4-bit, single user (tok/s)</h2>
       <p class="mb-3 text-sm text-muted-foreground">
         On a Mac, MLX is the one to beat. mlx-lm, and LM Studio which runs MLX under the hood, pull 20 to 55% more tokens per second than llama.cpp on dense models under 30B. Push past 30B and that lead fades, because now you are bandwidth-bound and the runtime barely matters. Ollama saw this coming and added an MLX backend in v0.19, which claws back most of the gap on 32GB+ Macs.
       </p>
@@ -186,7 +186,7 @@ const jsonLd = [
         One catch: MLX can bog down on prefill at long context (8K+ tokens), and llama.cpp sometimes chews through a big prompt faster even with slower decode (<a href={FAMSTACK} rel="noopener nofollow" class="underline">famstack.dev</a>). And Rapid-MLX? It markets a 4.2x lead over Ollama, but that is one cherry-picked run against an old Ollama build. Nobody has independently reproduced anything close, so we are not putting a multiplier next to its name.
       </p>
 
-      <h2 class="bp-stat-label mb-2 mt-6">NVIDIA CUDA (tok/s)</h2>
+      <h2 class="bp-section-label mb-2 mt-6">NVIDIA CUDA (tok/s)</h2>
       <p class="mb-3 text-sm text-muted-foreground">
         If it is just you, Ollama and llama.cpp keep right up with vLLM. vLLM earns its keep when a crowd shows up: continuous batching lets it serve hundreds of requests at once without falling over. The batched column is peak total tokens per second at the concurrency shown in brackets.
       </p>
