@@ -221,6 +221,6 @@ export function verdictLabelShort(v: Verdict): string {
   return v === "yes" ? "Yes" : v === "tight" ? "Tight" : v === "no" ? "No" : "Unknown";
 }
 
-function round1(n: number): number {
+export function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }

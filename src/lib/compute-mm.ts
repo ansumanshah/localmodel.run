@@ -1,5 +1,5 @@
 import type { DeviceRow, ModelRow, AudioSpec, ImageSpec, VideoSpec } from "@/data/types";
-import { canRun, usableGb, type RunResult, type SpeedClass } from "@/lib/compute";
+import { canRun, round1, usableGb, type RunResult, type SpeedClass } from "@/lib/compute";
 
 /*
   Multi-modal memory engine. The text path in compute.ts is never touched:
@@ -104,10 +104,6 @@ export function modalityNeed(model: ModelRow): ModalityNeed | null {
   if (model.video) return videoNeed(model.video);
   if (model.audio) return audioNeed(model.audio);
   return null;
-}
-
-function round1(n: number): number {
-  return Math.round(n * 10) / 10;
 }
 
 /**
