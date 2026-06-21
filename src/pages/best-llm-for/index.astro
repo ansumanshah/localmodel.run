@@ -21,7 +21,7 @@ const jsonLd = [
 <Base title={title} description={description} path={path} jsonLd={jsonLd}>
   <!-- Intro band: themed but no bp-grid/scanline (not a landing hero) -->
   <section class="hub-intro relative overflow-hidden border-b border-border/60">
-    <div class="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:py-12">
       <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Devices", url: path }]} />
 
       <p class="bp-eyebrow mt-5 sm:mt-6">
@@ -60,7 +60,7 @@ const jsonLd = [
   </section>
 
   <!-- Device category groups -->
-  <div class="mx-auto max-w-4xl px-4 py-10 space-y-10">
+  <div class="mx-auto max-w-5xl px-4 py-10 space-y-10">
     {Object.entries(groups).map(([cat, list]) => (
       <section>
         <h2 class="bp-stat-label mb-4">{CATEGORY_LABEL[cat] ?? cat}</h2>

@@ -32,7 +32,7 @@ const isActive = (href: string) => href !== "/" && path.startsWith(href);
   (max-w-6xl = 72rem) so the capsule aligns to content. Semantics, i18n, focus
   rings, aria state, and the delegated script are all preserved from before.
 -->
-<header class="gh glass spotlight" style="--shell: 72rem" data-glass-header>
+<header class="gh glass spotlight" style="--shell: 64rem" data-glass-header>
   <a
     href={localizedPath("/", lang)}
     class="gh-brand rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
@@ -47,11 +47,6 @@ const isActive = (href: string) => href !== "/" && path.startsWith(href);
     </span>
     <span class="whitespace-nowrap">localmodel<span class="run">.run</span></span>
   </a>
-
-  <span class="gh-status" aria-hidden="true">
-    <span class="dot"></span>
-    model compatibility
-  </span>
 
   <nav class="gh-nav hidden sm:flex" aria-label="Primary">
     {links.map((l) => (
