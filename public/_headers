@@ -12,14 +12,15 @@
   #  1. CF treats text/html as DYNAMIC and ignores s-maxage UNLESS a Cache Rule
   #     marks the zone "cache eligible / respect origin TTL" (one exists on this
   #     zone's cache phase, ruleId 273b8576). With it, the edge honours s-maxage.
-  #  2. A CF Pages deploy does NOT purge that rule's edge entries (verified), so
-  #     freshness comes from this SHORT s-maxage: each edge copy self-expires
-  #     after 10 min and revalidates against the freshly-deployed origin, so a
-  #     deployed change is live everywhere within ~10 min with no purge needed.
-  # Browsers always revalidate (max-age=0). Keep s-maxage short for that reason:
-  # do NOT raise it without an automated post-deploy purge (the CF token in fnox
-  # lacks the cache-purge scope today). Immutable /_astro/* keep their 1yr rule.
-  Cache-Control: public, max-age=0, s-maxage=600, stale-while-revalidate=86400
+  #  2. A CF Pages deploy does NOT purge that rule's edge entries, so freshness is
+  #     handled by .github/workflows/purge-on-deploy.yml: it fires on CF Pages'
+  #     GitHub check run completing for main and purge_everything's the zone, so a
+  #     deployed change is live within ~1 min regardless of the TTL below.
+  # Because purge-on-deploy guarantees freshness, s-maxage is LONG (1 day) to
+  # maximise the cache-hit ratio between deploys. Browsers still revalidate
+  # (max-age=0). If you ever disable that purge workflow, drop s-maxage back to
+  # ~600. Immutable /_astro/* keep their 1yr rule below.
+  Cache-Control: public, max-age=0, s-maxage=86400, stale-while-revalidate=86400
   Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt", </.well-known/agent.json>; rel="alternate"; type="application/json"; title="agent-card", </.well-known/api-catalog>; rel="api-catalog", </sitemap-index.xml>; rel="sitemap"
 
 # Hashed assets are immutable
