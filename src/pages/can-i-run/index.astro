@@ -140,7 +140,8 @@ const jsonLd = [
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    background: var(--background);
+    /* transparent so the page aurora flows through the intro band (an opaque
+       background cut it off, leaving a hard seam below the hero). */
     border-bottom: 1px solid var(--border);
     padding: clamp(1.25rem, 4vh, 2.5rem) clamp(1rem, 4vw, 3rem);
   }
