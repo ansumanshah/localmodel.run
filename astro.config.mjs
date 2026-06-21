@@ -3,8 +3,10 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import icon from "astro-icon";
-// Tailwind v4 runs via PostCSS (postcss.config.mjs) rather than the Vite plugin,
-// which is currently incompatible with Astro 6's rolldown-vite resolver.
+// Tailwind v4 runs via PostCSS (postcss.config.mjs). The @tailwindcss/vite
+// plugin DOES work at Astro 6.4.8 (tested: correct CSS, clean build) but the
+// prod build measured slower (~38s vs ~23s), so PostCSS stays. Revisit only if
+// dev HMR becomes a pain point.
 
 // Canonical production origin. Override via SITE_URL at build time (Cloudflare Pages).
 const SITE = process.env.SITE_URL || "https://localmodel.run";
