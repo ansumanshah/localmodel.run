@@ -35,7 +35,7 @@ jobs:
 
       # Cache the resolved package store so installs are near-instant after the first run.
       - name: Cache bun install
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
