@@ -46,12 +46,17 @@
     "power": { "name": "PocketPal AI", "why": "Run any GGUF from HuggingFace fully offline.", "command": null },
     "runtimes": [
       { "name": "Apple Foundation Models", "what": "On-device ~3B model API (iOS 26+)", "status": "stable", "url": "https://developer.apple.com/documentation/foundationmodels" },
-      { "name": "PocketPal AI", "what": "llama.cpp wrapper app", "status": "stable", "url": "https://github.com/a-ghorbani/pocketpal-ai" },
+      { "name": "PocketPal AI", "what": "llama.cpp wrapper app, any GGUF", "status": "stable", "url": "https://github.com/a-ghorbani/pocketpal-ai" },
+      { "name": "fullmoon", "what": "Open-source MLX Swift app (Apple Silicon)", "status": "stable", "url": "https://github.com/mainframecomputer/fullmoon-ios" },
+      { "name": "Enclave AI", "what": "Free offline assistant with on-device voice", "status": "stable", "url": "https://enclaveai.app/" },
+      { "name": "Private LLM", "what": "Paid app, 140+ models, Neural Engine accelerated", "status": "stable", "url": "https://privatellm.app/" },
+      { "name": "Layla", "what": "Cross-platform offline app (GGUF + ExecuTorch)", "status": "stable", "url": "https://www.layla-network.ai/" },
+      { "name": "Google AI Edge Gallery", "what": "Google's on-device Gemma app", "status": "stable", "url": "https://github.com/google-ai-edge/gallery" },
       { "name": "LLM Farm", "what": "Open-source on-device runner", "status": "stable", "url": "https://github.com/guinmoon/LLMFarm" }
     ],
     "gotcha": "Phones realistically run 1B-4B class models. Anything larger thermally throttles or OOMs.",
     "ceiling": "1B-4B at Q4 on 8GB iPhones; iPad Pro M4 (16GB) handles more.",
-    "sources": ["https://developer.apple.com/documentation/foundationmodels", "https://github.com/a-ghorbani/pocketpal-ai"]
+    "sources": ["https://developer.apple.com/documentation/foundationmodels", "https://github.com/a-ghorbani/pocketpal-ai", "https://github.com/mainframecomputer/fullmoon-ios", "https://enclaveai.app/", "https://privatellm.app/", "https://www.layla-network.ai/", "https://github.com/google-ai-edge/gallery"]
   },
   {
     "platform": "android",
@@ -60,10 +65,14 @@
     "runtimes": [
       { "name": "PocketPal AI", "what": "llama.cpp/llama.rn app", "status": "stable", "url": "https://github.com/a-ghorbani/pocketpal-ai" },
       { "name": "MLC LLM", "what": "Compiled on-device inference", "status": "stable", "url": "https://github.com/mlc-ai/mlc-llm" },
-      { "name": "Google AI Edge / LiteRT-LM", "what": "On-device LLM runtime for Gemma", "status": "stable", "url": "https://ai.google.dev/edge" }
+      { "name": "Google AI Edge / LiteRT-LM", "what": "On-device LLM runtime for Gemma", "status": "stable", "url": "https://ai.google.dev/edge" },
+      { "name": "ChatterUI", "what": "Native llama.cpp GGUF frontend (APK)", "status": "stable", "url": "https://github.com/Vali-98/ChatterUI" },
+      { "name": "SmolChat", "what": "Open-source GGUF app (Play Store + GitHub)", "status": "stable", "url": "https://github.com/shubham0204/SmolChat-Android" },
+      { "name": "Layla", "what": "Cross-platform offline app", "status": "stable", "url": "https://www.layla-network.ai/" },
+      { "name": "Google AI Edge Gallery", "what": "Google's on-device Gemma app", "status": "stable", "url": "https://github.com/google-ai-edge/gallery" }
     ],
     "gotcha": "NPU acceleration is limited and chip-specific; most apps run on CPU. Expect 1B-4B class.",
     "ceiling": "1B-4B at Q4 on 8-16GB phones.",
-    "sources": ["https://github.com/a-ghorbani/pocketpal-ai", "https://github.com/mlc-ai/mlc-llm"]
+    "sources": ["https://github.com/a-ghorbani/pocketpal-ai", "https://github.com/mlc-ai/mlc-llm", "https://github.com/Vali-98/ChatterUI", "https://github.com/shubham0204/SmolChat-Android", "https://www.layla-network.ai/", "https://github.com/google-ai-edge/gallery"]
   }
 ]

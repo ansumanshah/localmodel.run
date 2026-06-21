@@ -1,0 +1,205 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Sources from "@/components/Sources.astro";
+import { meta } from "@/lib/data";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+const path = "/guides/how-local-llms-work";
+const title = "How do local LLMs work? Running models on your own hardware · localmodel.run";
+const description = truncate(
+  "A plain guide to running AI models locally: how weights load into memory, what memory it takes (weights + KV cache + overhead), the role of quantization, and which runtime to use.",
+);
+
+const SOURCES = [
+  "https://github.com/ggml-org/llama.cpp",
+  "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
+  "https://github.com/ml-explore/mlx",
+];
+
+const faqs: FaqItem[] = [
+  {
+    q: "How much RAM do I need to run a local LLM?",
+    a: "About 16 GB of memory is the practical entry point. A 7-8B model at Q4_K_M needs roughly 5-7 GB, so it fits a 16 GB Mac or a 12 GB GPU. Smaller 1-3B models run in a few GB. A 70B model needs ~40 GB+ at Q4_K_M, which means a high-memory Mac or a multi-GPU rig. The exact per-model number is on each model page.",
+  },
+  {
+    q: "Does the model need an internet connection to run?",
+    a: "Only for the initial download. Once the weights file is on your machine, inference is fully offline. Nothing you type leaves your device.",
+  },
+  {
+    q: "What is GGUF and why does everyone use it?",
+    a: "GGUF is a single-file weights format from the llama.cpp project. It holds every quantization level in one self-describing file and is read natively by the major runtimes (Ollama, LM Studio, llama.cpp, GPT4All). Most open models on HuggingFace ship a GGUF release alongside the original weights.",
+  },
+  {
+    q: "What is the KV cache and why does it matter?",
+    a: "The KV cache stores the attention state for every token in your context window, so it grows with context length. At a long context it can add several GB, sometimes more than the weights themselves, which is why setting a very long context can push you over your memory limit.",
+  },
+  {
+    q: "Which runtime should I start with?",
+    a: "Ollama if you want a one-command install and an API for your own code; LM Studio if you prefer a GUI with a chat window. Both run on Mac, Windows and Linux, and both use MLX on Apple Silicon for near-native speed. Reach for llama.cpp or MLX directly only when you want the lowest layer or maximum throughput.",
+  },
+  {
+    q: "Can I run local models on a phone?",
+    a: "Yes, within limits. Apps like PocketPal, LLM Farm and Private LLM run quantized models on iPhone and Android. A 1-4B model at Q4 is the realistic ceiling; anything larger thermally throttles or runs out of memory. See the per-device pages for what fits.",
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Guides", url: "/guides" },
+      { name: "How local LLMs work", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "How do local LLMs work?",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources: SOURCES,
+    speakableSelector: [".guide-tldr"],
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle="How local LLMs work"
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt="How running an AI model locally works"
+>
+  <article class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Guides", url: "/guides" },
+        { name: "How local LLMs work", url: path },
+      ]}
+    />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Guide &middot; The basics</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">How local LLMs work</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Running a model locally means its weights download to your machine and every token is computed on
+      your own CPU, GPU or Apple Silicon. Nothing leaves your device. The catch is that your hardware now
+      has to hold the whole model in memory while it runs.
+    </p>
+
+    <div class="bp-panel guide-tldr mt-6">
+      <div class="bp-panel-header"><span class="bp-panel-label">The short version</span></div>
+      <p class="p-4 text-sm text-muted-foreground">
+        A model is a big file of numbers (weights). To run it, those weights load into
+        <strong class="text-foreground">memory</strong>, plus a <strong class="text-foreground">KV cache</strong>
+        for your context and a little runtime <strong class="text-foreground">overhead</strong>.
+        <strong class="text-foreground">Quantization</strong> shrinks the weights so they fit. Whether it
+        runs on your machine is just: does that total fit in your usable memory?
+      </p>
+    </div>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">What "running locally" actually means</h2>
+      <p class="mt-2 text-muted-foreground">
+        A language model is, at its core, a large file of learned numbers called weights. To use it, a
+        runtime reads those weights from disk into memory, then does matrix math on your input to produce
+        output one token at a time. The process is the same on a MacBook, a Windows gaming PC or a Linux
+        box with a data-center GPU. The only difference is how fast the hardware moves numbers. After the
+        one-time download, the model never contacts a server again.
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">Memory: weights + KV cache + overhead</h2>
+      <p class="mt-2 text-muted-foreground">
+        The memory a model needs is roughly its parameters times the bytes per parameter. At full 16-bit
+        precision each parameter costs 2 bytes, so a 7B model needs about 14 GB and a 70B needs ~140 GB.
+        That alone rules out most consumer hardware at full precision, which is where quantization comes in.
+      </p>
+      <p class="mt-3 text-muted-foreground">
+        On top of the weights sits the <strong class="text-foreground">KV cache</strong>, which holds the
+        attention state for every token in your context. It grows with context length and can add several
+        GB. Then a few hundred MB of runtime overhead. The site adds these three up against your device's
+        usable memory; the exact formula is on the
+        <a href="/methodology" class="text-[var(--color-brand)] hover:underline">methodology page</a>.
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">Quantization: fit a big model in less memory</h2>
+      <p class="mt-2 text-muted-foreground">
+        Quantization stores each weight in fewer bits. The common local format is GGUF, and
+        <strong class="text-foreground">Q4_K_M</strong> is the practical default: it keeps most weights at
+        4 bits, cutting a 7B model from ~14 GB at full precision to around 4-5 GB while holding most of the
+        quality. Go higher (Q5, Q6, Q8) for more fidelity if you have the headroom, or lower (Q3, Q2) to
+        squeeze into a tight budget. The
+        <a href="/guides/quantization" class="text-[var(--color-brand)] hover:underline">quantization guide</a>
+        covers each level with concrete sizes.
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">Why some hardware is much faster</h2>
+      <p class="mt-2 text-muted-foreground">
+        Local inference speed is set mainly by <strong class="text-foreground">memory bandwidth</strong>,
+        not raw compute: every token loads the full set of weights from memory. GPUs have wide, fast memory
+        and run many times quicker than CPU-only inference. Apple Silicon shares one unified memory pool
+        between CPU and GPU, so a model that fits runs fully accelerated with no transfer cost. On a discrete
+        GPU, if the model does not fit in VRAM the runtime spills layers to system RAM and speed drops sharply.
+        See <a href="/guides/vram-vs-ram" class="text-[var(--color-brand)] hover:underline">VRAM vs RAM</a>.
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">The runtimes</h2>
+      <div class="bp-panel mt-3 divide-y divide-border">
+        <div class="p-4"><p class="font-medium">Ollama</p><p class="mt-1 text-sm text-muted-foreground">One command pulls a model and starts a local API. The easiest first choice; uses MLX on Apple Silicon.</p></div>
+        <div class="p-4"><p class="font-medium">LM Studio</p><p class="mt-1 text-sm text-muted-foreground">A desktop app with a model browser and chat UI, plus a headless server mode. Best if you want a GUI.</p></div>
+        <div class="p-4"><p class="font-medium">llama.cpp</p><p class="mt-1 text-sm text-muted-foreground">The C/C++ engine under both, and the origin of GGUF. A tiny static binary that runs on almost anything; use it directly for the lowest layer.</p></div>
+        <div class="p-4"><p class="font-medium">MLX</p><p class="mt-1 text-sm text-muted-foreground">Apple's framework built for M-series unified memory. The fastest path on a Mac; use mlx-lm directly for maximum throughput or fine-tuning.</p></div>
+      </div>
+      <p class="mt-3 text-muted-foreground">Per-platform picks, including iOS and Android apps, are on the <a href="/tools" class="text-[var(--color-brand)] hover:underline">tools page</a>.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">Local vs cloud</h2>
+      <p class="mt-2 text-muted-foreground">
+        Local inference buys you three things a cloud API cannot: privacy (data stays on your machine),
+        offline use, and no per-token cost. The trade is hardware. A 7-8B model at Q4_K_M runs comfortably
+        on a 16 GB machine today and is plenty for a private assistant. Frontier-level reasoning at the very
+        top end still favours hosted APIs, because the largest open models need server-class memory to run.
+        This site exists to tell you exactly where your hardware lands on that line.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">FAQ</h2>
+      <div class="bp-panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="More guides">
+      <h2 class="bp-section-label mb-3">More guides</h2>
+      <div class="flex flex-wrap gap-2">
+        <a href="/guides/quantization" class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Quantization explained</a>
+        <a href="/guides/vram-vs-ram" class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">VRAM vs RAM</a>
+        <a href="/guides/mixture-of-experts" class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Mixture of experts</a>
+      </div>
+    </nav>
+
+    <Sources urls={SOURCES} />
+  </article>
+</Base>
