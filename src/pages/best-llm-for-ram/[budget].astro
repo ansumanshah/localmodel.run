@@ -27,7 +27,7 @@ import {
 export function getStaticPaths() {
   // Inlined (not BUDGETS) because Astro evaluates getStaticPaths in an isolated
   // scope that does not close over imported/module-level bindings.
-  return [8, 16, 24, 32].map((gb) => ({ params: { budget: `${gb}gb` }, props: { gb } }));
+  return [8, 16, 24, 32, 48, 64, 128, 256].map((gb) => ({ params: { budget: `${gb}gb` }, props: { gb } }));
 }
 
 const { gb } = Astro.props as { gb: number };
@@ -182,9 +182,18 @@ const jsonLd = [
       Best local LLMs for {gb}GB
     </h1>
     <p class="budget-lede mt-4 text-pretty text-lg text-muted-foreground">
-      {gb}GB is not a single ceiling. {typesPhrase.charAt(0).toUpperCase() + typesPhrase.slice(1)} each
-      leave a different amount free for model weights, so the largest model you can run changes with the
-      memory <strong class="text-foreground">type</strong>, not just the number.
+      {interps.length > 1 ? (
+        <>
+          {gb}GB is not a single ceiling. {typesPhrase.charAt(0).toUpperCase() + typesPhrase.slice(1)} each
+          leave a different amount free for model weights, so the largest model you can run changes with the
+          memory <strong class="text-foreground">type</strong>, not just the number.
+        </>
+      ) : (
+        <>
+          The {mostGenerous.device.name} gives about <strong class="text-foreground">~{mostGenerous.usable} GB</strong> of its
+          {gb}GB to model weights after the OS takes its share. {fitting.length} of {rows.length} local LLMs fit, biggest first.
+        </>
+      )}
     </p>
 
     <div class="bp-wire mt-5" aria-hidden="true"></div>

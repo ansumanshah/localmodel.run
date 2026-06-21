@@ -6,7 +6,11 @@ import type { DeviceRow, MemoryType } from "@/data/types";
 // (RAM-budget pages, family hardware-gating) anchors to the SAME real, sourced
 // devices through here, so there is one source of truth and no drift.
 
-export const BUDGETS = [8, 16, 24, 32] as const;
+// Each budget must have at least one REAL sourced desktop device at that exact
+// size (interpretationsFor filters on memory_gb === size). 48/64/128/256 are the
+// high-memory Mac tiers (Apple's only configs at those sizes); no GPU/CPU rows
+// exist there, so those pages render a single unified interpretation.
+export const BUDGETS = [8, 16, 24, 32, 48, 64, 128, 256] as const;
 
 const DESKTOP_CATS = new Set(["mac", "nvidia", "amd", "intel", "laptop"]);
 const TYPE_ORDER: MemoryType[] = ["unified", "vram", "ram"];
