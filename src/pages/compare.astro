@@ -28,7 +28,7 @@ const matrix = modelRows.map((m) => ({
 }));
 
 const path = "/compare";
-const title = "Compare local AI models across hardware · localmodel.run";
+const title = "Local LLM hardware comparison matrix · localmodel.run";
 const description = truncate(
   `A side-by-side matrix of which local LLMs run on which hardware: ${modelRows.length} representative models across ${deviceCols.length} devices from 8 GB laptops to 64 GB Macs and 24 GB GPUs. Yes, tight, or no for each pairing, computed from validated memory math.`,
 );
@@ -70,7 +70,7 @@ const jsonLd = [
             {deviceCols.map((d) => (
               <th scope="col">
                 <span class="block">{d.name.replace(/\s*\(.*\)/, "")}</span>
-                <span class="block opacity-60">{d.memory_gb} GB</span>
+                <span class="block text-muted-foreground">{d.memory_gb} GB</span>
               </th>
             ))}
           </tr>

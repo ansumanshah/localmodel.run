@@ -63,7 +63,7 @@ const isActive = (href: string) => href !== "/" && path.startsWith(href);
   <button
     id="theme-toggle"
     type="button"
-    class="icon-btn p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+    class="icon-btn inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
     aria-label="Toggle theme"
   >
     <svg class="hidden dark:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
@@ -72,7 +72,7 @@ const isActive = (href: string) => href !== "/" && path.startsWith(href);
   <button
     id="mobile-menu-btn"
     type="button"
-    class="icon-btn p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] sm:hidden"
+    class="icon-btn inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] sm:hidden"
     aria-label="Open menu"
     aria-expanded="false"
     aria-controls="mobile-nav"
