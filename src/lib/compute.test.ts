@@ -4,6 +4,7 @@ import {
   BPW,
   canRun,
   estimateMemory,
+  estTokPerSec,
   kvCacheGb,
   quantLadderSizes,
   round1,
@@ -163,5 +164,33 @@ describe("rigScore grades", () => {
   test("F: runs nothing meaningful", () => {
     const s = rigScore(device({ memory_gb: 2, usable_memory_gb: 1.2 }), set);
     expect(s.grade).toBe("F");
+  });
+});
+
+describe("estTokPerSec", () => {
+  const m4max = device({ category: "mac", bandwidth_gbs: 546 });
+  test("dense estimate is in the right ballpark (8B on M4 Max ~89)", () => {
+    const t = estTokPerSec(model({ params_b: 8 }), m4max);
+    expect(t).toBeGreaterThan(70);
+    expect(t).toBeLessThan(110);
+  });
+  test("null for MoE (bound overestimates) and for unknown bandwidth", () => {
+    expect(
+      estTokPerSec(model({ params_b: 30, is_moe: true, active_params_b: 3 }), m4max),
+    ).toBeNull();
+    expect(
+      estTokPerSec(model({ params_b: 8 }), device({ category: "mac", bandwidth_gbs: null })),
+    ).toBeNull();
+  });
+  test("faster bandwidth = more tok/s", () => {
+    const fast = estTokPerSec(
+      model({ params_b: 8 }),
+      device({ category: "nvidia", bandwidth_gbs: 1008 }),
+    );
+    const slow = estTokPerSec(
+      model({ params_b: 8 }),
+      device({ category: "mac", bandwidth_gbs: 120 }),
+    );
+    expect(fast!).toBeGreaterThan(slow!);
   });
 });

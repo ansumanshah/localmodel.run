@@ -5,7 +5,7 @@ import VerdictBadge from "@/components/VerdictBadge.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import Sources from "@/components/Sources.astro";
 import { models, devices, meta, dedupeSources, installCommands } from "@/lib/data";
-import { canRun, estimateMemory, QUANT_LABEL } from "@/lib/compute";
+import { canRun, estimateMemory, QUANT_LABEL, estTokPerSec } from "@/lib/compute";
 import {
   breadcrumbLd,
   faqLd,
@@ -226,8 +226,14 @@ const jsonLd = [
                 >
                   <EntityIcon device={r.device.category} size={18} class="text-muted-foreground shrink-0" />
                   <div class="min-w-0 flex-1">
-                    <div class="truncate text-sm font-medium">{r.device.name}</div>
-                    <div class="bp-stat-label mt-0.5">~{r.result.usableGb} GB usable &middot; uses ~{r.result.estimate?.totalGb} GB at Q4_K_M</div>
+                    <div class="truncate text-sm font-medium">
+                      {r.device.name}
+                      {r.device.msrp_usd && <span class="ml-1.5 text-xs font-normal text-muted-foreground">from ${r.device.msrp_usd.toLocaleString()}</span>}
+                    </div>
+                    <div class="bp-stat-label mt-0.5">
+                      ~{r.result.usableGb} GB usable &middot; uses ~{r.result.estimate?.totalGb} GB
+                      {estTokPerSec(model, r.device) != null && <> &middot; ~{estTokPerSec(model, r.device)} tok/s est.</>}
+                    </div>
                   </div>
                   <VerdictBadge verdict={r.result.verdict} />
                 </a>

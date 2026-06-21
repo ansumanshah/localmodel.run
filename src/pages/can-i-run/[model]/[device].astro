@@ -21,7 +21,7 @@ import {
   modelModality,
   meta,
 } from "@/lib/data";
-import { estimateMemory, usableGb, QUANT_LABEL } from "@/lib/compute";
+import { estimateMemory, usableGb, QUANT_LABEL, estTokPerSec } from "@/lib/compute";
 import { canRunModality, modalitySpec } from "@/lib/compute-mm";
 import {
   breadcrumbLd,
@@ -48,6 +48,8 @@ const usable = usableGb(device);
 const platform = devicePlatform(device);
 const tool = getTool(platform);
 const fits = result.verdict !== "no";
+// Estimated generation speed (dense text models that fit; null for MoE / no bandwidth).
+const tps = isText && fits ? estTokPerSec(model, device) : null;
 
 // Verdict color drives the primary panel's tint (border, top glow, status
 // stripe) so the yes/tight/no answer is scannable before reading a word.
@@ -258,6 +260,16 @@ if (fits && commands.length > 0) {
         <!-- Verdict badge + speed note -->
         <div class="flex flex-wrap items-center gap-3">
           <VerdictBadge verdict={result.verdict} size="lg" note={speedWord[result.speed]} />
+          {tps != null && (
+            <a
+              href="/methodology"
+              class="inline-flex items-baseline gap-1 rounded-full border border-border px-2.5 py-1 text-sm transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+              title="Estimated generation speed, memory-bandwidth-bound. See methodology."
+            >
+              <span class="font-semibold"><span class="num">~{tps}</span> tok/s</span>
+              <span class="text-xs text-muted-foreground">est.</span>
+            </a>
+          )}
         </div>
 
         <p class="verdict-text mt-3 text-pretty text-lg text-foreground">{verdictText}</p>

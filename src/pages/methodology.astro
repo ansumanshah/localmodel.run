@@ -112,6 +112,23 @@ const jsonLd = [
         </p>
       </div>
 
+      <div>
+        <p class="bp-stat-label">Step 06</p>
+        <h2 class="mt-1 text-xl font-semibold">Speed estimate (tokens/sec)</h2>
+        <p class="mt-2 text-muted-foreground">
+          Local generation is memory-bandwidth-bound: each token reads the model's weights once. So for
+          dense models we estimate <span class="font-mono text-sm">tok/s &asymp; efficiency &times; bandwidth &divide; weights-GB</span>,
+          with a device-class efficiency factor (Apple unified ~0.8, discrete GPU ~0.65, CPU and phones ~0.5)
+          sanity-checked against published llama.cpp and MLX benchmarks. Memory bandwidth is sourced per
+          device from Apple, NVIDIA and AMD spec sheets. It is an estimate, marked "est." wherever it appears.
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+          We do not put a tok/s number on Mixture-of-Experts models: only the active experts are read per
+          token, so this bound overestimates them. Their pages show the qualitative speed instead (a 30B-A3B
+          runs at the speed of a ~3B model).
+        </p>
+      </div>
+
     </section>
 
     <div class="bp-wire mt-10" aria-hidden="true"></div>
