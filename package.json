@@ -17,6 +17,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
+    "test": "bun test",
     "update-data": "node scripts/update-data.mjs",
     "validate-data": "node scripts/validate-data.mjs",
     "audit:links": "bun scripts/audit-links.ts",
