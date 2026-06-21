@@ -100,7 +100,9 @@ describe("usableGb", () => {
     expect(usableGb(device({ usable_memory_gb: 10.6 }))).toBe(10.6);
   });
   test("VRAM fallback leaves ~1 GB for the driver", () => {
-    expect(usableGb(device({ memory_type: "vram", memory_gb: 24, usable_memory_gb: null }))).toBe(23);
+    expect(usableGb(device({ memory_type: "vram", memory_gb: 24, usable_memory_gb: null }))).toBe(
+      23,
+    );
   });
   test("Mac unified fallback is ~70%", () => {
     expect(usableGb(device({ memory_gb: 16, usable_memory_gb: null }))).toBe(11.2);
@@ -109,7 +111,9 @@ describe("usableGb", () => {
 
 describe("canRun verdicts", () => {
   test("70B does not fit a 16 GB Mac", () => {
-    expect(canRun(model({ params_b: 70 }), device({ memory_gb: 16, usable_memory_gb: 10.6 })).verdict).toBe("no");
+    expect(
+      canRun(model({ params_b: 70 }), device({ memory_gb: 16, usable_memory_gb: 10.6 })).verdict,
+    ).toBe("no");
   });
   test("8B fits a 16 GB Mac comfortably", () => {
     const r = canRun(model({ params_b: 8 }), device({ memory_gb: 16, usable_memory_gb: 10.6 }));
@@ -118,7 +122,9 @@ describe("canRun verdicts", () => {
   });
   test("a near-edge fit reads as tight, not yes", () => {
     // 8B needs 6.4; give it ~7 usable -> headroom 0.6 < max(1, 10%) -> tight.
-    expect(canRun(model({ params_b: 8 }), device({ memory_gb: 8, usable_memory_gb: 7 })).verdict).toBe("tight");
+    expect(
+      canRun(model({ params_b: 8 }), device({ memory_gb: 8, usable_memory_gb: 7 })).verdict,
+    ).toBe("tight");
   });
   test("plenty of memory surfaces an upgrade quant", () => {
     const r = canRun(model({ params_b: 8 }), device({ memory_gb: 64, usable_memory_gb: 50 }));
@@ -137,7 +143,11 @@ describe("quantLadderSizes", () => {
 });
 
 describe("rigScore grades", () => {
-  const set = [model({ id: "s", params_b: 3 }), model({ id: "m", params_b: 8 }), model({ id: "l", params_b: 70 })];
+  const set = [
+    model({ id: "s", params_b: 3 }),
+    model({ id: "m", params_b: 8 }),
+    model({ id: "l", params_b: 70 }),
+  ];
   test("S: runs a 70B and >=70% of models", () => {
     const s = rigScore(device({ memory_gb: 64, usable_memory_gb: 50 }), set);
     expect(s.grade).toBe("S");
