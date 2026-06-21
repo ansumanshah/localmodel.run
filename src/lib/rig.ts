@@ -65,5 +65,5 @@ export const GRADE_BLURB: Record<Grade, string> = {
   B: "Strong, runs mid-size models up to ~14B.",
   C: "Capable, 7-8B models run well.",
   D: "Entry, small 1-4B models only.",
-  F: "Tight, stick to the smallest models.",
+  F: "Sub-3B models only; most of the set won't load.",
 };

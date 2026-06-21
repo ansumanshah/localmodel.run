@@ -124,8 +124,8 @@ const jsonLd = [
         </p>
         <p class="mt-2 text-sm text-muted-foreground">
           We do not put a tok/s number on Mixture-of-Experts models: only the active experts are read per
-          token, so this bound overestimates them. Their pages show the qualitative speed instead (a 30B-A3B
-          runs at the speed of a ~3B model).
+          token, so this bound overestimates them. Their pages show the active-parameter count instead (a
+          30B-A3B activates ~3.3B params per token, so it generates faster than its total size suggests).
         </p>
       </div>
 

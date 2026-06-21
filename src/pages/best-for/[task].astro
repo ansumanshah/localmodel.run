@@ -39,6 +39,7 @@ const tagged = models
 
 const best = tagged[0];
 const smallest = [...tagged].sort((a, b) => a.q4Gb - b.q4Gb)[0];
+const bestRunnable = tagged.find((t) => t.runs > 0); // highest-ranked one a tracked device actually runs
 const sources = dedupeSources(...tagged.slice(0, 8).map((t) => t.model.sources));
 
 const title = `Best local ${m.title} models (${year}) · localmodel.run`;
@@ -49,14 +50,16 @@ const description = truncate(
 const faqs: FaqItem[] = [
   {
     q: `What is the best local ${m.title} model?`,
-    a: best
-      ? `${best.model.name} leads on quality among the open ${m.title} models tracked here. It needs ~${best.q4Gb} GB at Q4_K_M${best.minDevice ? `, so the lightest hardware that runs it is ${best.minDevice.name}` : ""}. Pick by what fits your memory using the list above.`
-      : `See the ranked list above.`,
+    a: !best
+      ? `See the ranked list above.`
+      : best.minDevice
+        ? `${best.model.name} leads on quality among the open ${m.title} models tracked here. It needs ~${best.q4Gb} GB at Q4_K_M, so the lightest hardware that runs it is ${best.minDevice.name}. Pick by what fits your memory using the list above.`
+        : `${best.model.name} is the highest-ranked, but it needs ~${best.q4Gb} GB and no tracked device runs it locally. The strongest one you can actually run is ${bestRunnable ? bestRunnable.model.name : "a smaller model in the list"}. Pick by what fits your memory using the list above.`,
   },
   {
     q: `What is the smallest ${m.title} model that runs on a laptop?`,
     a: smallest
-      ? `${smallest.model.name} is the lightest, at ~${smallest.q4Gb} GB at Q4_K_M, so it fits a 16 GB machine comfortably.`
+      ? `${smallest.model.name} is the lightest, at ~${smallest.q4Gb} GB at Q4_K_M, so any device with 8 GB or more can load it.`
       : `Most ${m.title} models here need a mid-range GPU or Apple Silicon.`,
   },
   {

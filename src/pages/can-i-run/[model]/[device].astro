@@ -265,6 +265,7 @@ if (fits && commands.length > 0) {
               href="/methodology"
               class="inline-flex items-baseline gap-1 rounded-full border border-border px-2.5 py-1 text-sm transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
               title="Estimated generation speed, memory-bandwidth-bound. See methodology."
+              aria-label={`Estimated generation speed about ${tps} tokens per second, see methodology`}
             >
               <span class="font-semibold"><span class="num">~{tps}</span> tok/s</span>
               <span class="text-xs text-muted-foreground">est.</span>
@@ -520,7 +521,7 @@ if (fits && commands.length > 0) {
 
     <p class="mt-6 text-xs text-muted-foreground">
       {isText
-        ? `Memory figures are estimates.`
+        ? `Weights are measured from GGUF files; KV cache and overhead are computed, so totals can vary ~15% with context and runtime. Any tok/s is a bandwidth estimate.`
         : `VRAM figures are sourced peak-usage anchors at the noted quant, validated ${meta.updated}.`} See <a href="/methodology" class="underline">methodology</a>.
     </p>
   </article>

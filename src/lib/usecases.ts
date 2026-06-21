@@ -28,7 +28,7 @@ export const USE_CASE_META: Record<UseCase, { label: string; title: string; blur
   multilingual: {
     label: 'Multilingual',
     title: 'multilingual',
-    blurb: 'Models with strong non-English coverage.',
+    blurb: 'Models with language-first training beyond English (Indic, Korean, Chinese).',
   },
 }
 

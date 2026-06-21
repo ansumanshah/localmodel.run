@@ -211,7 +211,7 @@ const jsonLd = [
     {fitting.length > 0 && (
       <section class="mt-8">
         <h2 class="mb-3 text-lg font-semibold">Hardware that runs {model.name}</h2>
-        <p class="mb-3 text-sm text-muted-foreground">Ranked by usable memory, lightest first. Prices are approximate and for the device itself (a GPU is the card alone; a Mac is the whole machine). Speed is an estimate.</p>
+        <p class="mb-3 text-sm text-muted-foreground">Ranked by usable memory, lightest first. Prices are approximate street prices for the device itself (a GPU is the card alone; a Mac is the whole machine). Tok/s is a bandwidth estimate; see <a href="/methodology" class="underline">methodology</a>.</p>
         <div class="bp-panel overflow-hidden">
           <div class="bp-panel-header">
             <span class="bp-panel-label">Compatible devices</span>
@@ -268,7 +268,7 @@ const jsonLd = [
     <Sources urls={sources} />
 
     <p class="mt-6 text-xs text-muted-foreground">
-      Memory is computed at Q4_K_M ({q4.totalGb} GB = ~{model.q4_k_m_gb ?? q4.weightsGb} GB weights + KV cache + overhead),
+      Memory at Q4_K_M ({q4.totalGb} GB = {model.q4_k_m_gb ? model.q4_k_m_gb : `~${q4.weightsGb}`} GB weights + KV cache + overhead),
       validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
     </p>
   </div>
