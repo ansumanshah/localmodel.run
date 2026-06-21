@@ -48,9 +48,11 @@ const sources = dedupeSources(model.sources, [need.source]);
     <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
     <span transition:name={`model-name-${model.id}`}>{model.name} requirements</span>
   </h1>
-  <p class="mt-4 text-pretty text-lg text-muted-foreground">
+  <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+    <strong>{model.name} needs about {need.neededGb} GB of VRAM at {need.quantLabel}</strong> (peak usage, not file size). The lightest hardware that runs it is <strong>{minDevice ? minDevice.name : "a 16 GB+ GPU"}</strong>.
+  </p>
+  <p class="mt-2 text-pretty text-muted-foreground">
     {spec.arch.toUpperCase()} image model &middot; {model.params_b}B params &middot; {spec.native_resolution} &middot; {spec.steps} steps{model.release ? ` · released ${formatRelease(model.release)}` : ""}.
-    Realistic minimum to run: <strong class="text-foreground">{minDevice ? minDevice.name : "a 16 GB+ GPU"}</strong> at {need.quantLabel}.
   </p>
 
   {(model.license || commercial) && (

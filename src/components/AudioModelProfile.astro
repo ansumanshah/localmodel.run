@@ -35,11 +35,13 @@ const sources = dedupeSources(model.sources, [need.source]);
     <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
     <span transition:name={`model-name-${model.id}`}>{model.name} requirements</span>
   </h1>
-  <p class="mt-4 text-pretty text-lg text-muted-foreground">
+  <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+    <strong>{model.name} needs about {need.neededGb} GB of memory at {need.quantLabel}</strong>{spec.cpu_ok
+      ? ", light enough to run on CPU with no GPU required."
+      : `, so the lightest hardware that runs it is ${minDevice ? minDevice.name : "a GPU"}.`}
+  </p>
+  <p class="mt-2 text-pretty text-muted-foreground">
     {spec.task} &middot; {paramLabel} params &middot; {spec.precision}{model.release ? ` · released ${formatRelease(model.release)}` : ""}.
-    {spec.cpu_ok
-      ? "Light enough to run on CPU, no GPU required."
-      : `Realistic minimum to run: ${minDevice ? minDevice.name : "a GPU"}.`}
   </p>
 
   {(model.license || commercial) && (

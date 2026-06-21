@@ -26,6 +26,7 @@ import { gaugeCompute } from "@/lib/gauge-glass";
 import {
   breadcrumbLd,
   faqLd,
+  howToLd,
   techArticleLd,
   truncate,
   type FaqItem,
@@ -49,6 +50,13 @@ const similar = [
       Math.abs(m.params_b - model.params_b) <= Math.max(2, model.params_b * 0.4),
   ),
 ].slice(0, 6);
+// Explicit size-ladder neighbours (next-smaller / next-bigger text model) for the internal mesh.
+const textLadder = allModels
+  .filter((m) => modelModality(m) === "text" && m.id !== model.id && m.params_b > 0)
+  .sort((a, b) => a.params_b - b.params_b);
+const nextSmaller = [...textLadder].reverse().find((m) => m.params_b < model.params_b);
+const nextBigger = textLadder.find((m) => m.params_b > model.params_b);
+const sizeLabel = (b: number) => (b < 1 ? `${Math.round(b * 1000)}M` : `${b}B`);
 const path = `/model/${model.id}`;
 const NonTextProfile =
   modality === "image" ? ImageModelProfile : modality === "video" ? VideoModelProfile : AudioModelProfile;
@@ -133,6 +141,25 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
           : []),
       ];
       const sources = dedupeSources(model.sources);
+      const runtimeCmd = commands[0]?.cmd;
+      const howToSteps = [
+        {
+          name: "Check your hardware has the memory",
+          text: `${model.name} needs about ${q4.totalGb} GB of free memory at Q4_K_M. Confirm your GPU VRAM or unified memory has at least that much before downloading.`,
+        },
+        {
+          name: "Install a local runtime",
+          text: `Install Ollama (ollama.com) or llama.cpp. Both download the GGUF weights for you and run ${model.name} from a single command, no Python setup.`,
+        },
+        ...(runtimeCmd
+          ? [
+              {
+                name: `Pull and run ${model.name}`,
+                text: `Run "${runtimeCmd}" in a terminal. The weights download once (~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M), then a local chat session starts. Everything stays on your machine.`,
+              },
+            ]
+          : []),
+      ];
       const jsonLd = [
         breadcrumbLd(
           [
@@ -149,9 +176,21 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
           origin: Astro.site!.href,
           dateModified: meta.updated,
           datePublished: meta.launched,
+          speakableSelector: [".verdict-text"],
           sources,
         }),
         faqLd(faqs),
+        ...(runtimeCmd
+          ? [
+              howToLd({
+                name: `How to run ${model.name} locally`,
+                description: `Install a local runtime and run ${model.name} at Q4_K_M on your own hardware.`,
+                url: path,
+                origin: Astro.site!.href,
+                steps: howToSteps,
+              }),
+            ]
+          : []),
       ];
       return (
         <Base title={title} description={description} path={path} jsonLd={jsonLd} ogImage={`/og/model/${model.id}.png`} mdPath={`/model/${model.id}.md`} ogTitle={`${model.name} requirements`} ogType="article" articleModified={meta.updated} ogImageAlt={`${model.name} memory requirements`}>
@@ -163,9 +202,11 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
               <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
               <span transition:name={`model-name-${model.id}`}>{model.name}: RAM and VRAM requirements</span>
             </h1>
-            <p class="mt-4 text-pretty text-lg text-muted-foreground">
+            <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+              <strong>{model.name} needs about {q4.totalGb} GB to run at Q4_K_M</strong> (weights ~{model.q4_k_m_gb ?? q4.weightsGb} GB plus KV cache and overhead), or about {q8.totalGb} GB at Q8_0. The lightest hardware that runs it is <strong>{minDevice ? minDevice.name : "a high-memory machine"}</strong>.
+            </p>
+            <p class="mt-2 text-pretty text-muted-foreground">
               {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
-              Minimum to run at Q4_K_M: <strong class="text-foreground">{minDevice ? minDevice.name : "high-memory hardware"}</strong>.
             </p>
 
             <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
@@ -375,6 +416,33 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
               </div>
             </section>
 
+            {(nextSmaller || nextBigger) && (
+              <section class="mt-10">
+                <h2 class="text-lg font-semibold">Same job, different size</h2>
+                <p class="mt-2 text-sm text-muted-foreground">Pick by what fits your memory: step down to free up VRAM, or step up if you have headroom.</p>
+                <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {nextSmaller && (
+                    <a href={`/model/${nextSmaller.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                      <span class="flex min-w-0 flex-col">
+                        <span class="bp-section-label">Next size down</span>
+                        <span class="truncate text-sm">{nextSmaller.name}</span>
+                      </span>
+                      <span class="shrink-0 text-xs text-muted-foreground">{sizeLabel(nextSmaller.params_b)}</span>
+                    </a>
+                  )}
+                  {nextBigger && (
+                    <a href={`/model/${nextBigger.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                      <span class="flex min-w-0 flex-col">
+                        <span class="bp-section-label">Next size up</span>
+                        <span class="truncate text-sm">{nextBigger.name}</span>
+                      </span>
+                      <span class="shrink-0 text-xs text-muted-foreground">{sizeLabel(nextBigger.params_b)}</span>
+                    </a>
+                  )}
+                </div>
+              </section>
+            )}
+
             {similar.length > 0 && (
               <section class="mt-10">
                 <h2 class="text-lg font-semibold">Similar models</h2>
@@ -491,6 +559,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
           origin: Astro.site!.href,
           dateModified: meta.updated,
           datePublished: meta.launched,
+          speakableSelector: [".verdict-text"],
           sources,
         }),
         faqLd(faqs),

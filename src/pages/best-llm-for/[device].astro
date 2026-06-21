@@ -17,6 +17,7 @@ import { canRun, usableGb, QUANT_LABEL } from "@/lib/compute";
 import {
   breadcrumbLd,
   faqLd,
+  howToLd,
   itemListLd,
   techArticleLd,
   truncate,
@@ -89,6 +90,32 @@ const jsonLd = [
     origin: Astro.site!.href,
   }),
   faqLd(faqs),
+  ...(topPick
+    ? [
+        howToLd({
+          name: `How to run a local LLM on ${device.name}`,
+          description: `Install a runtime, pick a model that fits ${device.name}'s ~${usable} GB usable memory, and run it locally.`,
+          url: path,
+          origin: Astro.site!.href,
+          steps: [
+            {
+              name: `Install ${tool?.beginner.name ?? "Ollama"}`,
+              text: `Install ${tool?.beginner.name ?? "Ollama"} on ${platformLabel(platform)}.${tool?.beginner.why ? ` ${tool.beginner.why}.` : ""} It downloads model weights for you and runs them from one command.`,
+            },
+            {
+              name: "Pick a model that fits",
+              text: `${device.name} has about ${usable} GB usable for a model. ${topPick.model.name} is the strongest that runs comfortably, using ~${topPick.result.estimate?.totalGb} GB at ${topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"}. Stay under ~${usable} GB.`,
+            },
+            {
+              name: `Run ${topPick.model.name}`,
+              text: topPick.model.ollama_tag
+                ? `Run "ollama run ${topPick.model.ollama_tag}" in a terminal. The weights download once, then a local chat session starts. Everything stays on ${device.name}.`
+                : `Load ${topPick.model.name} in ${tool?.beginner.name ?? "your runtime"} and start a local chat session. Everything stays on ${device.name}.`,
+            },
+          ],
+        }),
+      ]
+    : []),
 ];
 ---
 
