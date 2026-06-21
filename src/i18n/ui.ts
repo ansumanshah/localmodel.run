@@ -36,7 +36,7 @@ export const ui = {
     "home.estimatesNote": "Estimates, not guarantees. See how we calculate and our sources.",
     "footer.tagline":
       "Does your machine run it? Pick a model, pick your hardware, get a yes or no. Free, no account.",
-    "footer.dataNote": "Data validated {date} from Ollama, HuggingFace and vendor specs.",
+    "footer.dataNote": "Validated {date} against GGUF model repos and vendor spec sheets.",
   },
   es: {
     "nav.models": "Modelos",
@@ -69,7 +69,7 @@ export const ui = {
     "footer.tagline":
       "Comprueba si tu equipo puede ejecutar un modelo de IA en local, y qué herramienta usar, en Mac, Windows, Linux, iOS y Android. Gratis, sin registro.",
     "footer.dataNote":
-      "Datos validados el {date} desde Ollama, HuggingFace y especificaciones de fabricantes.",
+      "Validados el {date} con repositorios GGUF y hojas de especificaciones de fabricantes.",
   },
 } as const;
 

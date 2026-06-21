@@ -426,6 +426,10 @@
 }
 .dark .cmd-chip { background: color-mix(in oklch, oklch(0.3 0.02 272) 58%, transparent); }
 .cmd-chip .d { color: var(--brand-ink); }
+/* Scroll long commands horizontally but never show a track (avoids a persistent
+   scrollbar on systems set to "always show scrollbars"). */
+.cmd-chip .cmd-text { min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.cmd-chip .cmd-text::-webkit-scrollbar { display: none; }
 .cmd-chip .copy { margin-left: auto; color: var(--muted-foreground); cursor: pointer; }
 
 /* ══════════════════════════════════════════════════════════════════════════

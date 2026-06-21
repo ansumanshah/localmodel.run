@@ -300,7 +300,7 @@ export default function Detector() {
           {cmd && (
             <div className="cmd-chip" data-cmd={cmd}>
               <span className="d">$</span>
-              <span className="overflow-x-auto">{cmd}</span>
+              <span className="cmd-text">{cmd}</span>
               <button type="button" className="copy" aria-label="Copy command">
                 copy
               </button>
