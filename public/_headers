@@ -8,14 +8,18 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
   Access-Control-Allow-Origin: *
-  # Edge-cache HTML. IMPORTANT: Cloudflare treats text/html as DYNAMIC and
-  # ignores s-maxage UNLESS a Cache Rule marks the zone "cache eligible / respect
-  # origin TTL" — one exists on this zone's cache phase. With it active, the edge
-  # honours the s-maxage below (verified cf-cache-status: HIT). Browsers always
-  # revalidate (max-age=0); the edge holds 1 day and may serve stale while it
-  # revalidates. CF Pages purges the edge on every deploy, so a push never serves
-  # a stale page. Immutable assets (/_astro/*) keep their own 1-year rule below.
-  Cache-Control: public, max-age=0, s-maxage=86400, stale-while-revalidate=86400
+  # Edge-cache HTML. Two facts make this both work AND stay fresh:
+  #  1. CF treats text/html as DYNAMIC and ignores s-maxage UNLESS a Cache Rule
+  #     marks the zone "cache eligible / respect origin TTL" (one exists on this
+  #     zone's cache phase, ruleId 273b8576). With it, the edge honours s-maxage.
+  #  2. A CF Pages deploy does NOT purge that rule's edge entries (verified), so
+  #     freshness comes from this SHORT s-maxage: each edge copy self-expires
+  #     after 10 min and revalidates against the freshly-deployed origin, so a
+  #     deployed change is live everywhere within ~10 min with no purge needed.
+  # Browsers always revalidate (max-age=0). Keep s-maxage short for that reason:
+  # do NOT raise it without an automated post-deploy purge (the CF token in fnox
+  # lacks the cache-purge scope today). Immutable /_astro/* keep their 1yr rule.
+  Cache-Control: public, max-age=0, s-maxage=600, stale-while-revalidate=86400
   Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt", </.well-known/agent.json>; rel="alternate"; type="application/json"; title="agent-card", </.well-known/api-catalog>; rel="api-catalog", </sitemap-index.xml>; rel="sitemap"
 
 # Hashed assets are immutable
