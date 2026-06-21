@@ -10,9 +10,10 @@ node_modules/
 .env.*
 !.env.example
 
-# private agent/research notes — never commit
+# private agent/research notes + installed skills — never commit (not OSS source)
 .research/
 .claude/
+.agents/
 
 # design-sync workspace (local artifact for claude.ai/design; not site source)
 # holds config.json + NOTES.md (control state) and bundle/ (the uploaded artifact)
