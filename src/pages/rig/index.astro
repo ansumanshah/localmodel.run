@@ -143,9 +143,9 @@ const jsonLd = [
         </div>
         <div class="divide-y divide-border">
           {(Object.entries(GRADE_BLURB) as [Grade, string][]).map(([grade, blurb]) => (
-            <div class="flex items-start gap-4 p-4">
+            <div class="flex items-center gap-3 p-4">
               <span
-                class="mt-0.5 shrink-0 font-mono text-lg font-bold"
+                class="w-6 shrink-0 text-center font-mono text-lg font-bold leading-none"
                 style={`color:${GRADE_FG[grade]}`}
               >
                 {grade}
