@@ -137,10 +137,11 @@ const jsonLd = [
     })();
   </script>
 
-  <!-- Slim coverage strip: a quiet transition into the catalog below -->
-  <div class="bp-strip">
-    <div class="bp-strip-inner">
-      <span class="bp-strip-label">Covers</span>
+  <!-- Coverage strip: structural twin of the runtime band below (same max-w-5xl
+       px-4 inner + label) so "Covers" and "Runs with" share a left edge -->
+  <div class="border-y border-border/60" style="background:color-mix(in oklch,var(--color-brand) 3%,var(--background))">
+    <div class="mx-auto flex max-w-5xl flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3">
+      <span class="shrink-0 font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">Covers</span>
       <span class="bp-strip-item" style="color: var(--modality-text)">Text generation</span>
       <span class="bp-strip-sep" aria-hidden="true">/</span>
       <span class="bp-strip-item" style="color: var(--modality-image)">Image models</span>
@@ -174,14 +175,14 @@ const jsonLd = [
     <p class="bp-eyebrow"><span class="bp-dot" aria-hidden="true"></span>How it works</p>
     <div class="bp-panel mt-4 overflow-x-auto p-6 sm:p-8">
       <svg class="hiw-diagram mx-auto block h-auto w-full" style="max-width:660px;min-width:0" viewBox="0 0 720 132" fill="none" role="img" aria-label="How it works: model size and quant, then memory math, then verdict">
-        <path class="draw" d="M200 66 H260" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
-        <path class="draw" d="M460 66 H520" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
+        <path class="draw" d="M200 66 H248" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
+        <path class="draw" d="M472 66 H520" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
         <rect x="14" y="30" width="186" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
         <text x="34" y="60" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;fill:var(--brand-ink)">01 · MODEL</text>
         <text x="34" y="84" style="font-family:var(--font-sans);font-size:15px;font-weight:600;fill:var(--foreground)">Size × quant</text>
-        <rect x="260" y="30" width="200" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
-        <text x="280" y="60" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;fill:var(--brand-ink)">02 · MEMORY MATH</text>
-        <text x="280" y="84" style="font-family:var(--font-sans);font-size:15px;font-weight:600;fill:var(--foreground)">Weights + KV + overhead</text>
+        <rect x="248" y="30" width="224" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
+        <text x="268" y="60" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;fill:var(--brand-ink)">02 · MEMORY MATH</text>
+        <text x="268" y="84" style="font-family:var(--font-sans);font-size:14px;font-weight:600;fill:var(--foreground)">Weights + KV + overhead</text>
         <rect x="520" y="30" width="186" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
         <text x="540" y="56" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;fill:var(--brand-ink)">03 · VERDICT</text>
         <text x="540" y="78" style="font-family:var(--font-sans);font-size:14px;font-weight:600;fill:var(--foreground)">Yes · Tight · No</text>
