@@ -30,6 +30,11 @@
 /og/*
   Cache-Control: public, max-age=86400
 
+# Embeddable SVG badges (HuggingFace/GitHub READMEs). Long cache; deploy-purge busts it.
+/badge/*
+  Content-Type: image/svg+xml; charset=utf-8
+  Cache-Control: public, max-age=86400
+
 /.well-known/agent.json
   Content-Type: application/json; charset=utf-8
 

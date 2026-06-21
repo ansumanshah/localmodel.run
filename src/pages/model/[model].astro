@@ -208,6 +208,11 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
             <p class="mt-2 text-pretty text-muted-foreground">
               {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
             </p>
+            <p class="mt-3">
+              <a href={`/rig-for/${model.id}`} class="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-ink)] hover:underline">
+                Shopping for hardware? See what runs {model.name} &rarr;
+              </a>
+            </p>
 
             <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
               {model.subtype === "vlm" && (

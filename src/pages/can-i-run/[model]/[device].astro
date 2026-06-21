@@ -486,6 +486,24 @@ if (fits && commands.length > 0) {
       </div>
     </section>
 
+    {isText && (
+      <section class="mt-10">
+        <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Embed this</p>
+        <div class="bp-panel p-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <img src={`/badge/${model.id}/${device.id}.svg`} alt={`${model.name} on ${device.name} compatibility badge`} class="h-5 w-auto" loading="lazy" />
+            <span class="text-sm text-muted-foreground">A live badge for your model card or README, updated as the data is.</span>
+          </div>
+          <div class="mt-3">
+            <Command
+              code={`[![${model.name} on ${device.name}](https://localmodel.run/badge/${model.id}/${device.id}.svg)](https://localmodel.run/can-i-run/${model.id}/${device.id})`}
+              label="Markdown"
+            />
+          </div>
+        </div>
+      </section>
+    )}
+
     <Sources urls={sources} />
 
     <p class="mt-6 text-xs text-muted-foreground">
