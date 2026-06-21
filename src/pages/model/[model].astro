@@ -111,6 +111,9 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
       const minDevice = runnable[0];
       const groups = categoryDevices();
       const ladder = quantLadderSizes(model);
+      // Memory at the recommended quant across context lengths — the long-context
+      // KV blow-up is the #1 OOM gotcha, so show it explicitly.
+      const ctxRows = [4, 32, 128].map((k) => estimateMemory(model, "q4_k_m", k));
       const commands = installCommands(model, "linux");
       const title = `${model.name}: RAM, VRAM & how to run locally · localmodel.run`;
       const description = truncate(
@@ -363,6 +366,33 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                 </script>
               </section>
             )}
+
+            <section class="mt-8">
+              <h2 class="mb-3 text-lg font-semibold">Memory breakdown</h2>
+              <div class="bp-panel p-4">
+                <div class="flex flex-wrap items-end gap-x-5 gap-y-2 text-sm">
+                  <div><span class="bp-stat-label block">Weights (Q4_K_M)</span><span class="text-lg font-bold"><span class="num">{q4.weightsGb}</span> GB</span></div>
+                  <span class="pb-1 text-muted-foreground">+</span>
+                  <div><span class="bp-stat-label block">KV cache (4k)</span><span class="text-lg font-bold"><span class="num">{q4.kvGb}</span> GB</span></div>
+                  <span class="pb-1 text-muted-foreground">+</span>
+                  <div><span class="bp-stat-label block">Overhead</span><span class="text-lg font-bold"><span class="num">{q4.overheadGb}</span> GB</span></div>
+                  <span class="pb-1 text-muted-foreground">=</span>
+                  <div><span class="bp-stat-label block">Total</span><span class="text-lg font-bold text-[var(--brand-ink)]"><span class="num">{q4.totalGb}</span> GB</span></div>
+                </div>
+                <div class="mt-4 border-t border-border pt-3">
+                  <p class="bp-stat-label mb-2">How context length changes it</p>
+                  <div class="flex flex-wrap gap-2">
+                    {ctxRows.map((r, i) => (
+                      <span class="rounded-md border border-border px-2.5 py-1 text-sm">
+                        <span class="text-muted-foreground">{[4, 32, 128][i]}k context</span>
+                        <span class="ml-1.5 font-semibold"><span class="num">~{r.totalGb}</span> GB</span>
+                      </span>
+                    ))}
+                  </div>
+                  <p class="mt-2 text-xs text-muted-foreground">Longer context grows the KV cache. A large context window can need more memory than the weights, so it can push {model.name} past a device that fits it at 4k.</p>
+                </div>
+              </div>
+            </section>
 
             <section class="mt-8 grid gap-6 sm:grid-cols-2">
               <div>
