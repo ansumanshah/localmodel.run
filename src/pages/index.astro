@@ -210,7 +210,7 @@ const jsonLd = [
             </h3>
             <span class="shrink-0 text-xs text-muted-foreground">{m.params_b}B{m.is_moe ? " MoE" : ""}</span>
           </div>
-          <p class="mt-1 text-sm text-muted-foreground">{m.q4_k_m_gb ?? "?"} GB at Q4_K_M · {m.default_context_k}k context</p>
+          <p class="mt-1 text-sm text-muted-foreground"><span class="font-semibold text-foreground">{m.q4_k_m_gb ?? "?"} GB</span> at Q4_K_M · {m.default_context_k}k context</p>
           {m.pulls_text && <p class="mt-0.5 text-xs text-muted-foreground">{m.pulls_text} Ollama pulls</p>}
           <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--color-brand)] group-hover:underline">Requirements →</span>
         </a>

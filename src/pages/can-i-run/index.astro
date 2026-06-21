@@ -69,8 +69,13 @@ const jsonLd = [
                   <div class="flex min-w-0 items-center gap-2.5">
                     <EntityIcon maker={m.family} size={20} class="text-muted-foreground" />
                     <div class="min-w-0">
-                      <div class="truncate text-sm font-medium" transition:name={`model-name-${m.id}`}>{m.name}</div>
-                      <div class="bp-stat-label mt-0.5">{m.params_b}B{m.is_moe ? ` MoE` : ""} &middot; {m.q4_k_m_gb ?? "?"} GB Q4</div>
+                      <div class="truncate text-sm font-semibold text-foreground" transition:name={`model-name-${m.id}`}>{m.name}</div>
+                      <div class="mt-0.5 font-mono text-[11px] uppercase tracking-wide">
+                        <span class="text-muted-foreground">{m.params_b}B{m.is_moe ? " MoE" : ""}</span>
+                        <span class="text-muted-foreground/50"> &middot; </span>
+                        <span class="font-semibold text-[var(--brand-ink)]">{m.q4_k_m_gb ?? "?"} GB</span>
+                        <span class="text-muted-foreground"> Q4</span>
+                      </div>
                     </div>
                   </div>
                   <span class="text-[var(--color-brand)] opacity-60">&rarr;</span>
