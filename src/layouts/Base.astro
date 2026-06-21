@@ -127,25 +127,27 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     <script is:inline>
       // Set theme before paint to avoid flash. An explicit choice (the header
       // toggle) wins; otherwise follow the OS prefers-color-scheme, defaulting
-      // to dark when the OS has no preference.
+      // to dark when the OS has no preference. Re-applied on every view-transition
+      // swap: Astro replaces <html> on navigation, dropping the client-set theme
+      // class, so without this the theme reverts when you move between pages.
       (function () {
-        var root = document.documentElement;
-        try {
-          var t = localStorage.getItem("theme");
-          var prefersLight =
-            t !== "dark" &&
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: light)").matches;
-          if (t === "light" || prefersLight) {
-            root.classList.remove("dark");
-            root.classList.add("light");
-          } else {
+        function applyTheme() {
+          var root = document.documentElement;
+          try {
+            var t = localStorage.getItem("theme");
+            var prefersLight =
+              t !== "dark" &&
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: light)").matches;
+            root.classList.remove("dark", "light");
+            root.classList.add(t === "light" || prefersLight ? "light" : "dark");
+          } catch (_e) {
+            /* matchMedia/localStorage unavailable; keep the default dark theme */
             root.classList.add("dark");
           }
-        } catch (_e) {
-          /* matchMedia/localStorage unavailable; keep the default dark theme */
-          root.classList.add("dark");
         }
+        applyTheme();
+        document.addEventListener("astro:after-swap", applyTheme);
       })();
     </script>
 
