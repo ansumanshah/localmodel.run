@@ -1,0 +1,227 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import { models, devicesByMemory, meta, dedupeSources } from "@/lib/data";
+import { canRun, estimateMemory, quantLadderSizes } from "@/lib/compute";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+import type { ModelRow } from "@/data/types";
+
+// Head-to-head pages for same-family model pairs ("Llama 3.1 8B vs 70B"): which
+// runs on which hardware, side by side. Genuinely unique per pair (the verdict
+// diff + size diff differs every time). Same-family only so no arbitrary curation.
+export function getStaticPaths() {
+  const byFamily: Record<string, ModelRow[]> = {};
+  for (const m of models) (byFamily[m.family] ??= []).push(m);
+  const out: { params: { pair: string }; props: { a: ModelRow; b: ModelRow } }[] = [];
+  for (const fam of Object.values(byFamily)) {
+    if (fam.length < 2) continue;
+    for (let i = 0; i < fam.length; i++) {
+      for (let j = i + 1; j < fam.length; j++) {
+        // Canonical URL: ids sorted so each pair has exactly one page.
+        const [a, b] = [fam[i], fam[j]].sort((x, y) => (x.id < y.id ? -1 : 1));
+        out.push({ params: { pair: `${a.id}-vs-${b.id}` }, props: { a, b } });
+      }
+    }
+  }
+  return out;
+}
+
+const { a, b } = Astro.props;
+// Display smaller model first for a natural "small vs big" read.
+const [s, l] = a.params_b <= b.params_b ? [a, b] : [b, a];
+const path = `/compare/${a.id}-vs-${b.id}`;
+const year = new Date(meta.updated).getFullYear();
+
+const sQ4 = estimateMemory(s, "q4_k_m");
+const lQ4 = estimateMemory(l, "q4_k_m");
+
+// A representative spread of devices across the memory range (deterministic).
+const step = Math.max(1, Math.round(devicesByMemory.length / 12));
+const keyDevices = devicesByMemory.filter((_, i) => i % step === 0);
+const rows = keyDevices.map((d) => ({ device: d, s: canRun(s, d), l: canRun(l, d) }));
+const differ = rows.filter((r) => (r.s.verdict !== "no") !== (r.l.verdict !== "no")).length;
+
+const sLadder = quantLadderSizes(s);
+const lLadder = quantLadderSizes(l);
+
+const fmtElo = (m: ModelRow) => (m.arena_elo ? `Elo ${m.arena_elo}` : "not ranked");
+const eloLine =
+  s.arena_elo && l.arena_elo
+    ? `${(s.arena_elo > l.arena_elo ? s : l).name} scores higher on LMArena (${Math.max(s.arena_elo, l.arena_elo)} vs ${Math.min(s.arena_elo, l.arena_elo)}).`
+    : "";
+
+const sources = dedupeSources(s.sources, l.sources);
+const title = `${s.name} vs ${l.name}: which runs on your hardware? (${year}) · localmodel.run`;
+const description = truncate(
+  `${s.name} needs ~${sQ4.totalGb} GB at Q4_K_M, ${l.name} needs ~${lQ4.totalGb} GB. Side-by-side memory, quant sizes, and which devices run each.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `What is the difference in memory between ${s.name} and ${l.name}?`,
+    a: `At Q4_K_M, ${s.name} needs about ${sQ4.totalGb} GB and ${l.name} needs about ${lQ4.totalGb} GB, a difference of ~${Math.round((lQ4.totalGb - sQ4.totalGb) * 10) / 10} GB. The larger model needs more memory but is generally more capable.`,
+  },
+  {
+    q: `Should I run ${s.name} or ${l.name}?`,
+    a: `Run ${l.name} if your hardware has the ~${lQ4.totalGb} GB it needs and you want maximum quality; run ${s.name} (~${sQ4.totalGb} GB) for lighter hardware, faster responses, and more memory headroom. ${eloLine}`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Compare", url: "/compare" },
+      { name: `${s.name} vs ${l.name}`, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `${s.name} vs ${l.name}`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    speakableSelector: [".verdict-text"],
+    sources,
+  }),
+  faqLd(faqs),
+];
+
+const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 text-sm";
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogImage={`/og/model/${l.id}.png`}
+  ogTitle={`${s.name} vs ${l.name}`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt={`${s.name} versus ${l.name} memory and hardware comparison`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Compare", url: "/compare" },
+        { name: `${s.name} vs ${l.name}`, url: path },
+      ]}
+    />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Head-to-head &middot; {s.family}</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      {s.name} vs {l.name}
+    </h1>
+    <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+      <strong>{s.name} needs ~{sQ4.totalGb} GB</strong> at Q4_K_M; <strong>{l.name} needs ~{lQ4.totalGb} GB</strong>.
+      That ~{Math.round((lQ4.totalGb - sQ4.totalGb) * 10) / 10} GB gap decides which hardware runs each &mdash; they differ on {differ} of the {rows.length} devices below.
+    </p>
+
+    <div class="bp-wire mt-5" aria-hidden="true"></div>
+
+    <!-- Spec diff: pure data, unique per pair -->
+    <section class="mt-6">
+      <div class="bp-panel overflow-hidden">
+        <div class={SpecRow + " bp-panel-header"}>
+          <span class="bp-panel-label">Spec</span>
+          <span class="bp-panel-label min-w-20 text-right">{s.name}</span>
+          <span class="bp-panel-label min-w-20 text-right">{l.name}</span>
+        </div>
+        <div class="divide-y divide-border">
+          <div class={SpecRow}><span class="text-muted-foreground">Parameters</span><span class="text-right font-medium">{s.params_b}B{s.is_moe ? " MoE" : ""}</span><span class="text-right font-medium">{l.params_b}B{l.is_moe ? " MoE" : ""}</span></div>
+          <div class={SpecRow}><span class="text-muted-foreground">Memory at Q4_K_M</span><span class="text-right font-medium">~{sQ4.totalGb} GB</span><span class="text-right font-medium">~{lQ4.totalGb} GB</span></div>
+          <div class={SpecRow}><span class="text-muted-foreground">Context window</span><span class="text-right">{s.default_context_k}k</span><span class="text-right">{l.default_context_k}k</span></div>
+          <div class={SpecRow}><span class="text-muted-foreground">LMArena</span><span class="text-right">{fmtElo(s)}</span><span class="text-right">{fmtElo(l)}</span></div>
+          {(s.license || l.license) && (
+            <div class={SpecRow}><span class="text-muted-foreground">License</span><span class="text-right text-xs">{s.license ?? "—"}</span><span class="text-right text-xs">{l.license ?? "—"}</span></div>
+          )}
+        </div>
+      </div>
+    </section>
+
+    <!-- Device verdicts side by side -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Which devices run each</h2>
+      <div class="bp-panel overflow-hidden">
+        <div class={SpecRow + " bp-panel-header"}>
+          <span class="bp-panel-label">Device</span>
+          <span class="bp-panel-label min-w-20 text-right">{s.name}</span>
+          <span class="bp-panel-label min-w-20 text-right">{l.name}</span>
+        </div>
+        <div class="divide-y divide-border">
+          {rows.map((r) => (
+            <div class={SpecRow}>
+              <a href={`/best-llm-for/${r.device.id}`} class="flex min-w-0 items-center gap-2 hover:underline">
+                <EntityIcon device={r.device.category} size={16} class="text-muted-foreground shrink-0" />
+                <span class="truncate">{r.device.name}</span>
+              </a>
+              <a href={`/can-i-run/${s.id}/${r.device.id}`} class="flex justify-end"><VerdictBadge verdict={r.s.verdict} /></a>
+              <a href={`/can-i-run/${l.id}/${r.device.id}`} class="flex justify-end"><VerdictBadge verdict={r.l.verdict} /></a>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">A representative spread across the memory range. Tap a verdict for the full breakdown.</p>
+    </section>
+
+    <!-- Quant ladder diff -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Size at each quantization</h2>
+      <div class="bp-panel overflow-hidden">
+        <div class={SpecRow + " bp-panel-header"}>
+          <span class="bp-panel-label">Quant</span>
+          <span class="bp-panel-label min-w-20 text-right">{s.name}</span>
+          <span class="bp-panel-label min-w-20 text-right">{l.name}</span>
+        </div>
+        <div class="divide-y divide-border">
+          {sLadder.map((q, i) => (
+            <div class={SpecRow}>
+              <span class="text-muted-foreground">{q.label}</span>
+              <span class="text-right font-medium">{q.gb} GB{q.measured ? "" : "*"}</span>
+              <span class="text-right font-medium">{lLadder[i].gb} GB{lLadder[i].measured ? "" : "*"}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">* derived from bits-per-weight; unstarred sizes are measured GGUF files.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Bottom line</h2>
+      <p class="text-pretty text-muted-foreground">
+        {l.name} is the more capable model but needs ~{lQ4.totalGb} GB; {s.name} runs on lighter hardware at ~{sQ4.totalGb} GB with more headroom and faster responses. {eloLine} Check each against your exact device:
+        <a href={`/rig-for/${s.id}`} class="underline">what runs {s.name}</a> &middot; <a href={`/rig-for/${l.id}`} class="underline">what runs {l.name}</a>.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="bp-panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-8 text-sm text-muted-foreground">
+      Full breakdowns: <a href={`/model/${s.id}`} class="underline">{s.name}</a> &middot; <a href={`/model/${l.id}`} class="underline">{l.name}</a> &middot;
+      <a href="/compare" class="underline">all models &times; devices</a>.
+    </p>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Memory figures are estimates at Q4_K_M, validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>
