@@ -1,0 +1,53 @@
+name: CI
+
+# Typechecks, validates the dataset, and builds the whole site on every PR and
+# every push to main. Cloudflare deploys straight off main, so this is the gate
+# that catches a broken build or bad data before it ships.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".claude/**"
+      - ".design-sync/**"
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+# A newer push to the same ref cancels the in-flight run — no stale builds queueing up.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Cache the resolved package store so installs are near-instant after the first run.
+      - name: Cache bun install
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Validate dataset
+        run: bun run validate-data
+
+      - name: Typecheck
+        run: bun run check
+
+      - name: Build
+        run: bun run build
