@@ -70,7 +70,7 @@ const sources = dedupeSources(model.sources, [need.source]);
     ].map((s) => (
       <div class="bp-panel p-4">
         <div class="bp-stat-label">{s.k}</div>
-        <div class="bp-stat-val mt-1.5 text-lg">{s.v}</div>
+        <div class="bp-stat-val mt-1.5 text-lg"><span class="num">{s.v}</span></div>
       </div>
     ))}
   </section>

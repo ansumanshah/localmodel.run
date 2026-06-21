@@ -124,7 +124,7 @@ const sources = dedupeSources(model.sources, [need.source]);
   <slot />
 
   {model.notes && (
-    <div class="bp-panel mt-8">
+    <div class="bp-panel mt-8 overflow-hidden">
       <div class="bp-panel-header"><span class="bp-panel-label">Notes</span></div>
       <p class="p-4 text-sm text-muted-foreground">{model.notes}</p>
     </div>
