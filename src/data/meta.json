@@ -1,8 +1,8 @@
 {
-  "updated": "2026-06-20",
+  "updated": "2026-06-22",
   "site_updated": "2026-06-20",
   "launched": "2026-06-14",
-  "generated_by": "validated (Ollama + HuggingFace + LMArena text leaderboard + vendor specs)",
+  "generated_by": "cron refresh (Ollama registry + HuggingFace Hub API)",
   "formula_version": "1.1.0",
   "sources": [
     "https://bestgpuforllm.com/articles/nvidia-vs-amd-for-llm/",
