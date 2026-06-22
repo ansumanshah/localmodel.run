@@ -159,6 +159,28 @@ const jsonLd = [
         </p>
       </div>
 
+      <div>
+        <p class="bp-stat-label">Step 08</p>
+        <h2 class="mt-1 text-xl font-semibold">Leaderboard scores</h2>
+        <p class="mt-2 text-muted-foreground">
+          The <a href="/leaderboard" class="underline">leaderboard</a> ranks models on three sourced,
+          third-party benchmarks, never our own numbers:
+        </p>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+          <li><strong class="text-foreground">Coding</strong> is the Aider polyglot benchmark (share of 225 Exercism exercises solved across six languages), read from the Aider repo's published leaderboard data.</li>
+          <li><strong class="text-foreground">Tool use</strong> is the Berkeley Function-Calling Leaderboard (BFCL) Overall Acc, the share of tasks where the model picks the right tool with the right arguments. Where a model has a native function-calling (FC) result we use that, otherwise its prompted result. It is the open, sourced proxy for how agent-ready a model is.</li>
+          <li><strong class="text-foreground">Chat</strong> is LMArena (Chatbot Arena) Elo from blind human votes.</li>
+        </ul>
+        <p class="mt-2 text-sm text-muted-foreground">
+          We list a model on a board only after verifying its score against the canonical leaderboard for that
+          exact model (same family, size, variant and version), so coverage is partial by design and a number is
+          never estimated. Scores are for the full-precision model, not a specific quant, and they drift, so we
+          re-check them. Whole-task agent leaderboards such as Agent Arena are still led by frontier cloud
+          models with open-weight models well behind; we cite them for context but rank on the open, sourced
+          boards above.
+        </p>
+      </div>
+
     </section>
 
     <div class="bp-wire mt-10" aria-hidden="true"></div>

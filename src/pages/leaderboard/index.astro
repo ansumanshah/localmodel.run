@@ -1,0 +1,143 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { meta } from "@/lib/data";
+import { BOARDS, BOARD_ORDER, rankedFor, scoreOf, benchmarkedModels, lightestFit } from "@/lib/leaderboard";
+import { breadcrumbLd, faqLd, itemListLd, truncate, type FaqItem } from "@/lib/seo";
+
+const path = "/leaderboard";
+const tops = Object.fromEntries(BOARD_ORDER.map((k) => [k, rankedFor(k)[0] ?? null]));
+// Reference grid: every model with at least one sourced score, biggest first.
+const grid = benchmarkedModels().sort((a, b) => b.params_b - a.params_b);
+
+const title = "Local LLM leaderboard: coding, tool use & chat, with hardware fit · localmodel.run";
+const description = truncate(
+  `Open-weight models ranked by sourced benchmarks: Aider polyglot coding, BFCL tool use, and LMArena chat Elo. The only local-LLM leaderboard that also tells you which hardware can run the top models.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: "What is the best local LLM right now?",
+    a: `It depends what for. ${tops.coding ? `For coding, ${tops.coding.model.name} leads the Aider polyglot board at ${tops.coding.score}%. ` : ""}${tops["tool-use"] ? `For tool use and agents, ${tops["tool-use"].model.name} tops BFCL at ${tops["tool-use"].score}%. ` : ""}${tops.chat ? `For general chat, ${tops.chat.model.name} has the highest LMArena Elo at ${Math.round(tops.chat.score)}.` : ""}`,
+  },
+  {
+    q: "Why is this leaderboard different?",
+    a: "Every other leaderboard stops at the score. This one ties each ranked model to whether you can actually run it: each row shows the lightest tracked device that fits the model at Q4_K_M, and links to the full hardware breakdown.",
+  },
+  {
+    q: "Where do the scores come from?",
+    a: "Each board is a sourced, third-party benchmark: Aider polyglot for coding, the Berkeley Function-Calling Leaderboard for tool use, and LMArena for chat Elo. We only list a model after verifying its score against the canonical board for that exact model, so coverage is partial by design and never estimated.",
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Leaderboard", url: path }], Astro.site!.href),
+  itemListLd({
+    name: "Local LLM leaderboards",
+    items: BOARD_ORDER.map((k) => ({ name: BOARDS[k].h1, url: `/leaderboard/${BOARDS[k].slug}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogTitle="Local LLM leaderboard" ogType="website">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Leaderboard", url: path }]} />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Leaderboard</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">The local LLM leaderboard</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Open-weight models ranked by sourced benchmarks, coding, tool use, and chat. The difference: every ranked model shows the lightest hardware that runs it at Q4_K_M, so the ranking and your hardware fit live in one place.
+    </p>
+
+    <!-- Board cards -->
+    <div class="mt-6 grid gap-3 sm:grid-cols-3">
+      {BOARD_ORDER.map((k) => {
+        const t = tops[k];
+        return (
+          <a href={`/leaderboard/${BOARDS[k].slug}`} class="bp-panel card-seam group flex flex-col gap-2 p-4 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+            <span class="bp-stat-label">{BOARDS[k].metric}</span>
+            <span class="text-lg font-semibold leading-tight">{BOARDS[k].label}</span>
+            <span class="text-sm text-muted-foreground">{BOARDS[k].blurb}</span>
+            {t && (
+              <span class="mt-1 flex items-center gap-1.5 text-sm">
+                <span class="bp-stat-label">#1</span>
+                <EntityIcon maker={t.model.family} size={15} class="text-muted-foreground" />
+                <span class="truncate font-medium">{t.model.name}</span>
+                <span class="num ml-auto font-bold text-[var(--brand-ink)]">{BOARDS[k].unit === "%" ? `${t.score}%` : Math.round(t.score)}</span>
+              </span>
+            )}
+          </a>
+        );
+      })}
+    </div>
+
+    {grid.length > 0 && (
+      <section class="mt-8">
+        <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Every benchmarked model</p>
+        <div class="bp-panel overflow-x-auto">
+          <table class="w-full text-sm">
+            <caption class="sr-only">Every benchmarked model: coding, tool-use, and chat scores</caption>
+            <thead>
+              <tr class="border-b border-border text-left">
+                <th scope="col" class="px-3 py-2 font-medium">Model</th>
+                <th scope="col" class="px-2 py-2 text-right font-medium" title="Aider polyglot coding %">Code</th>
+                <th scope="col" class="px-2 py-2 text-right font-medium" title="BFCL tool-use %">Tools</th>
+                <th scope="col" class="px-2 py-2 text-right font-medium" title="LMArena chat Elo">Elo</th>
+                <th scope="col" class="hidden px-2 py-2 text-right font-medium sm:table-cell">Runs on</th>
+              </tr>
+            </thead>
+            <tbody>
+              {grid.map((m) => {
+                const fit = lightestFit(m);
+                const cell = (k: "coding" | "tool-use" | "chat") => {
+                  const s = scoreOf(m, k);
+                  if (s == null) return <span class="text-muted-foreground/40">&mdash;</span>;
+                  return <span class="num font-semibold">{k === "chat" ? Math.round(s) : `${s}%`}</span>;
+                };
+                return (
+                  <tr class="border-b border-border/60 last:border-0">
+                    <td class="px-3 py-2">
+                      <a href={`/model/${m.id}`} class="flex items-center gap-2 hover:underline">
+                        <EntityIcon maker={m.family} size={16} class="shrink-0 text-muted-foreground" />
+                        <span class="truncate font-medium">{m.name}</span>
+                        <span class="shrink-0 text-xs text-muted-foreground">{m.params_b < 1 ? `${Math.round(m.params_b * 1000)}M` : `${m.params_b}B`}</span>
+                      </a>
+                    </td>
+                    <td class="px-2 py-2 text-right">{cell("coding")}</td>
+                    <td class="px-2 py-2 text-right">{cell("tool-use")}</td>
+                    <td class="px-2 py-2 text-right">{cell("chat")}</td>
+                    <td class="hidden px-2 py-2 text-right text-xs text-muted-foreground sm:table-cell">
+                      <a href={`/rig-for/${m.id}`} class="hover:text-foreground" title={fit.device ? `Hardware that runs ${m.name}` : `${m.name} needs ~${fit.neededGb} GB, more than any single tracked device`}>{fit.device ? fit.device.name : `${fit.neededGb} GB+`}</a>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-xs text-muted-foreground">
+          A dash means we have no verified score for that model on that board. Scores are full-precision; memory and the "runs on" device are computed at Q4_K_M. Sorted by size, biggest first. See each board for the ranked view.
+        </p>
+      </section>
+    )}
+
+    <section class="mt-10">
+      <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>FAQ</p>
+      <div class="bp-panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Benchmark scores are third-party and sourced (Aider, BFCL, LMArena); we list a model only after verifying its score against the canonical board. Memory and fit are computed, validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

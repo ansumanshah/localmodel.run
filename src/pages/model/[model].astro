@@ -21,6 +21,7 @@ import {
   meta,
 } from "@/lib/data";
 import { canRun, estimateMemory, quantLadderSizes, weightsGb, kvCacheGb } from "@/lib/compute";
+import { BOARDS, BOARD_ORDER, rankedFor, scoreOf } from "@/lib/leaderboard";
 import { canRunModality, modalityNeed, modalitySpec } from "@/lib/compute-mm";
 import { gaugeCompute } from "@/lib/gauge-glass";
 import {
@@ -119,6 +120,13 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
       // Dense models only (we don't put a tok/s bound on MoE).
       const w4 = weightsGb(model, "q4_k_m");
       const speed128Pct = !model.is_moe ? Math.round((w4 / (w4 + kvCacheGb(model, 128))) * 100) : null;
+      // Sourced leaderboard scores for THIS model, with its rank on each board.
+      const boardScores = BOARD_ORDER.flatMap((k) => {
+        const s = scoreOf(model, k);
+        if (s == null) return [];
+        const ranked = rankedFor(k);
+        return [{ board: BOARDS[k], score: s, rank: ranked.findIndex((r) => r.model.id === model.id) + 1, total: ranked.length }];
+      });
       const commands = installCommands(model, "linux");
       const title = `${model.name}: RAM, VRAM & how to run locally · localmodel.run`;
       const description = truncate(
@@ -401,6 +409,24 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                 </div>
               </div>
             </section>
+
+            {boardScores.length > 0 && (
+              <section class="mt-8">
+                <h2 id="benchmarks" class="mb-3 scroll-mt-20 text-lg font-semibold">Benchmark scores</h2>
+                <div class="bp-panel divide-y divide-border">
+                  {boardScores.map((b) => (
+                    <a href={`/leaderboard/${b.board.slug}`} class="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
+                      <div class="min-w-0">
+                        <p class="font-medium">{b.board.metric} <span class="text-sm font-normal text-muted-foreground">&middot; {b.board.label.toLowerCase()}</span></p>
+                        <p class="bp-stat-label mt-0.5">#{b.rank} of {b.total} ranked &middot; {b.board.blurb}</p>
+                      </div>
+                      <span class="num shrink-0 text-xl font-bold text-[var(--brand-ink)]">{b.board.unit === "%" ? `${b.score}%` : Math.round(b.score)}</span>
+                    </a>
+                  ))}
+                </div>
+                <p class="mt-2 text-xs text-muted-foreground">Sourced third-party benchmarks for the full-precision {model.name}, not a specific quant. See the full <a href="/leaderboard" class="underline">leaderboard</a>.</p>
+              </section>
+            )}
 
             <section class="mt-8 grid gap-6 sm:grid-cols-2">
               <div>

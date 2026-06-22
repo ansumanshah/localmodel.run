@@ -17,7 +17,8 @@
       "https://ollama.com/library/llama3.1",
       "https://ollama.com/library/llama3.1/tags",
       "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Q4_K_M and Q8_0 sizes from bartowski HF repo. Default ollama tag pulls 4.9GB Q4_K_M. Min RAM estimate includes model + small KV cache overhead.",
     "pulls": 111000000,
@@ -29,7 +30,8 @@
     "hf_likes": 6079,
     "license": "Llama 3.1 Community",
     "commercial_use": "conditional",
-    "license_note": "Llama 3.1 Community License: free under 700M MAU."
+    "license_note": "Llama 3.1 Community License: free under 700M MAU.",
+    "bfcl_v3_acc": 25.8
   },
   {
     "id": "llama-3.3-70b",
@@ -49,7 +51,8 @@
       "https://ollama.com/library/llama3.3",
       "https://ollama.com/library/llama3.3/tags",
       "https://huggingface.co/bartowski/Llama-3.3-70B-Instruct-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Released December 6, 2024. Delivers near-405B performance at 70B cost. Q4_K_M and Q8_0 sizes from bartowski HF repo cross-validated against Ollama tags page (43GB and 75GB displayed).",
     "pulls": 3400000,
@@ -61,7 +64,8 @@
     "hf_likes": 2820,
     "license": "Llama 3.3 Community",
     "commercial_use": "conditional",
-    "license_note": "Llama 3.3 Community License: free under 700M MAU."
+    "license_note": "Llama 3.3 Community License: free under 700M MAU.",
+    "bfcl_v3_acc": 31.9
   },
   {
     "id": "llama-3.2-3b",
@@ -81,7 +85,8 @@
       "https://ollama.com/library/llama3.2",
       "https://ollama.com/library/llama3.2/tags",
       "https://huggingface.co/unsloth/Llama-3.2-3B-Instruct-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Released September 25, 2024. Text-only edge model. Ollama default tag is 3B at 2.0GB. HF unsloth repo confirms 2.02GB Q4_K_M and 3.42GB Q8_0.",
     "pulls": 59500000,
@@ -93,7 +98,8 @@
     "hf_likes": 2228,
     "license": "Llama 3.2 Community",
     "commercial_use": "conditional",
-    "license_note": "Llama 3.2 Community License: free under 700M MAU."
+    "license_note": "Llama 3.2 Community License: free under 700M MAU.",
+    "bfcl_v3_acc": 22
   },
   {
     "id": "llama-3.2-1b",
@@ -113,7 +119,8 @@
       "https://ollama.com/library/llama3.2",
       "https://ollama.com/library/llama3.2/tags",
       "https://huggingface.co/unsloth/Llama-3.2-1B-Instruct-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Released September 25, 2024. Smallest Llama model for edge/on-device use. Ollama tag shows 1.3GB (Q8_0 equivalent default). HF unsloth confirms Q4_K_M at 808MB (~0.81GB) and Q8_0 at 1.32GB.",
     "pulls": 59500000,
@@ -125,7 +132,8 @@
     "hf_likes": 1480,
     "license": "Llama 3.2 Community",
     "commercial_use": "conditional",
-    "license_note": "Llama 3.2 Community License: free under 700M MAU."
+    "license_note": "Llama 3.2 Community License: free under 700M MAU.",
+    "bfcl_v3_acc": 10.8
   },
   {
     "id": "mistral-7b",
@@ -208,7 +216,8 @@
       "https://ollama.com/library/phi4",
       "https://ollama.com/library/phi4/tags",
       "https://huggingface.co/bartowski/phi-4-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Released December 12, 2024 by Microsoft. Strong math and reasoning. Default context 16K. Ollama shows 9.1GB; bartowski HF gives precise 9.05GB Q4_K_M and 15.58GB Q8_0.",
     "pulls": 7300000,
@@ -219,7 +228,8 @@
     "hf_downloads": 714082,
     "hf_likes": 2254,
     "license": "MIT",
-    "commercial_use": "yes"
+    "commercial_use": "yes",
+    "bfcl_v3_acc": 28.8
   },
   {
     "id": "phi-4-mini-3.8b",
@@ -333,7 +343,8 @@
       "https://ollama.com/library/gemma3",
       "https://ollama.com/library/gemma3/tags",
       "https://huggingface.co/bartowski/google_gemma-3-4b-it-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Released March 12, 2025. Multimodal (text + image), 140+ languages. Ollama shows 3.3GB default; bartowski HF (google_gemma-3-4b-it-GGUF) gives precise 2.49GB Q4_K_M and 4.13GB Q8_0.",
     "pulls": 32800000,
@@ -345,7 +356,8 @@
     "hf_likes": 1367,
     "license": "Gemma",
     "commercial_use": "conditional",
-    "license_note": "Gemma Terms of Use apply to commercial use."
+    "license_note": "Gemma Terms of Use apply to commercial use.",
+    "bfcl_v3_acc": 19.6
   },
   {
     "id": "gemma-3-12b",
@@ -365,7 +377,8 @@
       "https://ollama.com/library/gemma3",
       "https://ollama.com/library/gemma3/tags",
       "https://huggingface.co/bartowski/google_gemma-3-12b-it-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Released March 12, 2025. Multimodal (text + image), 140+ languages. Ollama shows 8.1GB default; bartowski HF (google_gemma-3-12b-it-GGUF) gives precise 7.30GB Q4_K_M and 12.51GB Q8_0.",
     "pulls": 32800000,
@@ -377,7 +390,8 @@
     "hf_likes": 754,
     "license": "Gemma",
     "commercial_use": "conditional",
-    "license_note": "Gemma Terms of Use apply to commercial use."
+    "license_note": "Gemma Terms of Use apply to commercial use.",
+    "bfcl_v3_acc": 30.4
   },
   {
     "id": "gemma-3-27b",
@@ -397,7 +411,9 @@
       "https://ollama.com/library/gemma3",
       "https://ollama.com/library/gemma3/tags",
       "https://huggingface.co/bartowski/google_gemma-3-27b-it-GGUF",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://aider.chat/docs/leaderboards/",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Released March 12, 2025. Multimodal (text + image), 140+ languages. Ollama shows 17GB default; bartowski HF (google_gemma-3-27b-it-GGUF) gives precise 16.55GB Q4_K_M and 28.71GB Q8_0.",
     "pulls": 32800000,
@@ -409,7 +425,9 @@
     "hf_likes": 1978,
     "license": "Gemma",
     "commercial_use": "conditional",
-    "license_note": "Gemma Terms of Use apply to commercial use."
+    "license_note": "Gemma Terms of Use apply to commercial use.",
+    "aider_polyglot_pct": 4.9,
+    "bfcl_v3_acc": 29.5
   },
   {
     "id": "qwen2.5-7b",
@@ -550,7 +568,8 @@
     "sources": [
       "https://ollama.com/library/qwen3/tags",
       "https://huggingface.co/Qwen/Qwen3-8B-GGUF",
-      "https://qwenlm.github.io/blog/qwen3/"
+      "https://qwenlm.github.io/blog/qwen3/",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Official Qwen/Qwen3-8B-GGUF HF repo lists Q4_K_M=5.03GB, Q8_0=8.71GB. Ollama library shows 5.2GB (rounded). Qwen3 released 2025-04-29. Context 32K native, extendable to 128K via YaRN.",
     "pulls": 23000000,
@@ -561,7 +580,8 @@
     "hf_downloads": 8574959,
     "hf_likes": 1140,
     "license": "Apache-2.0",
-    "commercial_use": "yes"
+    "commercial_use": "yes",
+    "bfcl_v3_acc": 42.6
   },
   {
     "id": "qwen3-14b",
@@ -580,7 +600,8 @@
     "sources": [
       "https://ollama.com/library/qwen3/tags",
       "https://huggingface.co/Qwen/Qwen3-14B-GGUF",
-      "https://qwenlm.github.io/blog/qwen3/"
+      "https://qwenlm.github.io/blog/qwen3/",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Official Qwen/Qwen3-14B-GGUF HF repo lists Q4_K_M=9GB, Q8_0=15.7GB. Confirmed by Ollama tags page (9.3GB rounded) and search cross-check. Context 32K native, 128K via YaRN.",
     "pulls": 23000000,
@@ -591,7 +612,8 @@
     "hf_downloads": 1121997,
     "hf_likes": 407,
     "license": "Apache-2.0",
-    "commercial_use": "yes"
+    "commercial_use": "yes",
+    "bfcl_v3_acc": 41
   },
   {
     "id": "qwen3-32b",
@@ -611,7 +633,9 @@
       "https://ollama.com/library/qwen3/tags",
       "https://huggingface.co/Qwen/Qwen3-32B-GGUF",
       "https://qwenlm.github.io/blog/qwen3/",
-      "https://lmarena.ai/leaderboard"
+      "https://lmarena.ai/leaderboard",
+      "https://aider.chat/docs/leaderboards/",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Official Qwen/Qwen3-32B-GGUF HF repo lists Q4_K_M=19.8GB, Q8_0=34.8GB. Cross-checked with Ollama tags page (20GB rounded). Context 32K native, 128K via YaRN.",
     "pulls": 23000000,
@@ -622,7 +646,9 @@
     "hf_downloads": 2286082,
     "hf_likes": 702,
     "license": "Apache-2.0",
-    "commercial_use": "yes"
+    "commercial_use": "yes",
+    "aider_polyglot_pct": 40,
+    "bfcl_v3_acc": 48.7
   },
   {
     "id": "qwen3-30b-a3b",
@@ -949,7 +975,8 @@
       "https://ollama.com/library/qwen3:0.6b",
       "https://huggingface.co/bartowski/Qwen_Qwen3-0.6B-GGUF",
       "https://github.com/QwenLM/Qwen3",
-      "https://apxml.com/models/qwen3-1-7b"
+      "https://apxml.com/models/qwen3-1-7b",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Smallest Qwen3 dense model. Supports thinking/non-thinking dual mode, 32K native context (extendable to 128K via YaRN). Designed for extreme edge and on-device use.",
     "arena_elo": null,
@@ -960,7 +987,8 @@
     "hf_downloads": 17378902,
     "hf_likes": 1325,
     "license": "Apache-2.0",
-    "commercial_use": "yes"
+    "commercial_use": "yes",
+    "bfcl_v3_acc": 23.9
   },
   {
     "id": "qwen3-1.7b",
@@ -980,7 +1008,8 @@
       "https://ollama.com/library/qwen3:1.7b",
       "https://huggingface.co/bartowski/Qwen_Qwen3-1.7B-GGUF",
       "https://github.com/QwenLM/Qwen3",
-      "https://apxml.com/models/qwen3-1-7b"
+      "https://apxml.com/models/qwen3-1-7b",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Dual-mode (thinking/non-thinking) 1.7B dense model. 32K native context (YaRN to 128K). Strong instruction-following and tool-use for its class.",
     "arena_elo": null,
@@ -991,7 +1020,8 @@
     "hf_downloads": 3686191,
     "hf_likes": 485,
     "license": "Apache-2.0",
-    "commercial_use": "yes"
+    "commercial_use": "yes",
+    "bfcl_v3_acc": 28.4
   },
   {
     "id": "qwen3-4b",
@@ -1073,7 +1103,8 @@
       "https://ollama.com/library/gemma3:1b",
       "https://huggingface.co/bartowski/google_gemma-3-1b-it-GGUF",
       "https://developers.googleblog.com/en/introducing-gemma3/",
-      "https://llm-stats.com/models/gemma-3-1b-it"
+      "https://llm-stats.com/models/gemma-3-1b-it",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Google's ultra-small Gemma 3 model. 32K context, multilingual support, strong reasoning for 1B scale. Designed to run on a single GPU or phone-class hardware.",
     "arena_elo": null,
@@ -1085,7 +1116,8 @@
     "hf_likes": 1008,
     "license": "Gemma",
     "commercial_use": "conditional",
-    "license_note": "Gemma Terms of Use apply to commercial use."
+    "license_note": "Gemma Terms of Use apply to commercial use.",
+    "bfcl_v3_acc": 7.2
   },
   {
     "id": "smollm2-135m",
@@ -1622,7 +1654,8 @@
       "https://ollama.com/library/deepseek-r1",
       "https://ollama.com/library/deepseek-r1/tags",
       "https://huggingface.co/unsloth/DeepSeek-R1-GGUF",
-      "https://huggingface.co/deepseek-ai/DeepSeek-R1"
+      "https://huggingface.co/deepseek-ai/DeepSeek-R1",
+      "https://aider.chat/docs/leaderboards/"
     ],
     "notes": "DeepSeek R1, 671B sparse MoE (37B active). Q4_K_M is ~377GB across a 9-file series, beyond any consumer device. unsloth 1.58-bit dynamic quants run in ~140-160GB, so a 192GB Mac Studio can run it slowly. Size from the unsloth GGUF repo, cross-checked against the Ollama 671B tag.",
     "pulls": null,
@@ -1632,7 +1665,8 @@
     "hf_repo": "unsloth/DeepSeek-R1-GGUF",
     "hf_id": "deepseek-ai/DeepSeek-R1",
     "hf_downloads": 4435374,
-    "hf_likes": 13391
+    "hf_likes": 13391,
+    "aider_polyglot_pct": 56.9
   },
   {
     "id": "deepseek-v3",
@@ -1652,7 +1686,8 @@
       "https://ollama.com/library/deepseek-v3",
       "https://ollama.com/library/deepseek-v3/tags",
       "https://huggingface.co/unsloth/DeepSeek-V3-0324-GGUF",
-      "https://huggingface.co/deepseek-ai/DeepSeek-V3-0324"
+      "https://huggingface.co/deepseek-ai/DeepSeek-V3-0324",
+      "https://aider.chat/docs/leaderboards/"
     ],
     "notes": "DeepSeek V3 (0324 build), 671B sparse MoE (37B active). Q4_K_M is ~377GB across a 9-file series. Low-bit dynamic quants fit ~150GB. Size from the unsloth GGUF repo.",
     "pulls": null,
@@ -1662,7 +1697,8 @@
     "hf_repo": "unsloth/DeepSeek-V3-0324-GGUF",
     "hf_id": "deepseek-ai/DeepSeek-V3-0324",
     "hf_downloads": 527375,
-    "hf_likes": 3129
+    "hf_likes": 3129,
+    "aider_polyglot_pct": 55.1
   },
   {
     "id": "qwen3-235b-a22b",
@@ -1682,7 +1718,8 @@
       "https://ollama.com/library/qwen3",
       "https://ollama.com/library/qwen3/tags",
       "https://huggingface.co/unsloth/Qwen3-235B-A22B-GGUF",
-      "https://huggingface.co/Qwen/Qwen3-235B-A22B"
+      "https://huggingface.co/Qwen/Qwen3-235B-A22B",
+      "https://aider.chat/docs/leaderboards/"
     ],
     "notes": "Qwen3 235B sparse MoE (22B active). Q4_K_M ~132GB, fits a 192GB Mac. Size from the unsloth GGUF repo, exact-matched to the Ollama 235B tag.",
     "pulls": null,
@@ -1692,7 +1729,8 @@
     "hf_repo": "unsloth/Qwen3-235B-A22B-GGUF",
     "hf_id": "Qwen/Qwen3-235B-A22B",
     "hf_downloads": 428387,
-    "hf_likes": 1095
+    "hf_likes": 1095,
+    "aider_polyglot_pct": 59.6
   },
   {
     "id": "llama-4-scout",
@@ -1712,7 +1750,8 @@
       "https://ollama.com/library/llama4",
       "https://ollama.com/library/llama4/tags",
       "https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF",
-      "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct"
+      "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Llama 4 Scout, 109B MoE (17B active), natively multimodal with very long context. Q4_K_M ~61GB across a 2-file series. Size from the unsloth GGUF repo (Ollama llama4:scout is a comparable ~63GB build).",
     "pulls": 1700000,
@@ -1723,7 +1762,8 @@
     "hf_repo": "unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF",
     "hf_id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
     "hf_downloads": 368521,
-    "hf_likes": 1304
+    "hf_likes": 1304,
+    "bfcl_v3_acc": 28.1
   },
   {
     "id": "gpt-oss-20b",
@@ -1773,7 +1813,8 @@
       "https://ollama.com/library/gpt-oss",
       "https://ollama.com/library/gpt-oss/tags",
       "https://huggingface.co/ggml-org/gpt-oss-120b-GGUF",
-      "https://huggingface.co/openai/gpt-oss-120b"
+      "https://huggingface.co/openai/gpt-oss-120b",
+      "https://aider.chat/docs/leaderboards/"
     ],
     "notes": "OpenAI gpt-oss 120B, MoE (5.1B active). Native MXFP4; the official ggml-org GGUF is ~59GB, so it fits an 80GB GPU or a 96GB+ Mac.",
     "pulls": null,
@@ -1783,7 +1824,8 @@
     "hf_repo": "ggml-org/gpt-oss-120b-GGUF",
     "hf_id": "openai/gpt-oss-120b",
     "hf_downloads": 2844394,
-    "hf_likes": 4886
+    "hf_likes": 4886,
+    "aider_polyglot_pct": 41.8
   },
   {
     "id": "yi-1.5-34b",
@@ -1893,7 +1935,8 @@
       "https://ollama.com/library/falcon3",
       "https://ollama.com/library/falcon3/tags",
       "https://huggingface.co/bartowski/Falcon3-10B-Instruct-GGUF",
-      "https://huggingface.co/tiiuae/Falcon3-10B-Instruct"
+      "https://huggingface.co/tiiuae/Falcon3-10B-Instruct",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "TII Falcon3 10B. Q4_K_M and Q8_0 sizes from the bartowski GGUF repo, exact-matched to the Ollama falcon3:10b tag.",
     "pulls": 2600000,
@@ -1903,7 +1946,8 @@
     "hf_repo": "bartowski/Falcon3-10B-Instruct-GGUF",
     "hf_id": "tiiuae/Falcon3-10B-Instruct",
     "hf_downloads": 3063,
-    "hf_likes": 117
+    "hf_likes": 117,
+    "bfcl_v3_acc": 27
   },
   {
     "id": "granite-4.0-h-small",
@@ -2496,7 +2540,9 @@
     "sources": [
       "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
       "https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF",
-      "https://ollama.com/library/llama4"
+      "https://ollama.com/library/llama4",
+      "https://aider.chat/docs/leaderboards/",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "The larger Llama 4: 400B total / 17B active across 128 experts, 1M context. Needs server-class memory even at Q4.",
     "arena_elo": null,
@@ -2507,7 +2553,9 @@
     "hf_id": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
     "license": "Llama 4 Community License",
     "commercial_use": "conditional",
-    "license_note": "Llama 4 Community License; commercial use allowed below Meta's user threshold."
+    "license_note": "Llama 4 Community License; commercial use allowed below Meta's user threshold.",
+    "aider_polyglot_pct": 15.6,
+    "bfcl_v3_acc": 37.3
   },
   {
     "id": "deepseek-r1-0528",
@@ -2530,7 +2578,8 @@
       "https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/Q8_0",
       "https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/BF16",
       "https://openrouter.ai/deepseek/deepseek-r1-0528",
-      "https://ollama.com/library/deepseek-r1:671b"
+      "https://ollama.com/library/deepseek-r1:671b",
+      "https://aider.chat/docs/leaderboards/"
     ],
     "notes": "The May 2025 update to DeepSeek-R1 (671B MoE, 37B active). Deeper reasoning; runs only on a multi-GPU rig or a large Mac cluster.",
     "arena_elo": null,
@@ -2540,7 +2589,8 @@
     "hf_repo": "unsloth/DeepSeek-R1-0528-GGUF",
     "hf_id": "deepseek-ai/DeepSeek-R1-0528",
     "license": "MIT",
-    "commercial_use": "yes"
+    "commercial_use": "yes",
+    "aider_polyglot_pct": 71.4
   },
   {
     "id": "deepseek-r1-0528-qwen3-8b",
@@ -2740,7 +2790,9 @@
       "https://huggingface.co/api/models/CohereLabs/c4ai-command-a-03-2025",
       "https://huggingface.co/lmstudio-community/c4ai-command-a-03-2025-GGUF",
       "https://huggingface.co/bartowski/CohereForAI_c4ai-command-a-03-2025-GGUF/tree/main",
-      "https://ollama.com/library/command-a/tags"
+      "https://ollama.com/library/command-a/tags",
+      "https://aider.chat/docs/leaderboards/",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Cohere's 111B flagship with a 256K context, strong for RAG and tool use. Non-commercial license.",
     "arena_elo": null,
@@ -2751,7 +2803,9 @@
     "hf_id": "CohereLabs/c4ai-command-a-03-2025",
     "license": "cc-by-nc-4.0",
     "commercial_use": "no",
-    "license_note": "cc-by-nc-4.0: non-commercial use only."
+    "license_note": "cc-by-nc-4.0: non-commercial use only.",
+    "aider_polyglot_pct": 12,
+    "bfcl_v3_acc": 46.5
   },
   {
     "id": "glm-4.6",
@@ -2831,7 +2885,9 @@
       "https://huggingface.co/moonshotai/Kimi-K2-Instruct",
       "https://huggingface.co/unsloth/Kimi-K2-Instruct-GGUF",
       "https://ollama.com/library/kimi-k2",
-      "https://www.hpcwire.com/2025/07/16/chinas-moonshot-ai-releases-trillion-parameter-model-kimi-k2/"
+      "https://www.hpcwire.com/2025/07/16/chinas-moonshot-ai-releases-trillion-parameter-model-kimi-k2/",
+      "https://aider.chat/docs/leaderboards/",
+      "https://gorilla.cs.berkeley.edu/leaderboard.html"
     ],
     "notes": "Moonshot's 1T-parameter MoE (32B active). One of the largest open models; needs a serious cluster even at Q4.",
     "arena_elo": null,
@@ -2842,7 +2898,9 @@
     "hf_id": "moonshotai/Kimi-K2-Instruct",
     "license": "Modified MIT",
     "commercial_use": "conditional",
-    "license_note": "Modified MIT; commercial use allowed below a large-user threshold."
+    "license_note": "Modified MIT; commercial use allowed below a large-user threshold.",
+    "aider_polyglot_pct": 59.1,
+    "bfcl_v3_acc": 59.1
   },
   {
     "id": "hunyuan-a13b",

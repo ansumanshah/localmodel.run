@@ -1,0 +1,175 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { meta } from "@/lib/data";
+import { BOARDS, BOARD_ORDER, rankedFor, lightestFit } from "@/lib/leaderboard";
+import { breadcrumbLd, faqLd, itemListLd, truncate, type FaqItem } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return BOARD_ORDER.map((key) => ({ params: { board: BOARDS[key].slug }, props: { key } }));
+}
+
+const { key } = Astro.props;
+const board = BOARDS[key];
+const path = `/leaderboard/${board.slug}`;
+const ranked = rankedFor(key);
+const top = ranked[0];
+const fmt = (n: number) => (board.unit === "%" ? `${n}%` : String(Math.round(n)));
+
+const title = `${board.h1} (${board.metric}) · localmodel.run`;
+const description = truncate(
+  `${ranked.length} open-weight models ranked by ${board.metric} (${board.blurb.toLowerCase()}) and whether your hardware can run them. ${top ? `${top.model.name} leads at ${fmt(top.score)}.` : ""}`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `What is the best local model for ${key === "chat" ? "general chat" : board.label.toLowerCase()}?`,
+    a: top
+      ? `${top.model.name} tops this board at ${fmt(top.score)} on ${board.metric}. ${(() => {
+          const f = lightestFit(top.model);
+          return f.device
+            ? `It needs ~${f.neededGb} GB at Q4_K_M, so the lightest hardware that runs it is ${f.device.name}.`
+            : `It needs ~${f.neededGb} GB at Q4_K_M, more than any single tracked device, so it wants a high-memory rig.`;
+        })()}`
+      : `Scores are being verified against the canonical ${board.metric} leaderboard and will appear here once confirmed.`,
+  },
+  {
+    q: `How is this ${board.label.toLowerCase()} leaderboard scored?`,
+    a: `${board.longBlurb} We only list a model after verifying its score against the canonical leaderboard for that exact model, so coverage is partial by design. Source: ${board.sourceLabel}.`,
+  },
+  {
+    q: `Can I run these models locally?`,
+    a: `Every row shows the lightest tracked device that runs the model at Q4_K_M and links to the full hardware list, so you see the ranking and your hardware fit together.`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Leaderboard", url: "/leaderboard" },
+      { name: board.label, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  itemListLd({
+    name: `${board.h1} (${board.metric})`,
+    items: ranked.slice(0, 30).map((r) => ({ name: r.model.name, url: `/model/${r.model.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogTitle={board.h1} ogType="website">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Leaderboard", url: "/leaderboard" }, { name: board.label, url: path }]} />
+
+    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Leaderboard &middot; {board.metric}</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">{board.h1}</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">{board.longBlurb}</p>
+
+    <!-- Board switcher (page navigation, not an ARIA tabs widget) -->
+    <nav class="mt-6 flex flex-wrap gap-2" aria-label="Leaderboards">
+      {BOARD_ORDER.map((k) => (
+        <a
+          href={`/leaderboard/${BOARDS[k].slug}`}
+          class:list={[
+            "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+            k === key
+              ? "border-[var(--color-brand)] bg-[color-mix(in_oklch,var(--color-brand)_12%,transparent)] text-foreground"
+              : "border-border text-muted-foreground hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground",
+          ]}
+          aria-current={k === key ? "page" : undefined}
+        >
+          {BOARDS[k].label}
+        </a>
+      ))}
+    </nav>
+
+    {ranked.length === 0 ? (
+      <p class="mt-8 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
+        Scores for this board are being verified against {board.sourceLabel} and will appear once confirmed. We never publish a benchmark number we have not checked against the source.
+      </p>
+    ) : (
+      <section class="mt-6">
+        <div class="bp-panel overflow-hidden">
+          <div class="bp-panel-header">
+            <span class="bp-panel-label">{ranked.length} models &middot; ranked by {board.metric}</span>
+            <span class="bp-panel-label">runs on</span>
+          </div>
+          <ol class="divide-y divide-border" aria-label={`${ranked.length} models ranked by ${board.metric}`}>
+            {ranked.map((r) => {
+              const fit = lightestFit(r.model);
+              return (
+                <li class="flex items-center gap-3 px-3 py-3 sm:px-4">
+                  <span class="w-6 shrink-0 text-center font-mono text-sm font-bold text-muted-foreground">{r.rank}</span>
+                  <span class="num w-14 shrink-0 text-right text-lg font-bold text-[var(--brand-ink)] sm:w-16">{fmt(r.score)}</span>
+                  <a href={`/model/${r.model.id}`} class="flex min-w-0 flex-1 items-center gap-2 hover:underline">
+                    <EntityIcon maker={r.model.family} size={18} class="shrink-0 text-muted-foreground" />
+                    <span class="truncate text-sm font-medium">{r.model.name}</span>
+                    <span class="shrink-0 text-xs text-muted-foreground">{r.model.params_b < 1 ? `${Math.round(r.model.params_b * 1000)}M` : `${r.model.params_b}B`}{r.model.is_moe ? " MoE" : ""}</span>
+                  </a>
+                  <a
+                    href={`/rig-for/${r.model.id}`}
+                    class="hidden shrink-0 text-right text-xs text-muted-foreground hover:text-foreground sm:block"
+                    title={`Hardware that runs ${r.model.name}`}
+                    tabindex="-1"
+                  >
+                    {fit.device ? <>{fit.device.name}<span class="block bp-stat-label">~{fit.neededGb} GB</span></> : <>big rig<span class="block bp-stat-label">~{fit.neededGb} GB</span></>}
+                  </a>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+        <p class="mt-3 text-xs text-muted-foreground">
+          Score is {board.metric} ({board.blurb.toLowerCase()}), sourced from <a href={board.source} rel="noopener nofollow" class="underline">{board.sourceLabel}</a>. The "runs on" column is the lightest tracked device that runs the model at Q4_K_M; tap a model for the full hardware list. Coverage is partial: only models we verified against the canonical board appear.
+        </p>
+      </section>
+    )}
+
+    {key === "tool-use" && (
+      <section class="mt-8">
+        <div class="bp-panel p-5">
+          <p class="bp-stat-label mb-2">On agentic leaderboards</p>
+          <p class="text-sm text-muted-foreground">
+            BFCL tests a concrete capability: does the model call the right tool with the right arguments? Newer agent-focused boards such as <a href="https://arena.ai/leaderboard/agent" rel="noopener nofollow" class="underline">Agent Arena</a> rank whole-task orchestration, where today's leaders are still frontier cloud models and open-weight models are well behind. BFCL is the open, sourced signal that covers the local models you can actually run.
+          </p>
+        </div>
+      </section>
+    )}
+
+    <section class="mt-8">
+      <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Other boards</p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {BOARD_ORDER.filter((k) => k !== key).map((k) => (
+          <a href={`/leaderboard/${BOARDS[k].slug}`} class="bp-panel card-seam group flex flex-col gap-1 px-4 py-3 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+            <span class="font-semibold">{BOARDS[k].h1}</span>
+            <span class="text-sm text-muted-foreground">{BOARDS[k].blurb}</span>
+          </a>
+        ))}
+      </div>
+      <p class="mt-4 text-sm text-muted-foreground">
+        Or pick by what you need with <a href="/best-for" class="underline">use-case picks</a>, or browse the full <a href="/can-i-run" class="underline">model list</a>.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>FAQ</p>
+      <div class="bp-panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Benchmark scores are third-party, sourced from {board.sourceLabel}, and reflect the full-precision model, not a specific quant. Memory and fit are computed at Q4_K_M, validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>
