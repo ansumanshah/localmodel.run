@@ -3,10 +3,11 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import icon from "astro-icon";
-// Tailwind v4 runs via PostCSS (postcss.config.mjs). The @tailwindcss/vite
-// plugin DOES work at Astro 6.4.8 (tested: correct CSS, clean build) but the
-// prod build measured slower (~38s vs ~23s), so PostCSS stays. Revisit only if
-// dev HMR becomes a pain point.
+import tailwindcss from "@tailwindcss/vite";
+// Tailwind v4 runs via the @tailwindcss/vite plugin. Under Astro 7 (Vite 8 /
+// Rolldown) the old PostCSS path broke: postcss-import could not resolve
+// `@import "tailwindcss"`. The Vite plugin is the recommended v4 setup and
+// resolves it natively. `@import "tailwindcss"` stays in global.css.
 
 // Canonical production origin. Override via SITE_URL at build time (Cloudflare Pages).
 const SITE = process.env.SITE_URL || "https://localmodel.run";
@@ -16,6 +17,11 @@ export default defineConfig({
   site: SITE,
   output: "static",
   trailingSlash: "never",
+  // Astro 7 changed the compressHTML default from `true` (HTML-aware) to `'jsx'`
+  // (strips more whitespace). Pin `true` to keep the v6 output exactly, important
+  // for the whitespace-sensitive <code>/command blocks. Revisit after visual QA.
+  compressHTML: true,
+  vite: { plugins: [tailwindcss()] },
   // `file` (page.html) over `directory` (page/index.html): on Cloudflare Pages
   // this serves the no-trailing-slash URL directly (200), so the sitemap and
   // canonical (both trailingSlash:"never") match the served URL with no 308 hop.
