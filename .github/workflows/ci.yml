@@ -95,12 +95,12 @@ jobs:
         with:
           name: mobile-audit-failures
           path: playwright-failures/
+          if-no-files-found: ignore
 
       # Submit the freshly-built sitemap URLs to IndexNow (Bing/Yandex/Naver + the
-      # AI engines on the Bing index). Reads dist/ from disk — a datacenter IP
+      # AI engines on the Bing index). Reads dist/ from disk: a datacenter IP
       # fetching the public sitemap is blocked by CF Bot Fight Mode. Main pushes
       # only, so PRs don't ping it. node has global fetch.
       - name: Submit URLs to IndexNow
         if: "github.ref == 'refs/heads/main' && github.event_name == 'push'"
         run: node scripts/indexnow.mjs
-          if-no-files-found: ignore
