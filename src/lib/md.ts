@@ -110,7 +110,7 @@ export function modelMarkdown(model: ModelRow): string {
     `## Will it run on my device?`,
     ...sample.map(
       (x) =>
-        `- **${x.d.name}** (${x.d.memory_gb} GB): ${verdictLabel(x.r.verdict)}${x.r.upgradeQuant ? ` — room for ${QUANT_LABEL[x.r.upgradeQuant]}` : ""}`,
+        `- **${x.d.name}** (${x.d.memory_gb} GB): ${verdictLabel(x.r.verdict)}${x.r.upgradeQuant ? ` (room for ${QUANT_LABEL[x.r.upgradeQuant]})` : ""}`,
     ),
     ``,
     `Full table of all ${devices.length} devices: https://localmodel.run/model/${model.id}`,
