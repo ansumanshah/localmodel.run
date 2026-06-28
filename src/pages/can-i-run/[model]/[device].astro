@@ -132,6 +132,21 @@ const otherDevices = devices
   .sort((a, b) => a.memory_gb - b.memory_gb)
   .slice(0, 6);
 
+// "No"-verdict enrichment: a page-specific shortfall line plus the lightest
+// hardware that DOES run this model. All computed (the shortfall in GB, the
+// lightest compatible device), so every "No" page carries unique, useful prose
+// instead of near-identical boilerplate. otherDevices is sorted lightest-first.
+const lightestRunner = otherDevices[0] ?? null;
+const shortfallGb = Math.round((neededGb - usable) * 10) / 10;
+const whyNotFit =
+  !fits && !result.noRuntime
+    ? `The gap is about ${shortfallGb} GB: ${model.name} needs roughly ${neededGb} GB${isText ? " at Q4_K_M" : ""} and ${device.name} leaves only about ${usable} GB usable for a model. ${
+        lightestRunner
+          ? `The lightest tracked hardware that runs ${model.name} is the ${lightestRunner.name} at ${lightestRunner.memory_gb} GB.`
+          : `No single tracked device has enough memory; ${model.name} needs a multi-GPU or high-memory rig.`
+      }`
+    : null;
+
 const path = `/can-i-run/${model.id}/${device.id}`;
 const titleBase = `Can I run ${model.name} on ${device.name}?`;
 const title = titleBase.length <= 48 ? `${titleBase} · localmodel.run` : titleBase;
@@ -297,6 +312,11 @@ if (fits && commands.length > 0) {
             <MemoryBar neededGb={neededGb} usableGb={usable} fits={fits} />
             <p class="mt-3 text-sm text-muted-foreground">{result.reason}</p>
             {varianceNote && <p class="mt-2 text-xs text-muted-foreground">{varianceNote}</p>}
+            {whyNotFit && (
+              <p class="mt-2 text-sm text-muted-foreground">
+                {whyNotFit}{lightestRunner && <> <a href={`/can-i-run/${model.id}/${lightestRunner.id}`} class="underline underline-offset-2">See {model.name} on {lightestRunner.name}</a>.</>}
+              </p>
+            )}
             {offloadTps != null && (
               <p class="mt-2 text-xs text-muted-foreground">
                 Too big for {device.name}'s VRAM, but you could offload some layers to system RAM and still run it at roughly <span class="num">~{offloadTps}</span> tok/s, far slower than a model that fits. <a href="/methodology" class="underline">How this is estimated</a>.

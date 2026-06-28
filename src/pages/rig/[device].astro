@@ -6,7 +6,7 @@ import EntityIcon from "@/components/EntityIcon.astro";
 import RigCard from "@/components/RigCard.astro";
 import { devices, modelsBySize, meta } from "@/lib/data";
 import { canRun } from "@/lib/compute";
-import { rigScore, GRADE_BLURB, GRADE_COLOR, GRADE_FG } from "@/lib/rig";
+import { rigScore, GRADE_BLURB, GRADE_FG } from "@/lib/rig";
 import { breadcrumbLd, techArticleLd, faqLd, truncate, type FaqItem } from "@/lib/seo";
 
 export function getStaticPaths() {
@@ -26,6 +26,23 @@ const top = modelsBySize
   .sort((a, b) => b.m.params_b - a.m.params_b)
   .slice(0, 6);
 
+// Device-tier prose so each rig page carries real, page-specific content instead
+// of a near-identical card. All derived from the device's own specs + coverage.
+const memWord =
+  device.memory_type === "vram" ? "VRAM" : device.memory_type === "unified" ? "unified memory" : "system RAM";
+const classAdvice: Record<string, string> = {
+  mac: `Apple Silicon shares one ${device.memory_gb} GB pool between CPU and GPU, so almost all of it is available to a model. MLX and llama.cpp Metal builds give the best speed here; close memory-heavy apps before loading a large model.`,
+  nvidia: `Only the ${device.memory_gb} GB of VRAM drives speed: a model that spills into system RAM slows sharply. Keep the weights plus KV cache under VRAM and prefer Q4_K_M to leave headroom.`,
+  amd: `Only the ${device.memory_gb} GB of VRAM drives speed: a model that spills into system RAM slows sharply. Keep the weights plus KV cache under VRAM and prefer Q4_K_M to leave headroom.`,
+  laptop: `With no discrete GPU, generation runs on the CPU and is bound by memory bandwidth. Models under about 8B stay responsive; larger ones load but generate slowly.`,
+  iphone: `On-device models run through apps like PocketPal. Stay under about 4B parameters for usable speed and keep the context short to limit memory.`,
+  android: `On-device models run through apps like PocketPal. Stay under about 4B parameters for usable speed and keep the context short to limit memory.`,
+};
+const advice = classAdvice[device.category] ?? classAdvice.laptop;
+const tierBlurb = `At ${device.memory_gb} GB of ${memWord}, ${device.name} runs ${score.runnable} of ${score.total} tracked local models, ${score.pct}% coverage that earns a ${score.grade}.${
+  score.biggest ? ` The largest it handles is ${score.biggest.name} at ${score.biggest.params_b}B parameters;` : ""
+} anything bigger needs more memory or a lower quantization.`;
+
 const title = `${device.name} Rig Score: ${score.grade} · localmodel.run`;
 const description = truncate(
   `${device.name} scores ${score.grade} for local AI: runs ${score.runnable} of ${score.total} models (${score.pct}%). Biggest it can run: ${score.biggest?.name ?? "-"}. Check your rig.`,
@@ -38,6 +55,14 @@ const rigFaqs: FaqItem[] = [
   {
     q: `What local AI rig score does ${device.name} get?`,
     a: `${device.name} scores ${score.grade}: it runs ${score.runnable} of ${score.total} tracked local LLMs (${score.pct}%). The biggest it can run is ${score.biggest?.name ?? "none in the tracked set"}.`,
+  },
+  {
+    q: `How big a model can ${device.name} run?`,
+    a: `${score.biggest ? `${device.name} runs models up to ${score.biggest.name} (${score.biggest.params_b}B parameters) at Q4_K_M. ` : ""}${memWord === "VRAM" ? "Speed depends on keeping the whole model inside VRAM" : memWord === "unified memory" ? "Its memory is shared with the system, so leave a few GB for the OS" : "Generation runs on the CPU, so smaller models stay the most responsive"}.`,
+  },
+  {
+    q: `Is ${device.name} good for running local LLMs?`,
+    a: advice,
   },
 ];
 
@@ -130,6 +155,15 @@ const jsonLd = [
         <span class="bp-panel-label hidden sm:block">localmodel.run</span>
       </div>
     </div>
+
+    <!-- What this device can run (device-tier prose) -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">What {device.name} can run</h2>
+      <div class="bp-panel space-y-3 p-5 text-sm text-muted-foreground">
+        <p>{tierBlurb}</p>
+        <p>{advice}</p>
+      </div>
+    </section>
 
     <!-- Top models section -->
     <section class="mt-8">
