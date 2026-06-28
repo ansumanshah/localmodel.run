@@ -1,9 +1,16 @@
 // @ts-check
+import { readFileSync } from "node:fs";
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import icon from "astro-icon";
 import tailwindcss from "@tailwindcss/vite";
+
+// Sitemap lastmod = the date the DATA last changed (meta.updated), NOT the build
+// time. A uniform build timestamp moves on every code-only deploy, which Google
+// discounts as synthetic freshness; meta.updated only advances when the catalog
+// actually changes (the weekly cron), so it is an honest per-crawl signal.
+const meta = JSON.parse(readFileSync(new URL("./src/data/meta.json", import.meta.url), "utf8"));
 // Tailwind v4 runs via the @tailwindcss/vite plugin. Under Astro 7 (Vite 8 /
 // Rolldown) the old PostCSS path broke: postcss-import could not resolve
 // `@import "tailwindcss"`. The Vite plugin is the recommended v4 setup and
@@ -48,7 +55,7 @@ export default defineConfig({
     sitemap({
       changefreq: "weekly",
       priority: 0.7,
-      lastmod: new Date(),
+      lastmod: new Date(meta.updated),
       i18n: {
         defaultLocale: "en",
         locales: { en: "en-US", es: "es-ES" },

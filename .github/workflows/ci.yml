@@ -70,11 +70,15 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          # Keyed on the playwright version (in package.json), not bun.lock, so an
+          # unrelated dep change does not bust the browser cache.
+          key: playwright-${{ runner.os }}-${{ hashFiles('package.json') }}
           restore-keys: playwright-${{ runner.os }}-
 
+      # No --with-deps: ubuntu-latest already ships the OS libs Chromium needs,
+      # and --with-deps re-runs apt-get every build regardless of the binary cache.
       - name: Install Playwright Chromium
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install chromium
 
       - name: Mobile render audit
         env:
