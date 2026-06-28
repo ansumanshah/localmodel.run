@@ -52,13 +52,3 @@ jobs:
           done
           echo "Purge failed after 3 attempts." >&2
           exit 1
-
-      # Submit every sitemap URL to IndexNow so Bing/Yandex/Naver (and the AI
-      # engines that read the Bing index: ChatGPT Search, Copilot) discover
-      # changed pages within minutes instead of waiting for organic crawl. Google
-      # ignores IndexNow (it uses the sitemap). The key file is already verified;
-      # this wires up the missing submission half. node has global fetch.
-      - name: Checkout (for the IndexNow script)
-        uses: actions/checkout@v7
-      - name: Submit URLs to IndexNow
-        run: node scripts/indexnow.mjs

@@ -4,21 +4,32 @@
 // (ChatGPT Search + Copilot read the Bing index, so this is the fastest path
 // to AI-engine discovery.) Google does not consume IndexNow; it relies on the
 // sitemap + GSC. Run: `bun run indexnow` (or `node scripts/indexnow.mjs`).
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+
 const HOST = "localmodel.run";
 const KEY = "c30d7513e2b133d69c5383720ca87eba";
 const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 const SITEMAP_INDEX = `https://${HOST}/sitemap-index.xml`;
 
-async function locs(url) {
+const extractLocs = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim());
+
+async function fetchLocs(url) {
+  // A datacenter IP fetching the PUBLIC sitemap is blocked by Cloudflare Bot
+  // Fight Mode (403), so this fetch path is only for a local run; CI reads dist/.
   const res = await fetch(url, { headers: { "User-Agent": "localmodel-run-indexnow" } });
   if (!res.ok) throw new Error(`fetch ${url} -> ${res.status}`);
-  const xml = await res.text();
-  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim());
+  return extractLocs(await res.text());
 }
 
-const children = await locs(SITEMAP_INDEX);
-const all = [];
-for (const child of children) all.push(...(await locs(child)));
+let all = [];
+if (existsSync("dist/sitemap-index.xml")) {
+  const files = readdirSync("dist").filter((f) => /^sitemap-\d+\.xml$/.test(f));
+  all = files.flatMap((f) => extractLocs(readFileSync(`dist/${f}`, "utf8")));
+  console.log(`Read ${all.length} URLs from ${files.length} local dist/ sitemap(s).`);
+} else {
+  const children = await fetchLocs(SITEMAP_INDEX);
+  for (const child of children) all.push(...(await fetchLocs(child)));
+}
 const urls = [...new Set(all)].filter((u) => u.startsWith(`https://${HOST}`));
 console.log(`Submitting ${urls.length} URLs to IndexNow…`);
 
