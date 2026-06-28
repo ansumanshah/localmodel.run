@@ -21,6 +21,19 @@ const BIG_CAP = Number(process.env.BIG_CAP ?? 40);
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 6);
 const SHOT = resolve("playwright-failures");
 
+// Viewport: default iPhone 13 (390px). Override with VIEWPORT="360x800" to test
+// narrower floors (360 = mainstream Android, 320 = conservative minimum).
+const _dev = devices["iPhone 13"];
+const _vp = process.env.VIEWPORT;
+const CTX_OPTS = _vp
+  ? (() => {
+      const [w, h] = _vp.split("x").map(Number);
+      const size = { width: w, height: h || 800 };
+      return { ..._dev, viewport: size, screen: size };
+    })()
+  : _dev;
+const WIDTH_LABEL = _vp ? `${_vp.split("x")[0]}px` : "390px (iPhone 13)";
+
 // Non-viewport assets: SVG badges, OG PNGs, JSON APIs, markdown alternates.
 const EXCLUDE = /^\/(_astro|og|api|badge)\b/;
 
@@ -68,7 +81,7 @@ function enumerateUrls() {
 }
 
 async function checkPage(browser, url) {
-  const ctx = await browser.newContext({ ...devices["iPhone 13"] });
+  const ctx = await browser.newContext({ ...CTX_OPTS });
   const page = await ctx.newPage();
   const errors = [];
   page.on("console", (m) => m.type() === "error" && errors.push(m.text().slice(0, 160)));
@@ -113,7 +126,7 @@ async function checkPage(browser, url) {
 async function main() {
   rmSync(SHOT, { recursive: true, force: true });
   const { urls, total, shapes } = enumerateUrls();
-  console.log(`Mobile audit @ ${BASE} (iPhone 13, 390px)`);
+  console.log(`Mobile audit @ ${BASE} (${WIDTH_LABEL})`);
   console.log(`${total} HTML pages in ${shapes} route shapes; testing ${urls.length} (every template + sampled parametric).`);
 
   const browser = await chromium.launch();

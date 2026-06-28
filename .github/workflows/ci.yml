@@ -60,10 +60,12 @@ jobs:
       - name: Audit internal links
         run: bun scripts/audit-links.ts
 
-      # Headless phone-viewport render check on the built dist/. Fails on
+      # Headless phone-viewport render check on the built dist/. Runs at 360px,
+      # the mainstream Android floor (stricter than iPhone's 390px), and fails on
       # horizontal overflow, a leaked desktop nav, console/page errors, non-200,
-      # or a blank page — the gate that would have caught the mobile header
-      # regression (component CSS `display` beating Tailwind's `.hidden`).
+      # or a blank page. Catches both the header `display` regression and the
+      # grid/flex `min-w-0` overflow class (a table pinning a grid item wider
+      # than its column on narrow screens).
       - name: Cache Playwright browser
         uses: actions/cache@v5
         with:
@@ -77,6 +79,7 @@ jobs:
       - name: Mobile render audit
         env:
           CONCURRENCY: 4
+          VIEWPORT: 360x800
         run: |
           bun run preview &
           for i in $(seq 1 30); do curl -sf http://localhost:4321/ >/dev/null && break; sleep 1; done
