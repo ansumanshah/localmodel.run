@@ -43,7 +43,3 @@ export function useCasesFor(m: ModelRow): UseCase[] {
   if (/sarvam|exaone|ernie/.test(s)) out.push("multilingual");
   return out;
 }
-
-export function hasUseCase(m: ModelRow, uc: UseCase): boolean {
-  return useCasesFor(m).includes(uc);
-}
