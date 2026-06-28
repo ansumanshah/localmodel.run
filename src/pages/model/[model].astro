@@ -429,7 +429,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
             )}
 
             <section class="mt-8 grid gap-6 sm:grid-cols-2">
-              <div>
+              <div class="min-w-0">
                 <h2 class="mb-3 text-lg font-semibold">Quantization sizes</h2>
                 <div class="bp-panel overflow-hidden">
                   <div class="bp-panel-header"><span class="bp-panel-label">GGUF quants</span><span class="bp-panel-label">on disk</span></div>
@@ -452,7 +452,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                 </div>
                 <p class="mt-2 text-xs text-muted-foreground">Lower quant = smaller and faster, slightly lower quality. Q4_K_M is the common default.</p>
               </div>
-              <div>
+              <div class="min-w-0">
                 <h2 class="mb-3 text-lg font-semibold">Run it</h2>
                 {commands.length > 0 ? (
                   <div class="space-y-2.5">
