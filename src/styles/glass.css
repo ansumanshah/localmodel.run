@@ -314,7 +314,10 @@
   background: var(--color-verdict-yes);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-verdict-yes) 25%, transparent);
 }
-.gh-nav { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+/* display is owned by the Tailwind `hidden sm:flex` utilities on the element, so
+   this rule must NOT set `display` (it would override `.hidden` on mobile and
+   render the full desktop nav inside the capsule). Cosmetics only. */
+.gh-nav { margin-left: auto; align-items: center; gap: 2px; }
 .gh-nav a {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -353,12 +356,15 @@
   padding: 10px 12px;
   font-size: 14px;
   color: var(--foreground);
-  background: color-mix(in oklch, var(--card) 58%, transparent);
-  border: 1px solid color-mix(in oklch, var(--glass-rim) 85%, transparent);
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  /* A form control needs a clearly visible, theme-adaptive border (the white
+     --glass-rim bevel vanished on the warm-paper hero — read as "no border").
+     --foreground at low alpha stays visible in both themes. */
+  border: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition: border-color var(--t-fast), box-shadow var(--t-fast);
 }
-.dark .gfield { background: color-mix(in oklch, oklch(0.3 0.02 272) 58%, transparent); }
+.dark .gfield { background: color-mix(in oklch, oklch(0.3 0.02 272) 58%, transparent); border-color: color-mix(in oklch, white 18%, transparent); }
 .gfield:focus-within,
 .gfield:hover { border-color: color-mix(in oklch, var(--color-brand) 45%, transparent); }
 .gfield select {
@@ -796,7 +802,10 @@
   .gh { gap: 6px; padding: 8px 8px 8px 14px; border-radius: 26px; width: calc(100% - 16px); margin: 8px auto 2px; top: 8px; }
   /* .gh-nav is hidden on mobile (the hamburger panel is used) — no scroll strip. */
   .gh-brand { font-size: 14px; }
-  .gh > .icon-btn { margin-left: auto; }
+  /* Only the first control (theme toggle) absorbs the free space, so theme +
+     hamburger sit together on the right (the gap keeps them as one group) rather
+     than splitting the space and stranding the toggle in the middle. */
+  .gh > #theme-toggle { margin-left: auto; }
 
   /* touch targets ≥ 44px */
   .gbtn, .gbtn--primary { padding: 13px 18px; min-height: 44px; }
@@ -1006,6 +1015,44 @@
 .matrix .cell.y { color: var(--verdict-yes-fg); background: color-mix(in oklch, var(--color-verdict-yes) 14%, transparent); }
 .matrix .cell.t { color: var(--verdict-tight-fg); background: color-mix(in oklch, var(--color-verdict-tight) 14%, transparent); }
 .matrix .cell.n { color: var(--verdict-no-fg); background: color-mix(in oklch, var(--color-verdict-no) 12%, transparent); }
+
+/* ── Leaderboard hub: every-benchmarked-model grid ────────────────────────── */
+/* A sparse matrix (most models sit on one board). Grouped score columns + quiet
+   empties so present numbers read as data and blanks read as normal, not broken.
+   min-width keeps the score block from crushing on phones; the panel scrolls-x. */
+.lb-grid { width: 100%; min-width: 660px; border-collapse: collapse; font-size: 13px; }
+.lb-grid thead th {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted-foreground); font-weight: 500;
+  padding: 8px 12px; white-space: nowrap;
+}
+.lb-grid thead .lb-group {
+  text-align: center;
+  color: color-mix(in oklch, var(--brand-ink) 70%, var(--muted-foreground));
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  padding-bottom: 4px;
+}
+.lb-grid thead tr:last-child th { padding-top: 4px; }
+.lb-grid tbody th, .lb-grid tbody td {
+  padding: 9px 12px; vertical-align: middle;
+  border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+}
+.lb-grid tbody tr:hover { background: color-mix(in oklch, var(--color-brand) 4%, transparent); }
+.lb-grid .lb-model { text-align: left; font-weight: 500; }
+.lb-grid .lb-model a { min-width: 0; }
+.lb-grid .lb-sc { width: 72px; text-align: right; }
+/* a hairline before the score cluster and before "runs on" sets each block apart */
+.lb-grid .lb-sc-lead { border-left: 1px solid color-mix(in oklch, var(--border) 45%, transparent); }
+.lb-grid .lb-runs {
+  text-align: right; white-space: nowrap; font-size: 12px; color: var(--muted-foreground);
+  border-left: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+}
+.lb-grid .lb-runs a:hover { color: var(--foreground); }
+.lb-grid .lb-val {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+  font-weight: 600; color: var(--brand-ink);
+}
+.lb-grid .lb-none { color: color-mix(in oklch, var(--muted-foreground) 28%, transparent); }
 
 /* ── How-it-works animated diagram (SVG line-draw) ────────────────────────── */
 .hiw-diagram path.draw { stroke-dasharray: var(--len, 200); stroke-dashoffset: var(--len, 200); }

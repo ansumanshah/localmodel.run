@@ -10,6 +10,25 @@ const path = "/leaderboard";
 const tops = Object.fromEntries(BOARD_ORDER.map((k) => [k, rankedFor(k)[0] ?? null]));
 // Reference grid: every model with at least one sourced score, biggest first.
 const grid = benchmarkedModels().sort((a, b) => b.params_b - a.params_b);
+// Precompute each row (scores + lightest-fit device) in the frontmatter so the
+// template map stays a flat paren-body return — a block-body arrow with a nested
+// arrow next to a <table> trips the Astro compiler's expression scanner.
+const gridRows = grid.map((m) => {
+  const fit = lightestFit(m);
+  const chat = scoreOf(m, "chat");
+  return {
+    id: m.id,
+    name: m.name,
+    family: m.family,
+    size: m.params_b < 1 ? `${Math.round(m.params_b * 1000)}M` : `${m.params_b}B`,
+    coding: scoreOf(m, "coding"),
+    tools: scoreOf(m, "tool-use"),
+    chat: chat == null ? null : Math.round(chat),
+    fitDevice: fit.device ? fit.device.name : null,
+    fitTitle: fit.device ? `Hardware that runs ${m.name}` : `${m.name} needs ~${fit.neededGb} GB, more than any single tracked device`,
+    neededGb: fit.neededGb,
+  };
+});
 
 const title = "Local LLM leaderboard: coding, tool use & chat, with hardware fit · localmodel.run";
 const description = truncate(
@@ -43,14 +62,16 @@ const jsonLd = [
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} ogTitle="Local LLM leaderboard" ogType="website">
-  <div class="mx-auto max-w-3xl px-4 py-8">
+  <div class="mx-auto max-w-5xl px-4 py-8">
     <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Leaderboard", url: path }]} />
 
-    <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Leaderboard</p>
-    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">The local LLM leaderboard</h1>
-    <p class="mt-4 text-pretty text-lg text-muted-foreground">
-      Open-weight models ranked by sourced benchmarks, coding, tool use, and chat. The difference: every ranked model shows the lightest hardware that runs it at Q4_K_M, so the ranking and your hardware fit live in one place.
-    </p>
+    <div class="max-w-3xl">
+      <p class="bp-eyebrow mt-4"><span class="bp-dot" aria-hidden="true"></span>Leaderboard</p>
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">The local LLM leaderboard</h1>
+      <p class="mt-4 text-pretty text-lg text-muted-foreground">
+        Open-weight models ranked by sourced benchmarks, coding, tool use, and chat. The difference: every ranked model shows the lightest hardware that runs it at Q4_K_M, so the ranking and your hardware fit live in one place.
+      </p>
+    </div>
 
     <!-- Board cards -->
     <div class="mt-6 grid gap-3 sm:grid-cols-3">
@@ -78,48 +99,44 @@ const jsonLd = [
       <section class="mt-8">
         <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Every benchmarked model</p>
         <div class="bp-panel overflow-x-auto">
-          <table class="w-full text-sm">
-            <caption class="sr-only">Every benchmarked model: coding, tool-use, and chat scores</caption>
+          <div class="bp-panel-header">
+            <span class="bp-panel-label">{grid.length} models, every sourced score</span>
+            <span class="bp-panel-label">Q4_K_M fit</span>
+          </div>
+          <table class="lb-grid">
+            <caption class="sr-only">Every benchmarked model with its coding, tool-use and chat scores, and the lightest device that runs it.</caption>
             <thead>
-              <tr class="border-b border-border text-left">
-                <th scope="col" class="px-3 py-2 font-medium">Model</th>
-                <th scope="col" class="px-2 py-2 text-right font-medium" title="Aider polyglot coding %">Code</th>
-                <th scope="col" class="px-2 py-2 text-right font-medium" title="BFCL tool-use %">Tools</th>
-                <th scope="col" class="px-2 py-2 text-right font-medium" title="LMArena chat Elo">Elo</th>
-                <th scope="col" class="hidden px-2 py-2 text-right font-medium sm:table-cell">Runs on</th>
+              <tr>
+                <th scope="col" class="lb-model">Model</th>
+                <th scope="col" class="lb-sc lb-sc-lead" title="Aider polyglot coding %">Code</th>
+                <th scope="col" class="lb-sc" title="BFCL tool-use %">Tools</th>
+                <th scope="col" class="lb-sc" title="LMArena chat Elo">Elo</th>
+                <th scope="col" class="lb-runs">Runs on</th>
               </tr>
             </thead>
             <tbody>
-              {grid.map((m) => {
-                const fit = lightestFit(m);
-                const cell = (k: "coding" | "tool-use" | "chat") => {
-                  const s = scoreOf(m, k);
-                  if (s == null) return <span class="text-muted-foreground/40">&mdash;</span>;
-                  return <span class="num font-semibold">{k === "chat" ? Math.round(s) : `${s}%`}</span>;
-                };
-                return (
-                  <tr class="border-b border-border/60 last:border-0">
-                    <td class="px-3 py-2">
-                      <a href={`/model/${m.id}`} class="flex items-center gap-2 hover:underline">
-                        <EntityIcon maker={m.family} size={16} class="shrink-0 text-muted-foreground" />
-                        <span class="truncate font-medium">{m.name}</span>
-                        <span class="shrink-0 text-xs text-muted-foreground">{m.params_b < 1 ? `${Math.round(m.params_b * 1000)}M` : `${m.params_b}B`}</span>
-                      </a>
-                    </td>
-                    <td class="px-2 py-2 text-right">{cell("coding")}</td>
-                    <td class="px-2 py-2 text-right">{cell("tool-use")}</td>
-                    <td class="px-2 py-2 text-right">{cell("chat")}</td>
-                    <td class="hidden px-2 py-2 text-right text-xs text-muted-foreground sm:table-cell">
-                      <a href={`/rig-for/${m.id}`} class="hover:text-foreground" title={fit.device ? `Hardware that runs ${m.name}` : `${m.name} needs ~${fit.neededGb} GB, more than any single tracked device`}>{fit.device ? fit.device.name : `${fit.neededGb} GB+`}</a>
-                    </td>
-                  </tr>
-                );
-              })}
+              {gridRows.map((r) => (
+                <tr>
+                  <td class="lb-model">
+                    <a href={`/model/${r.id}`} class="flex items-center gap-2 hover:text-[var(--brand-ink)]">
+                      <EntityIcon maker={r.family} size={16} class="shrink-0 text-muted-foreground" />
+                      <span class="truncate font-medium">{r.name}</span>
+                      <span class="shrink-0 text-xs font-normal text-muted-foreground">{r.size}</span>
+                    </a>
+                  </td>
+                  <td class="lb-sc lb-sc-lead">{r.coding == null ? <span class="lb-none" aria-hidden="true">&middot;</span> : <span class="lb-val">{r.coding}%</span>}</td>
+                  <td class="lb-sc">{r.tools == null ? <span class="lb-none" aria-hidden="true">&middot;</span> : <span class="lb-val">{r.tools}%</span>}</td>
+                  <td class="lb-sc">{r.chat == null ? <span class="lb-none" aria-hidden="true">&middot;</span> : <span class="lb-val">{r.chat}</span>}</td>
+                  <td class="lb-runs">
+                    <a href={`/rig-for/${r.id}`} class="hover:text-foreground" title={r.fitTitle}>{r.fitDevice ? r.fitDevice : `${r.neededGb} GB+`}</a>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
         <p class="mt-3 text-xs text-muted-foreground">
-          A dash means we have no verified score for that model on that board. Scores are full-precision; memory and the "runs on" device are computed at Q4_K_M. Sorted by size, biggest first. See each board for the ranked view.
+          A model appears once it has at least one verified score; a dot means no checked score on that board yet (coverage is partial by design, never estimated). Scores are full-precision; memory and the "runs on" device are computed at Q4_K_M. Sorted by size, biggest first. See each board above for the ranked view.
         </p>
       </section>
     )}
