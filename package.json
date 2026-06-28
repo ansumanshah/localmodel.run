@@ -21,6 +21,7 @@
     "update-data": "node scripts/update-data.mjs",
     "validate-data": "node scripts/validate-data.mjs",
     "audit:links": "bun scripts/audit-links.ts",
+    "audit:mobile": "bun scripts/mobile-audit.mjs",
     "check:freshness": "bun scripts/check-freshness.ts",
     "check:public": "node scripts/pre-public-checklist.mjs",
     "indexnow": "node scripts/indexnow.mjs"
@@ -48,6 +49,7 @@
     "@tailwindcss/postcss": "^4.3.1",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
+    "playwright": "^1.61.1",
     "typescript": "^6.0.3"
   }
 }

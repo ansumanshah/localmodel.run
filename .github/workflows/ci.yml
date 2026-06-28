@@ -59,3 +59,33 @@ jobs:
       # (orphan pages are reported but don't fail). The OSS Screaming-Frog stand-in.
       - name: Audit internal links
         run: bun scripts/audit-links.ts
+
+      # Headless phone-viewport render check on the built dist/. Fails on
+      # horizontal overflow, a leaked desktop nav, console/page errors, non-200,
+      # or a blank page — the gate that would have caught the mobile header
+      # regression (component CSS `display` beating Tailwind's `.hidden`).
+      - name: Cache Playwright browser
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+
+      - name: Mobile render audit
+        env:
+          CONCURRENCY: 4
+        run: |
+          bun run preview &
+          for i in $(seq 1 30); do curl -sf http://localhost:4321/ >/dev/null && break; sleep 1; done
+          bun run audit:mobile
+
+      - name: Upload mobile-audit failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-audit-failures
+          path: playwright-failures/
+          if-no-files-found: ignore
