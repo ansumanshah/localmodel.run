@@ -129,6 +129,7 @@ const isActive = (href: string) => href !== "/" && path.startsWith(href);
         var root = document.documentElement;
         var dark = root.classList.toggle("dark");
         root.classList.toggle("light", !dark);
+        if (window.__setThemeColor) window.__setThemeColor(dark);
         try {
           localStorage.setItem("theme", dark ? "dark" : "light");
         } catch (_e) {

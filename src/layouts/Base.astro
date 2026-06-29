@@ -90,8 +90,11 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     {hreflangs.length > 0 && <link rel="alternate" hreflang="x-default" href={abs(enPath)} />}
     {noindex && <meta name="robots" content="noindex,nofollow" />}
     {gscVerification && <meta name="google-site-verification" content={gscVerification} />}
-    {/* No fixed theme-color: with viewport-fit=cover, Safari auto-tints the toolbar
-        to the live page background, so it follows the manual light/dark toggle. */}
+    {/* theme-color drives the iOS Safari status-bar / toolbar tint so the safe areas
+        blend with the page (env(safe-area-inset-top) is 0 in a Safari tab, so this is
+        the actual lever). Kept in sync with the manual light/dark toggle by the script
+        below; initial value matches the default dark theme. */}
+    <meta name="theme-color" content="#0c0e14" />
     <meta name="generator" content={Astro.generator} />
 
     <!-- Open Graph / Twitter -->
@@ -132,6 +135,12 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
       // swap: Astro replaces <html> on navigation, dropping the client-set theme
       // class, so without this the theme reverts when you move between pages.
       (function () {
+        // Status-bar / toolbar tint to match the page (Safari reads theme-color).
+        // Exposed so the header toggle keeps it in sync immediately.
+        window.__setThemeColor = function (isDark) {
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute("content", isDark ? "#0c0e14" : "#f9f7f1");
+        };
         function applyTheme() {
           var root = document.documentElement;
           try {
@@ -140,11 +149,14 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
               t !== "dark" &&
               window.matchMedia &&
               window.matchMedia("(prefers-color-scheme: light)").matches;
+            var dark = !(t === "light" || prefersLight);
             root.classList.remove("dark", "light");
-            root.classList.add(t === "light" || prefersLight ? "light" : "dark");
+            root.classList.add(dark ? "dark" : "light");
+            window.__setThemeColor(dark);
           } catch (_e) {
             /* matchMedia/localStorage unavailable; keep the default dark theme */
             root.classList.add("dark");
+            window.__setThemeColor(true);
           }
         }
         applyTheme();
