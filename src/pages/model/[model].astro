@@ -128,14 +128,18 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
         return [{ board: BOARDS[k], score: s, rank: ranked.findIndex((r) => r.model.id === model.id) + 1, total: ranked.length }];
       });
       const commands = installCommands(model, "linux");
-      const title = `${model.name}: RAM, VRAM & how to run locally · localmodel.run`;
+      const title = `${model.name}: GGUF size, RAM & VRAM requirements · localmodel.run`;
       const description = truncate(
-        `${model.name} (${model.params_b}B${model.is_moe ? ` MoE, ${model.active_params_b}B active` : ""}) needs ~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M. Minimum to run: ${minDevice ? minDevice.name : "high-memory hardware"}. Sizes, the exact Ollama command, and which of ${devices.length} devices can run it.`,
+        `${model.name} (${model.params_b}B${model.is_moe ? ` MoE, ${model.active_params_b}B active` : ""}): the Q4_K_M GGUF file is ~${model.q4_k_m_gb ?? q4.weightsGb} GB; it needs ~${q4.totalGb} GB of memory to run. Minimum device: ${minDevice ? minDevice.name : "high-memory hardware"}. Quant sizes, the exact Ollama command, and which of ${devices.length} devices run it.`,
       );
       const faqs: FaqItem[] = [
         {
           q: `How much VRAM or RAM does ${model.name} need?`,
           a: `At Q4_K_M, ${model.name} needs about ${q4.totalGb} GB (weights ~${model.q4_k_m_gb ?? q4.weightsGb} GB + KV cache + overhead) at a 4k context. At Q8_0 budget ~${q8.totalGb} GB.`,
+        },
+        {
+          q: `What is the Q4_K_M GGUF file size of ${model.name}?`,
+          a: `The Q4_K_M GGUF file is about ${model.q4_k_m_gb ?? q4.weightsGb} GB to download, and the Q8_0 GGUF is about ${model.q8_0_gb ?? q8.weightsGb} GB. That is the weights file on disk; to run it you also need room for the KV cache and overhead, so budget ~${q4.totalGb} GB of memory at Q4_K_M.`,
         },
         {
           q: `Can ${model.name} run on a laptop?`,
@@ -225,7 +229,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
               <span transition:name={`model-name-${model.id}`}>{model.name}: RAM and VRAM requirements</span>
             </h1>
             <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
-              <strong>{model.name} needs about {q4.totalGb} GB to run at Q4_K_M</strong> (weights ~{model.q4_k_m_gb ?? q4.weightsGb} GB plus KV cache and overhead), or about {q8.totalGb} GB at Q8_0. The lightest hardware that runs it is <strong>{minDevice ? minDevice.name : "a high-memory machine"}</strong>.
+              <strong>{model.name} needs about {q4.totalGb} GB to run at Q4_K_M</strong> (the Q4_K_M GGUF file is ~{model.q4_k_m_gb ?? q4.weightsGb} GB to download; KV cache and overhead add the rest), or about {q8.totalGb} GB at Q8_0. The lightest hardware that runs it is <strong>{minDevice ? minDevice.name : "a high-memory machine"}</strong>.
             </p>
             <p class="mt-2 text-pretty text-muted-foreground">
               {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts: activates only ${model.active_params_b}B of ${model.params_b}B params per token, so generation is faster than the total size suggests)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
@@ -260,9 +264,9 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
 
             <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
-                { k: "Q4_K_M", num: String(model.q4_k_m_gb ?? q4.weightsGb), unit: "GB" },
-                { k: "Q8_0", num: model.q8_0_gb ? String(model.q8_0_gb) : null, unit: "GB" },
-                { k: "Total @ Q4 (4k)", num: `~${q4.totalGb}`, unit: "GB" },
+                { k: "Q4_K_M GGUF", num: String(model.q4_k_m_gb ?? q4.weightsGb), unit: "GB" },
+                { k: "Q8_0 GGUF", num: model.q8_0_gb ? String(model.q8_0_gb) : null, unit: "GB" },
+                { k: "Memory @ Q4 (4k)", num: `~${q4.totalGb}`, unit: "GB" },
                 { k: "Context", num: String(model.default_context_k), unit: "k" },
               ].map((s) => (
                 <div class="bp-panel p-4">
@@ -273,6 +277,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                 </div>
               ))}
             </section>
+            <p class="mt-2 text-xs text-muted-foreground">Q4_K_M and Q8_0 are GGUF download (file) sizes. Memory @ Q4 includes the KV cache and overhead, so it runs larger than the file on disk.</p>
 
             {fitDefault && (
               <section class="mt-8">
