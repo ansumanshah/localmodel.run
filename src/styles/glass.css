@@ -263,6 +263,13 @@
   padding: 7px 7px 7px 18px;
   border-radius: 100px;
 }
+/* The aurora content-lift rule `.aurora > *:not(.aurora-bg)` (specificity 0,0,2,0)
+   outranks plain `.gh` (0,0,1,0), so it silently flattened the sticky header to
+   `position:relative; z-index:1` — equal to <main>, which paints later in DOM. That
+   buried BOTH the mobile dropdown and the header itself behind hero content, and
+   stopped the capsule from sticking on scroll. Re-assert the header's intent at
+   matching specificity (wins on source order, being later than line ~131). */
+.aurora > .gh { position: sticky; z-index: 50; }
 /* Floating Liquid-Glass capsule: clearer fill (content shows through) + bright bevel + lift */
 .gh.glass {
   background: linear-gradient(160deg, color-mix(in oklch, white 58%, transparent), color-mix(in oklch, white 32%, transparent));
@@ -278,6 +285,14 @@
   background: linear-gradient(160deg, color-mix(in oklch, oklch(0.5 0.07 272) 52%, transparent), color-mix(in oklch, oklch(0.22 0.04 272) 38%, transparent));
 }
 .gh .icon-btn { border-radius: 50%; }
+/* The mobile-nav dropdown carries Tailwind `.absolute`, but it also needs
+   `.glass-lite` for its material — and `.glass-lite { position: relative }` ties
+   `.absolute` on specificity (0,0,1,0) and wins on source order (glass.css loads
+   after Tailwind). That silently demoted the dropdown to a shrink-to-fit flex
+   item in the header row (a 136px strip overflowing the right edge instead of a
+   full-width panel). ID specificity (1,0,0) settles it for good. Same failure
+   family as the `.gh-nav` display clash — see tailwind-vs-component-css-display. */
+#mobile-nav { position: absolute; }
 .gh-brand {
   display: flex;
   align-items: center;

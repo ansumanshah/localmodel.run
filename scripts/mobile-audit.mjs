@@ -123,6 +123,63 @@ async function checkPage(browser, url) {
   return r;
 }
 
+// The page-load audit never opens the hamburger, so a dropdown that only breaks
+// once expanded slips through (it did: `.glass-lite`'s position tied Tailwind's
+// `.absolute`, and the aurora content-lift rule flattened the header's z-index —
+// the open panel fell behind the hero and overflowed the viewport). This opens
+// the menu and asserts it's a real full-width, on-top, clickable, non-overflowing
+// dropdown. The header is one shared component, so a few representative pages cover it.
+async function checkMobileMenu(browser, url) {
+  const ctx = await browser.newContext({ ...CTX_OPTS });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text().slice(0, 160)));
+  page.on("pageerror", (e) => errors.push("PAGEERROR: " + String(e).slice(0, 160)));
+  const out = { url, ok: false, reason: null, errors };
+  try {
+    await page.goto(BASE + url, { waitUntil: "load", timeout: 25000 });
+    const btn = await page.$("#mobile-menu-btn");
+    if (!btn) { out.reason = "no #mobile-menu-btn at mobile width"; await ctx.close(); return out; }
+    await btn.click();
+    const d = await page.evaluate(() => {
+      const nav = document.getElementById("mobile-nav");
+      if (!nav) return { reason: "no #mobile-nav" };
+      const cs = getComputedStyle(nav);
+      const r = nav.getBoundingClientRect();
+      const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+      const links = [...nav.querySelectorAll("a")];
+      // every in-view link's centre must hit-test to itself (i.e. nothing paints over it)
+      const covered = links.find((a) => {
+        const b = a.getBoundingClientRect(), cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+        if (cy < 0 || cy > vh || cx < 0 || cx > vw) return false;
+        const t = document.elementFromPoint(cx, cy);
+        return !(t && t.closest("#mobile-nav a") === a);
+      });
+      return {
+        display: cs.display, position: cs.position,
+        width: Math.round(r.width), rightEdge: Math.round(r.right), vw,
+        overflowsRight: r.right > vw + 1, fullWidthish: r.width >= vw * 0.5,
+        linkCount: links.length,
+        coveredLink: covered ? covered.textContent.trim() : null,
+      };
+    });
+    if (d.reason) { out.reason = d.reason; await ctx.close(); return out; }
+    if (d.display === "none") out.reason = "panel did not open (display:none after click)";
+    else if (d.position !== "absolute") out.reason = `panel position is ${d.position}, not absolute`;
+    else if (d.overflowsRight) out.reason = `panel overflows right edge (right=${d.rightEdge} > vw=${d.vw})`;
+    else if (!d.fullWidthish) out.reason = `panel is a narrow strip (${d.width}px of ${d.vw}px)`;
+    else if (d.coveredLink) out.reason = `link "${d.coveredLink}" is painted over (stacking)`;
+    else if (d.linkCount < 1) out.reason = "panel has no links";
+    else if (errors.length) out.reason = "console error: " + errors[0];
+    else out.ok = true;
+    out.detail = d;
+  } catch (e) {
+    out.reason = String(e).slice(0, 180);
+  }
+  await ctx.close();
+  return out;
+}
+
 async function main() {
   rmSync(SHOT, { recursive: true, force: true });
   const { urls, total, shapes } = enumerateUrls();
@@ -140,8 +197,22 @@ async function main() {
     }
   };
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+  // Hamburger / mobile-dropdown check on representative pages (shared header).
+  const menuUrls = [
+    ...new Set([
+      "/",
+      urls.find((u) => u.startsWith("/model/")),
+      urls.find((u) => u.startsWith("/can-i-run/") && u.split("/").length === 4),
+      urls.find((u) => u.startsWith("/leaderboard")),
+    ].filter(Boolean)),
+  ];
+  console.log(`\nChecking mobile hamburger dropdown on ${menuUrls.length} pages...`);
+  const menuResults = [];
+  for (const u of menuUrls) menuResults.push(await checkMobileMenu(browser, u));
   await browser.close();
 
+  const menuFails = menuResults.filter((m) => !m.ok);
   const fails = results.filter((r) => !r.ok);
   const tally = (pred) => results.filter(pred).length;
   console.log("\n===== MOBILE VALIDATION REPORT =====");
@@ -151,6 +222,7 @@ async function main() {
   console.log(`  console/page errors:         ${tally((r) => r.errors.length > 0)}`);
   console.log(`  non-200 status:              ${tally((r) => r.status !== 200)}`);
   console.log(`  thin/blank body:             ${tally((r) => r.status === 200 && r.bodyLen <= 200)}`);
+  console.log(`  hamburger dropdown:          ${menuResults.length - menuFails.length}/${menuResults.length} pages OK`);
   if (fails.length) {
     console.log("\n--- FAILURES ---");
     for (const f of fails.slice(0, 60)) {
@@ -160,9 +232,15 @@ async function main() {
       if (f.bodyLen <= 200) console.log(`      thin body (${f.bodyLen} chars)`);
       if (f.errors.length) console.log(`      ${f.errors.slice(0, 2).join(" | ")}`);
     }
+  }
+  if (menuFails.length) {
+    console.log("\n--- HAMBURGER DROPDOWN FAILURES ---");
+    for (const m of menuFails) console.log(`  ${m.url}\n      ${m.reason}`);
+  }
+  if (fails.length || menuFails.length) {
     process.exitCode = 1;
   } else {
-    console.log("\n✓ All sampled pages render cleanly at mobile width.");
+    console.log("\n✓ All sampled pages render cleanly at mobile width; hamburger dropdown OK.");
   }
 }
 
