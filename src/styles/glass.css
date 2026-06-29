@@ -1079,7 +1079,7 @@
 
 /* ── prefers-contrast: firmer borders on glass ────────────────────────────── */
 @media (prefers-contrast: more) {
-  .glass, .glass--hero, .glass-lite, .gfield, .gbtn, .gv, .cmd-chip, .bento-card, .scard {
+  .glass, .glass--hero, .glass-lite, .gfield, .gbtn, .gv, .cmd-chip, .bento-card {
     border-color: color-mix(in oklch, var(--foreground) 38%, var(--border));
   }
   .gv { border-width: 1.5px; }

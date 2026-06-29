@@ -223,7 +223,7 @@ function initGlass(): void {
   }
 
   // Colorful maker badges — harmonized hue per maker (same L/C, varied hue).
-  document.querySelectorAll<HTMLElement>(".maker, .r-maker").forEach((el) => {
+  document.querySelectorAll<HTMLElement>(".maker").forEach((el) => {
     if (el.dataset.glassMaker) return;
     el.dataset.glassMaker = "1";
     const c = (el.textContent || "?").trim().charCodeAt(0) || 63;
