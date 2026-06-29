@@ -405,9 +405,8 @@ if (fits && commands.length > 0) {
             <span class="bp-panel-label">{platformLabel(platform)}</span>
           </div>
           <div class="space-y-3 p-5">
-            <p class="text-sm text-muted-foreground">Pick your tool. All three load the same Q4_K_M weights.</p>
+            <p class="text-sm text-muted-foreground">{commands.length > 1 ? `Pick your tool. All ${commands.length} load the same Q4_K_M weights.` : "Loads the Q4_K_M weights."}</p>
             {commands.map((c) => <Command code={c.cmd} label={c.tool} />)}
-            {tool?.gotcha && <p class="text-xs text-muted-foreground">{tool.gotcha}</p>}
           </div>
         </div>
       </section>
@@ -419,7 +418,6 @@ if (fits && commands.length > 0) {
         <div class="bp-panel p-5">
           <p class="text-sm text-muted-foreground">
             On {platformLabel(platform)} use <strong class="text-foreground">{tool.beginner.name}</strong> ({tool.beginner.why}).
-            {tool.gotcha}
           </p>
         </div>
       </section>

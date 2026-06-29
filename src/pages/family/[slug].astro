@@ -66,11 +66,15 @@ const faqs: FaqItem[] = [
   },
   {
     q: `What is the smallest ${family.name} model?`,
-    a: `${smallest.name} at ${smallest.params_b}B parameters, about ${smallest.q4_k_m_gb} GB on disk at Q4_K_M and roughly ${smallest.min_ram_q4_gb} GB of memory to run. It is the one to use on phones and 8 GB machines.`,
+    a: `${smallest.name} at ${smallest.params_b}B parameters${
+      smallest.q4_k_m_gb != null
+        ? `, about ${smallest.q4_k_m_gb} GB on disk at Q4_K_M${smallest.min_ram_q4_gb != null ? ` and roughly ${smallest.min_ram_q4_gb} GB of memory to run` : ""}`
+        : ""
+    }. It is the one to use on phones and 8 GB machines.`,
   },
   {
     q: `What is the largest ${family.name} model and what does it need?`,
-    a: `${largest.name} at ${largest.params_b}B${largest.is_moe ? " (mixture of experts)" : ""}, about ${largest.q4_k_m_gb} GB at Q4_K_M and roughly ${largest.min_ram_q4_gb} GB of memory. ${
+    a: `${largest.name} at ${largest.params_b}B${largest.is_moe ? " (mixture of experts)" : ""}${largest.q4_k_m_gb != null ? `, about ${largest.q4_k_m_gb} GB at Q4_K_M${largest.min_ram_q4_gb != null ? ` and roughly ${largest.min_ram_q4_gb} GB of memory` : ""}` : ""}. ${
       gating[gating.length - 1].fit?.id === largest.id
         ? "It fits a high-memory desktop GPU or Mac."
         : "It needs more than a typical 32 GB desktop; a high-memory Mac or multi-GPU rig."
