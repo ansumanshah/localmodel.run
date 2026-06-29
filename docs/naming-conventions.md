@@ -63,9 +63,8 @@ A few unprefixed helpers exist by design: `.num` (count-up target), `.read`, `.m
 
 ## Known dead code (cleanup backlog)
 
-A pass on 2026-06-29 found classes referenced in CSS/JS but rendered in **zero** built pages.
-Removed in that pass: `.scard`, `.r-maker`. Still pending a dedicated dead-code sweep (left alone
-because each spans several rules and wants visual verification): **`.glass--hero`** (8 CSS refs, a
-whole dead class) and the **`.maker` / maker-badge coloring block** in `glass-interactions.ts`
-(no element renders `class="maker"`). Remove these with a build + mobile-audit + visual check, not
-inline with unrelated work.
+A 2026-06-29 pass found classes referenced in CSS/JS but rendered in **zero** built pages, and
+removed them: `.scard`, `.r-maker`, the whole **`.glass--hero`** class (8 CSS refs), and the
+**`.maker`** badge code (the `.lb .maker` rule plus the per-maker coloring block in
+`glass-interactions.ts`; no element renders `class="maker"` — `maker` is only an `<EntityIcon>`
+prop). If you reintroduce a dead-looking class, confirm with `grep -rho '<token>' dist` first.

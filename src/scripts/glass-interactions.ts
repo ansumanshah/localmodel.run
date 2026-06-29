@@ -222,15 +222,6 @@ function initGlass(): void {
     diagrams.forEach((d) => dio.observe(d));
   }
 
-  // Colorful maker badges — harmonized hue per maker (same L/C, varied hue).
-  document.querySelectorAll<HTMLElement>(".maker").forEach((el) => {
-    if (el.dataset.glassMaker) return;
-    el.dataset.glassMaker = "1";
-    const c = (el.textContent || "?").trim().charCodeAt(0) || 63;
-    el.style.background = "oklch(0.58 0.15 " + ((c * 47) % 360) + ")";
-    el.style.color = "#fff";
-  });
-
   // Optional degraded-mode toggle (no-op when no control is present). Theme
   // toggle is intentionally NOT bound here — Header.astro owns it.
   const root = document.documentElement;
