@@ -247,6 +247,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 .gh {
   position: sticky;
+  top: 12px; /* fallback if calc()/env() is unsupported, so the header still sticks */
   top: calc(12px + env(safe-area-inset-top, 0px));
   z-index: 50;
   display: flex;
@@ -773,6 +774,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 .gsticky {
   position: sticky;
+  bottom: 14px; /* fallback if calc()/env() is unsupported */
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: flex;
@@ -795,7 +797,7 @@
    MOBILE LAYOUTS  (≤ 640px) — stack, enlarge touch targets, simplify chrome
    ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
-  .gh { gap: 6px; padding: 8px 8px 8px 14px; border-radius: 26px; width: calc(100% - 16px); margin: 8px auto 2px; top: calc(8px + env(safe-area-inset-top, 0px)); }
+  .gh { gap: 6px; padding: 8px 8px 8px 14px; border-radius: 26px; width: calc(100% - 16px); margin: 8px auto 2px; top: 8px; top: calc(8px + env(safe-area-inset-top, 0px)); }
   /* .gh-nav is hidden on mobile (the hamburger panel is used) — no scroll strip. */
   .gh-brand { font-size: 14px; }
   /* The theme toggle moves into the hamburger panel on mobile, so the hamburger
@@ -823,7 +825,7 @@
   .lb td, .lb thead th { padding: 11px 12px; }
 
   /* sticky bar hugs the bottom full-width */
-  .gsticky { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); margin-top: 14px; padding: 10px 12px; }
+  .gsticky { bottom: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); margin-top: 14px; padding: 10px 12px; }
   .gsticky .gbtn { padding: 12px 14px; }
 
   /* the rig card never overflows */
