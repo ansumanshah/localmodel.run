@@ -817,10 +817,9 @@
   .gh { gap: 6px; padding: 8px 8px 8px 14px; border-radius: 26px; width: calc(100% - 16px); margin: 8px auto 2px; top: 8px; }
   /* .gh-nav is hidden on mobile (the hamburger panel is used) — no scroll strip. */
   .gh-brand { font-size: 14px; }
-  /* Only the first control (theme toggle) absorbs the free space, so theme +
-     hamburger sit together on the right (the gap keeps them as one group) rather
-     than splitting the space and stranding the toggle in the middle. */
-  .gh > #theme-toggle { margin-left: auto; }
+  /* The theme toggle moves into the hamburger panel on mobile, so the hamburger
+     is the only right-side control and absorbs the free space. */
+  .gh > #mobile-menu-btn { margin-left: auto; }
 
   /* touch targets ≥ 44px */
   .gbtn, .gbtn--primary { padding: 13px 18px; min-height: 44px; }
