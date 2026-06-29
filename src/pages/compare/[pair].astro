@@ -62,7 +62,7 @@ const description = truncate(
 const faqs: FaqItem[] = [
   {
     q: `What is the difference in memory between ${s.name} and ${l.name}?`,
-    a: `At Q4_K_M, ${s.name} needs about ${sQ4.totalGb} GB and ${l.name} needs about ${lQ4.totalGb} GB, a difference of ~${Math.round((lQ4.totalGb - sQ4.totalGb) * 10) / 10} GB. The larger model needs more memory but is generally more capable.`,
+    a: `At Q4_K_M, ${s.name} needs about ${sQ4.totalGb} GB and ${l.name} needs about ${lQ4.totalGb} GB, a difference of ~${Math.round((lQ4.totalGb - sQ4.totalGb) * 10) / 10} GB.`,
   },
   {
     q: `Should I run ${s.name} or ${l.name}?`,
@@ -196,7 +196,7 @@ const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 t
     <section class="mt-8">
       <h2 class="mb-3 text-lg font-semibold">Bottom line</h2>
       <p class="text-pretty text-muted-foreground">
-        {l.name} is the more capable model but needs ~{lQ4.totalGb} GB; {s.name} runs on lighter hardware at ~{sQ4.totalGb} GB with more headroom and faster responses. {eloLine} Check each against your exact device:
+        {eloLine ? `${eloLine} ` : ""}The larger {l.name} needs ~{lQ4.totalGb} GB; {s.name} runs on lighter hardware at ~{sQ4.totalGb} GB with more headroom and faster responses. Check each against your exact device:
         <a href={`/rig-for/${s.id}`} class="underline">what runs {s.name}</a> &middot; <a href={`/rig-for/${l.id}`} class="underline">what runs {l.name}</a>.
       </p>
     </section>

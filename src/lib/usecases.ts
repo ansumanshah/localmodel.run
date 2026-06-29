@@ -9,26 +9,30 @@ export type UseCase = "coding" | "reasoning" | "vision" | "multilingual";
 
 export const USE_CASES: UseCase[] = ["coding", "reasoning", "vision", "multilingual"];
 
-export const USE_CASE_META: Record<UseCase, { label: string; title: string; blurb: string }> = {
+export const USE_CASE_META: Record<UseCase, { label: string; title: string; blurb: string; opener: string }> = {
   coding: {
     label: "Coding",
     title: "coding",
     blurb: "Models tuned for code generation and agentic coding (SWE-bench, fill-in-the-middle).",
+    opener: "Every model here is trained to write code, not just chat about it.",
   },
   reasoning: {
     label: "Reasoning",
     title: "reasoning",
     blurb: "Models that think step by step before answering, for math, logic and planning.",
+    opener: "These models think step by step before they answer, which helps on math and logic and costs more time per reply.",
   },
   vision: {
     label: "Vision",
     title: "vision (multimodal)",
     blurb: "Models that accept images as input alongside text.",
+    opener: "These models read images as input, so you can ask about a screenshot or a photo, not only text.",
   },
   multilingual: {
     label: "Multilingual",
     title: "multilingual",
     blurb: "Models with language-first training beyond English (Indic, Korean, Chinese).",
+    opener: "These models are trained beyond English, so they hold up in Indic, Korean, or Chinese where an English-first model drifts.",
   },
 };
 

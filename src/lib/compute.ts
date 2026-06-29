@@ -187,9 +187,26 @@ export function canRun(
     headroomGb: headroom,
     speed,
     reason: tight
-      ? `Fits at Q4_K_M (~${q4.totalGb} GB of ~${usable} GB usable) but with little headroom, close other apps.`
+      ? `Fits at Q4_K_M (~${q4.totalGb} GB of ~${usable} GB usable) but with little headroom. ${tightAdvice(device)}`
       : `Runs at Q4_K_M using ~${q4.totalGb} GB of ~${usable} GB usable${upgrade ? `. You have room for ${QUANT_LABEL[upgrade]} for higher quality` : ""}.`,
   };
+}
+
+// Device-class advice for a tight fit, so the note is not identical on every
+// tight pair page (the generic "close other apps" repeated site-wide). Display only.
+function tightAdvice(device: DeviceRow): string {
+  switch (device.category) {
+    case "mac":
+      return "Close other apps, or drop to a 2k context to free about a gigabyte.";
+    case "nvidia":
+    case "amd":
+      return "Close other apps; a smaller context frees a few hundred MB.";
+    case "iphone":
+    case "android":
+      return "Close background apps, and expect slow generation on a phone.";
+    default:
+      return "Close background apps, and expect slow CPU generation at this size.";
+  }
 }
 
 function speedClass(model: ModelRow, device: DeviceRow): SpeedClass {

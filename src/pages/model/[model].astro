@@ -120,6 +120,15 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
       // Dense models only (we don't put a tok/s bound on MoE).
       const w4 = weightsGb(model, "q4_k_m");
       const speed128Pct = !model.is_moe ? Math.round((w4 / (w4 + kvCacheGb(model, 128))) * 100) : null;
+      // Context-length framing, keyed to model tier so it is not the same paragraph
+      // on every model page. The numbers (4k vs 128k) are this model's real estimates.
+      const ctx4Gb = ctxRows[0].totalGb;
+      const ctx128Gb = ctxRows[2].totalGb;
+      const ctxNote = model.is_moe
+        ? `Longer context grows the KV cache, which for ${model.name} is sized by its ${model.active_params_b}B active params, not the full ${model.params_b}B. It needs ~${ctx4Gb} GB at 4k and ~${ctx128Gb} GB at 128k.`
+        : model.params_b > 4
+          ? `Longer context grows the KV cache quickly: ${model.name} needs ~${ctx4Gb} GB at 4k but ~${ctx128Gb} GB at 128k, which can push it past a device that fits it at a short context.`
+          : `${model.name} is small enough that the context window is the thing to size for: 128k needs ~${ctx128Gb} GB versus ~${ctx4Gb} GB at 4k, so pick the window you actually use.`;
       // Sourced leaderboard scores for THIS model, with its rank on each board.
       const boardScores = BOARD_ORDER.flatMap((k) => {
         const s = scoreOf(model, k);
@@ -407,7 +416,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                       </span>
                     ))}
                   </div>
-                  <p class="mt-2 text-xs text-muted-foreground">Longer context grows the KV cache. A large context window can need more memory than the weights, so it can push {model.name} past a device that fits it at 4k.</p>
+                  <p class="mt-2 text-xs text-muted-foreground">{ctxNote}</p>
                   {speed128Pct != null && (
                     <p class="mt-1 text-xs text-muted-foreground">Speed drops too: every token re-reads the KV cache, so at 128k context {model.name} generates at roughly <span class="num">~{speed128Pct}%</span> of its short-context speed. <a href="/methodology" class="underline">How this is estimated</a>.</p>
                   )}

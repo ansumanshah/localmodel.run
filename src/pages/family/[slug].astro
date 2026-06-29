@@ -49,6 +49,20 @@ const sizeRange =
     ? `${largest.params_b}B`
     : `${smallest.params_b}B to ${largest.params_b}B`;
 
+// One distinguishing sentence derived from THIS family's real data, so the lede is
+// not the same "bigger is more capable" line on every family page. Falls back in order.
+const eloMembers = members.filter((m) => m.arena_elo);
+const topElo = eloMembers.length
+  ? eloMembers.reduce((a, b) => ((b.arena_elo ?? 0) > (a.arena_elo ?? 0) ? b : a))
+  : null;
+const familyHighlight = topElo
+  ? `Its strongest tracked here, ${topElo.name}, scores an LMArena Elo of ${topElo.arena_elo}.`
+  : smallest.params_b <= 2
+    ? `The ${smallest.name} is small enough for a phone, while the ${largest.name} wants a workstation.`
+    : members.some((m) => m.is_moe)
+      ? `Some sizes are Mixture-of-Experts, so they run faster than their memory footprint suggests.`
+      : `Bigger sizes are more capable but need proportionally more memory.`;
+
 const path = `/family/${family.slug}`;
 const year = new Date(meta.updated).getFullYear();
 const title = `${family.name} models: which size runs locally? (${year}) · localmodel.run`;
@@ -140,7 +154,7 @@ const jsonLd = [
     </h1>
     <p class="family-lede mt-4 text-pretty text-lg text-muted-foreground">
       {family.name} comes in <strong class="text-foreground">{members.length} sizes</strong>, from
-      {sizeRange}. Bigger is generally more capable but needs more memory. Here is each size with its
+      {sizeRange}. {familyHighlight} Here is each size with its
       Q4_K_M weight, the memory it needs, and the hardware that runs it.
     </p>
 

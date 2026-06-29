@@ -177,10 +177,27 @@ export function canRunModality(model: ModelRow, device: DeviceRow): RunResult {
     headroomGb: headroom,
     speed,
     reason: tight
-      ? `Fits at ${need.quantLabel} (~${need.neededGb} GB of ~${usable} GB usable) but with little headroom; close other apps.`
+      ? `Fits at ${need.quantLabel} (~${need.neededGb} GB of ~${usable} GB usable) but with little headroom. ${tightAdviceMM(device)}`
       : `Runs at ${need.quantLabel} using ~${need.neededGb} GB of ~${usable} GB usable.`,
     neededGb: need.neededGb,
     quantLabel: need.quantLabel,
     offloadFloorGb: need.offloadFloorGb,
   };
+}
+
+// Device-class advice for a tight multi-modal fit. No text context to trim here
+// (image/video/audio), so the advice differs from the text engine's. Display only.
+function tightAdviceMM(device: DeviceRow): string {
+  switch (device.category) {
+    case "mac":
+      return "Close other apps to free unified memory before generating.";
+    case "nvidia":
+    case "amd":
+      return "Close other apps to free a little VRAM before generating.";
+    case "iphone":
+    case "android":
+      return "Close background apps; expect slow generation on a phone.";
+    default:
+      return "Close background apps, and expect slow CPU generation.";
+  }
 }
