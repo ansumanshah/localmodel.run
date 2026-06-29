@@ -70,7 +70,7 @@ const jsonLd = [
           <span class="hero-rot" id="hero-rot">
             {/* invisible sizer reserves the widest name's width so the rotating
                 word crossfades in place without reflowing "locally?" (CLS 0) */}
-            <span class="hero-rot-sizer" aria-hidden="true">DeepSeek R1</span>
+            <span class="hero-rot-sizer" aria-hidden="true">Llama 3.3</span>
             <span class="hero-rot-word bp-accent" aria-hidden="true">Llama 3.3</span>
           </span>
           <span class="sr-only">any AI model</span> locally?
@@ -119,6 +119,7 @@ const jsonLd = [
       if (!el) return;
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       var word = el.querySelector(".hero-rot-word");
+      var sizer = el.querySelector(".hero-rot-sizer");
       var models = ["Llama 3.3", "Qwen 3", "DeepSeek R1", "Gemma 3", "Mistral", "Phi-4"];
       var i = 0;
       window.__heroRotInt = setInterval(function () {
@@ -131,6 +132,7 @@ const jsonLd = [
         setTimeout(function () {
           i = (i + 1) % models.length;
           word.textContent = models[i];
+          if (sizer) sizer.textContent = models[i]; // keep the slot hugging the word (no gap, no float)
           word.classList.remove("hr-out");
         }, 360);
       }, 2400);
