@@ -122,6 +122,16 @@ const isActive = (href: string) => href !== "/" && path.startsWith(href);
   (function () {
     if (window.__lmrHeaderBound) return;
     window.__lmrHeaderBound = true;
+    function closeMenu() {
+      var panel = document.getElementById("mobile-nav");
+      if (!panel || panel.classList.contains("hidden")) return;
+      panel.classList.add("hidden");
+      var mb = document.getElementById("mobile-menu-btn");
+      if (mb) {
+        mb.setAttribute("aria-expanded", "false");
+        mb.setAttribute("aria-label", "Open menu");
+      }
+    }
     document.addEventListener("click", function (e) {
       var el = e.target;
       if (!(el instanceof Element)) return;
@@ -137,14 +147,22 @@ const isActive = (href: string) => href !== "/" && path.startsWith(href);
         }
         return;
       }
+      var panel = document.getElementById("mobile-nav");
       var btn = el.closest("#mobile-menu-btn");
       if (btn) {
-        var panel = document.getElementById("mobile-nav");
         if (!panel) return;
         var closed = panel.classList.toggle("hidden");
         btn.setAttribute("aria-expanded", String(!closed));
         btn.setAttribute("aria-label", closed ? "Open menu" : "Close menu");
+        return;
       }
+      // Tap outside the open menu, or on one of its links, closes it.
+      if (panel && !panel.classList.contains("hidden") && (!el.closest("#mobile-nav") || el.closest("#mobile-nav a"))) {
+        closeMenu();
+      }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeMenu();
     });
   })();
 </script>
