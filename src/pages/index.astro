@@ -137,22 +137,31 @@ const jsonLd = [
     })();
   </script>
 
-  <!-- Coverage strip: structural twin of the runtime band below (same max-w-5xl
-       px-4 inner + label) so "Covers" and "Runs with" share a left edge -->
+  <!-- Coverage marquee: same single-line scrolling band as "Runs with" below, so the
+       two read as a matched pair (the static flex-wrap version stacked to 3 lines on mobile) -->
   <div class="border-y border-border/60" style="background:color-mix(in oklch,var(--color-brand) 3%,var(--background))">
-    <div class="mx-auto flex max-w-5xl flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3">
+    <div class="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3">
       <span class="shrink-0 font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">Covers</span>
-      <span class="bp-strip-item" style="color: var(--modality-text)">Text generation</span>
-      <span class="bp-strip-sep" aria-hidden="true">/</span>
-      <span class="bp-strip-item" style="color: var(--modality-image)">Image models</span>
-      <span class="bp-strip-sep" aria-hidden="true">/</span>
-      <span class="bp-strip-item" style="color: var(--modality-video)">Video models</span>
-      <span class="bp-strip-sep" aria-hidden="true">/</span>
-      <span class="bp-strip-item" style="color: var(--modality-audio)">Audio models</span>
-      <span class="bp-strip-sep" aria-hidden="true">/</span>
-      <span class="bp-strip-item">Apple Silicon</span>
-      <span class="bp-strip-sep" aria-hidden="true">/</span>
-      <span class="bp-strip-item">NVIDIA / AMD</span>
+      <div class="marquee min-w-0 flex-1">
+        <div class="marquee-track">
+          {[
+            { l: "Text generation", c: "var(--modality-text)" },
+            { l: "Image models", c: "var(--modality-image)" },
+            { l: "Video models", c: "var(--modality-video)" },
+            { l: "Audio models", c: "var(--modality-audio)" },
+            { l: "Apple Silicon", c: "" },
+            { l: "NVIDIA / AMD", c: "" },
+            { l: "Text generation", c: "var(--modality-text)" },
+            { l: "Image models", c: "var(--modality-image)" },
+            { l: "Video models", c: "var(--modality-video)" },
+            { l: "Audio models", c: "var(--modality-audio)" },
+            { l: "Apple Silicon", c: "" },
+            { l: "NVIDIA / AMD", c: "" },
+          ].map((it) => (
+            <span class="marquee-item" style={it.c ? `color:${it.c}` : undefined}><span class="mq-dot" aria-hidden="true"></span>{it.l}</span>
+          ))}
+        </div>
+      </div>
     </div>
   </div>
 
