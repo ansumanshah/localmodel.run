@@ -171,7 +171,12 @@
 }
 .hero-rot-word {
   position: absolute;
+  /* Centre the word in the longest-name slot so short names (Phi-4, Qwen 3) sit
+     balanced rather than leaving a big gap before "locally?". CLS stays 0 — the
+     slot width never changes, the word just centres within it. */
   left: 0;
+  right: 0;
+  text-align: center;
   top: 0;
   white-space: nowrap;
   transition: opacity 0.34s var(--spring), transform 0.34s var(--spring);

@@ -156,8 +156,8 @@ const jsonLd = [
     </div>
   </div>
 
-  <!-- Runtime marquee: the tools these models run with -->
-  <div class="border-b border-border/60 py-3">
+  <!-- Runtime marquee: the tools these models run with (same tinted band as Covers) -->
+  <div class="border-b border-border/60 py-3" style="background:color-mix(in oklch,var(--color-brand) 3%,var(--background))">
     <div class="mx-auto flex max-w-5xl items-center gap-4 px-4">
       <span class="shrink-0 font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">Runs with</span>
       <div class="marquee min-w-0 flex-1">
@@ -174,7 +174,22 @@ const jsonLd = [
   <section class="mx-auto max-w-5xl px-4 py-16">
     <p class="bp-eyebrow"><span class="bp-dot" aria-hidden="true"></span>How it works</p>
     <div class="bp-panel mt-4 overflow-x-auto p-6 sm:p-8">
-      <svg class="hiw-diagram mx-auto block h-auto w-full" style="max-width:660px;min-width:0" viewBox="0 0 720 132" fill="none" role="img" aria-label="How it works: model size and quant, then memory math, then verdict">
+      {/* Mobile: readable stacked steps (the horizontal SVG below renders too small on a phone) */}
+      <ol class="space-y-2.5 sm:hidden">
+        <li class="rounded-xl border border-border bg-card p-3.5">
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">01 · Model</div>
+          <div class="mt-1 font-semibold">Size × quant</div>
+        </li>
+        <li class="rounded-xl border border-border bg-card p-3.5">
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">02 · Memory math</div>
+          <div class="mt-1 font-semibold">Weights + KV cache + overhead</div>
+        </li>
+        <li class="rounded-xl border border-border bg-card p-3.5">
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">03 · Verdict</div>
+          <div class="mt-1 font-semibold">Yes · Tight · No</div>
+        </li>
+      </ol>
+      <svg class="hiw-diagram mx-auto hidden h-auto w-full sm:block" style="max-width:660px;min-width:0" viewBox="0 0 720 132" fill="none" role="img" aria-label="How it works: model size and quant, then memory math, then verdict">
         <path class="draw" d="M200 66 H248" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
         <path class="draw" d="M472 66 H520" style="stroke:var(--color-brand);stroke-width:2.5px" stroke-linecap="round"></path>
         <rect x="14" y="30" width="186" height="72" rx="14" style="fill:color-mix(in oklch,var(--color-brand) 6%,var(--card));stroke:var(--border)"></rect>
