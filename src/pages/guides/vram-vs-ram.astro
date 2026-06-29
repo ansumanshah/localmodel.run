@@ -32,6 +32,10 @@ const faqs: FaqItem[] = [
     a: "Apple Silicon shares one pool of memory between the CPU and GPU, so there is no separate VRAM. The GPU can use most of that pool for model weights, which is why a 32 GB or 64 GB Mac can run models that would need an expensive multi-GPU rig on a PC. macOS reserves part of the pool, so roughly 66% is usable under 64 GB and about 75% at or above.",
   },
   {
+    q: "Is unified memory the same as VRAM?",
+    a: "Not exactly. VRAM is dedicated memory on a discrete GPU; unified memory is one pool the CPU and GPU share, as on Apple Silicon. For running a model the effect is similar, since the GPU reads weights from fast memory either way. The difference is that unified memory is shared with the whole system, so only part of it (about 66% under 64 GB, 75% at or above) is usable for the model, where a discrete GPU gives you nearly all of its VRAM.",
+  },
+  {
     q: "Why can't I use all my memory for the model?",
     a: "Some is always reserved. A discrete GPU loses about 1 GB of VRAM to the driver and display. macOS caps the GPU working set at roughly two thirds of unified memory. A CPU-only machine needs several gigabytes for the operating system and apps. The usable figure, not the sticker number, is what a model has to fit in.",
   },
