@@ -194,6 +194,10 @@
   background-color: transparent;
   background-image: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2));
   border-top: 1px solid var(--lite-rim);
+  /* Extend the footer's own background into the bottom safe area (home indicator)
+     so the page reads as one continuous surface to the screen edge, with the footer
+     content still padded clear of the home indicator. 0 on desktop / non-safe-area. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ── Breadcrumb capsule (cheap tier) ──────────────────────────────────────── */

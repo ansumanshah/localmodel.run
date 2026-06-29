@@ -92,11 +92,11 @@
   position: relative;
   isolation: isolate;
   background-color: var(--background);
-  /* viewport-fit=cover lets the fixed aurora fill the notch / home-indicator areas
-     (transparent safe areas); pad the flowing content so it clears them. env is 0
-     on devices without safe areas, so desktop is unaffected. */
+  /* Standalone/landscape only (env is 0 in a Safari tab and on desktop): keep the
+     header clear of the notch. The BOTTOM inset is handled on .gfooter instead, so
+     the footer's own background extends edge-to-edge into the home-indicator area
+     rather than leaving a separate band of body background below it. */
   padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .aurora > .aurora-bg {
   position: absolute;
