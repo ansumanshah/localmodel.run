@@ -361,6 +361,27 @@
     "notes": "24GB GDDR6 on 384-bit bus (~960 GB/s). ~1GB reserved = ~23GB usable. RDNA 3 architecture. ROCm support on Linux; ROCm on Windows is experimental/limited. LLM inference quality behind CUDA in software maturity. Fits 34B Q4_K_M. Windows users typically prefer llama.cpp with ROCm or DirectML backend."
   },
   {
+    "id": "amd-ryzen-ai-halo-128gb",
+    "name": "AMD Ryzen AI Halo (128GB)",
+    "category": "amd",
+    "memory_gb": 128,
+    "memory_type": "unified",
+    "usable_memory_gb": 96,
+    "bandwidth_gbs": 256,
+    "msrp_usd": 3999,
+    "tdp_w": 120,
+    "best_runtime": "llama.cpp (Vulkan/ROCm) / LM Studio",
+    "sources": [
+      "https://www.amd.com/en/blogs/2026/amd-powers-next-generation-agent-computers-with-new-ryzen-ai-hal.html",
+      "https://www.amd.com/en/blogs/2025/faqs-amd-variable-graphics-memory-vram-ai-model-sizes-quantization-mcp-more.html",
+      "https://frame.work/blog/framework-desktop-deep-dive-ryzen-ai-max",
+      "https://www.cnx-software.com/2026/06/16/4000-amd-ryzen-ai-halo-developer-platform-features-126-tops-ryzen-ai-max-395-processor/",
+      "https://www.notebookcheck.net/AMD-Ryzen-AI-Max-PRO-395-Processor-Benchmarks-and-Specs.942332.0.html",
+      "https://www.microcenter.com/product/711961/amd-ryzen-ai-halo-developer-platform-linux-os"
+    ],
+    "notes": "AMD's Ryzen AI Halo Developer Platform (Strix Halo, Ryzen AI Max+ 395): 128GB LPDDR5X-8000 on a 256-bit bus, 256 GB/s. Unified memory: up to 96GB convertible to VRAM via AMD Variable Graphics Memory, per AMD's FAQ. Chip cTDP 45-120W; the dev box runs 120W per CNX's spec table. $3,999.99 at Micro Center, in stores 2026-07-10. Runs 70B dense at Q4_K_M fully in graphics memory; MoE models like Qwen3.6 35B-A3B are the sweet spot."
+  },
+  {
     "id": "laptop-8gb",
     "name": "8GB RAM Laptop (CPU/iGPU only)",
     "category": "laptop",

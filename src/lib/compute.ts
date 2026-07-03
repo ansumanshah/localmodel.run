@@ -282,6 +282,9 @@ export function estOffloadTokPerSec(
 ): number | null {
   if (model.is_moe) return null;
   if (device.category !== "nvidia" && device.category !== "amd") return null;
+  // Unified-memory APUs (e.g. Ryzen AI Max) have no slower RAM tier to spill
+  // into: the "VRAM" and system RAM are the same pool. Same rationale as Mac.
+  if (device.memory_type === "unified") return null;
   const bwGpu = device.bandwidth_gbs;
   if (bwGpu == null) return null;
   const w = weightsGb(model, quant);
