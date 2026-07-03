@@ -1,10 +1,10 @@
 /*
-  Gauge·Glass adapter — the single source that reshapes the REAL validated engine
-  (compute.ts / rig.ts) into the flat "paint shape" the glass detector, the model
-  profile device modal, and the compare matrix all render. Used at BUILD time by
-  the .astro pages (SSG, so the heavy models/devices arrays never ship to those
-  pages), and optionally exposed on `window.GaugeGlass` for genuinely interactive
-  surfaces via buildGaugeGlass().
+  Paint-shape adapter (historical filename from the Gauge·Glass era) — the single
+  source that reshapes the REAL validated engine (compute.ts / rig.ts) into the
+  flat "paint shape" the detector island, the model-profile device modal, and the
+  compare matrix all render. Used at BUILD time by the .astro pages (SSG, so the
+  heavy models/devices arrays never ship to those pages), and optionally exposed
+  on `window.GaugeGlass` for genuinely interactive surfaces via buildGaugeGlass().
 
   Hard rule honored here: NO fabricated numbers. tok/s is not sourced, so the
   speed slot is the qualitative SpeedClass — never a guessed figure.
@@ -34,8 +34,8 @@ const SPEED_LABEL: Record<SpeedClass, string> = {
   none: "",
 };
 
-/** Reshape canRun() into the flat paint shape. The track formula matches the
- *  Gauge·Glass mock: a little headroom past max(need, usable). */
+/** Reshape canRun() into the flat paint shape. Track formula: a little
+ *  headroom past max(need, usable) so fill + threshold both sit on-track. */
 export function gaugeCompute(
   model: ModelRow,
   device: DeviceRow,

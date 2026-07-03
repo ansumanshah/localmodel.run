@@ -9,18 +9,22 @@ the nearest existing neighbour.
 Three families, each with one job. Pick the family by what the class IS, then use
 kebab-case.
 
-### 1. Glass design-system primitives (the reusable UI kit)
+### 1. Design-system primitives (the reusable UI kit)
 
 Short `g`-prefixed names, plus the `glass` base and `gh-` for the header. These are the
-shared building blocks defined in `glass.css`; reuse them, do not reinvent them.
+shared building blocks defined in `glass.css`; reuse them, do not reinvent them. The `g`/
+`glass` names are **historical** (they date from the retired liquid-glass system); since the
+July 2026 "Calibrated Instrument" reskin they render matte plates, but the names stay frozen
+because hundreds of templates use them.
 
-| Class | What |
+| Class | What (instrument rendering) |
 |---|---|
-| `.glass`, `.glass-lite` | the two glass materials (real backdrop-filter vs cheap twin) |
-| `.gbtn`, `.gfield`, `.gv` | button, form field, value chip |
-| `.gstat`, `.gsticky`, `.gscrim`, `.gmodal` | stat tile, sticky bar, modal scrim, modal |
-| `.gh`, `.gh-brand`, `.gh-nav` | the floating header capsule and its parts |
-| `.gauge`, `.spotlight`, `.aurora` | signature gauge, cursor spotlight, page backdrop |
+| `.glass`, `.glass-lite` | the two plate weights (hero plate vs dense-content plate, both matte) |
+| `.gbtn`, `.gfield`, `.gv` | machined button, recessed field, silkscreen verdict tag |
+| `.gstat`, `.gsticky`, `.gscrim`, `.gmodal` | stat readout, sticky bar, modal scrim (no blur), modal |
+| `.gh`, `.gh-brand`, `.gh-nav` | the flush header bezel (tick contact edge) and its parts |
+| `.gauge`, `.verdict-stamp` | graduated fit gauge, the inked inspection stamp |
+| `.spotlight`, `.aurora` | retired glass-era hooks, kept inert (spotlight renders nothing; aurora is a plain backdrop wrapper) |
 
 ### 2. Feature / section prefixes (everything page-specific)
 
@@ -35,11 +39,17 @@ primitive.
 
 ### 3. Legacy: `.bp-*` (do not add more)
 
-`bp-` is the old "Blueprint Console" prefix from before the Gauge·Glass redesign. It is
-**load-bearing but frozen**: hundreds of templates use it and `glass-bridge.css` remaps every
-`.bp-*` onto the glass layer site-wide. Leave existing `.bp-*` alone (renaming them touches
-every template + the bridge + the Claude Design sync bundle for zero user benefit), and never
-write a new `.bp-*` class. New work uses families 1 and 2.
+`bp-` is the old "Blueprint Console" prefix, two redesigns back. It is **load-bearing but
+frozen**: hundreds of templates use it and `glass-bridge.css` remaps every `.bp-*` onto the
+current skin site-wide. Leave existing `.bp-*` alone (renaming them touches every template +
+the bridge + the Claude Design sync bundle for zero user benefit), and never write a new
+`.bp-*` class. New work uses families 1 and 2.
+
+The same frozen-names doctrine covers the **files**: `glass.css`, `glass-bridge.css` and
+`glass-interactions.ts` kept their names through the instrument reskin; their contents are the
+instrument skin. Retired design tokens get legacy aliases at the top of `glass.css` instead of
+deletion, because Tailwind arbitrary values like `border-[var(--lite-rim)]` fail silently when
+a token disappears.
 
 ### Utilities
 

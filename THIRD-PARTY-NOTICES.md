@@ -9,13 +9,15 @@ that never reaches the browser. The list is here for transparency.
 
 ## Shipped to the browser
 
-- **Geist Sans** and **Geist Mono**: SIL Open Font License 1.1.
-  Copyright (c) 2023 Vercel, in collaboration with basement.studio
-  (https://github.com/vercel/geist-font). Self-hosted via
-  `@fontsource-variable/geist` and `@fontsource-variable/geist-mono` (plus
-  `@fontsource/geist-sans` for the build-time OG cards). Each package ships the
-  full OFL text and the woff2 files embed the license in their name-table
-  metadata, so the OFL is satisfied by the font files themselves, not by this page.
+- **Fjalla One** (Copyright Sorkin Type Co, https://github.com/SorkinType/Fjalla),
+  **Public Sans** (Copyright U.S. General Services Administration,
+  https://github.com/uswds/public-sans) and **JetBrains Mono** (Copyright
+  JetBrains s.r.o., https://github.com/JetBrains/JetBrainsMono): all SIL Open
+  Font License 1.1. Self-hosted via `@fontsource/fjalla-one`,
+  `@fontsource/public-sans` (also read at build time for the OG cards) and
+  `@fontsource-variable/jetbrains-mono`. Each package ships the full OFL text
+  and the woff2 files embed the license in their name-table metadata, so the
+  OFL is satisfied by the font files themselves, not by this page.
 - **Lucide** (via `@iconify-json/lucide`): ISC License. Copyright the Lucide
   contributors (https://github.com/lucide-icons/lucide). Icon SVG paths are
   inlined into the HTML at build time and carry no banner, so the permission

@@ -180,8 +180,9 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     <ClientRouter />
   </head>
   <body class="aurora min-h-screen flex flex-col">
-    <!-- Gauge·Glass page backdrop: layered iris/violet/cyan blooms the floating
-         glass chrome refracts against. pointer-events:none, z-0, behind all. -->
+    <!-- Page backdrop wrapper: since the instrument reskin this is the bare
+         matte panel (no blooms, no gradients). The .aurora hooks stay for
+         layout/stacking; pointer-events:none, z-0, behind all. -->
     <div class="aurora-bg" aria-hidden="true"></div>
     <a
       href="#main-content"
@@ -231,7 +232,8 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
       }
     </script>
 
-    <!-- Gauge·Glass micro-interactions (bundled module; re-inits on astro:page-load) -->
+    <!-- Instrument micro-interactions: one-shot count-ups, line-draw, copy, modals
+         (bundled module; re-inits on astro:page-load; historical filename) -->
     <script>
       import "@/scripts/glass-interactions";
     </script>

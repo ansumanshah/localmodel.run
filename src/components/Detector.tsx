@@ -172,7 +172,7 @@ export default function Detector() {
     (platform === "mac" || platform === "windows" || platform === "linux") && model.ollama_tag;
 
   const needGb = result.estimate?.totalGb ?? 0;
-  // Match the Gauge·Glass track formula: a little headroom past the larger of
+  // Match the gauge track formula: a little headroom past the larger of
   // need/usable so the fill and the usable-threshold mark both sit on-track.
   const trackMax = Math.max(needGb, usable) * 1.14;
   const fillScale = Math.min(1, needGb / trackMax);
@@ -228,8 +228,8 @@ export default function Detector() {
           {speed && <span className="tok">{speed}</span>}
         </div>
 
-        {/* Fit gauge with a glass lens edge: how much usable memory this model
-            needs, with a threshold mark at the usable ceiling. */}
+        {/* Graduated fit gauge: how much usable memory this model needs, with
+            a threshold mark at the usable ceiling. */}
         <div
           className="gauge lens mt-4"
           role="img"
