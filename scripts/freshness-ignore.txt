@@ -4,3 +4,4 @@
 #
 # Reasons we skip: cloud-only (no GGUF), embeddings/rerankers, duplicates of a tracked
 # family, or fine-tune spam. Add a trailing comment after the slug if you like.
+glm-5.2   # in catalog (2026-07-03), sized from unsloth HF GGUFs; Ollama listing is cloud-only so ollama_tag is null
