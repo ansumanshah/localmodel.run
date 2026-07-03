@@ -1,101 +1,62 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   GAUGE · GLASS  —  liquid-glass reskin layer for localmodel.run
-   Loads ON TOP of styles.css (the synced Gauge tokens). Adds:
-     · a two-tier glass token system  (hero tier  +  cheap "always-on" twin)
-     · the reskinned component library (header, panel, fields, gauge-lens,
-       verdict, stat, leaderboard, bento, magnetic CTA, iridescent Rig card)
-     · richer shaded aurora backdrops for A-light (warm paper) and B-dark
-     · degraded + reduced-motion + reduced-transparency fallbacks for every
-       glass surface and every motion.
+   THE CALIBRATED INSTRUMENT — skin layer for localmodel.run
+   (File keeps its historical name so imports stay stable; the glass material
+   it used to define is retired wholesale: no backdrop-filter, no iridescence,
+   no ambient motion anywhere in this file.)
 
-   THEME            A = light / warm-paper (default)   ·   B = dark (.dark)
-   GLASS BUDGET     hero tier  → small chrome only (header, detector, CTA,
-                                 gauge, modals, sticky bars)
-                    cheap twin → everything dense (tables, pSEO body, lists)
-   DEGRADE          add class "degraded" on any ancestor to drop ALL
-                    backdrop-filter to the cheap twin (preview the fallback).
+   MATERIAL   matte panel plates, 1px hairlines, machined 3-6px corners,
+              ruler-tick edges at ONE structural level (header bezel + section
+              rules only), graticule only where a reading is displayed.
+   MOTION     a needle moves once, settles, and stops. One-shot reveals only;
+              hovers are immediate border/underline changes. Nothing floats,
+              breathes, tilts, or follows the cursor.
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Hero-tier glass tokens (A · warm-paper light) ──────────────────────── */
-  --glass-blur: 16px;
-  --glass-sat: 180%;
-  --glass-fill-1: color-mix(in oklch, white 84%, transparent);
-  --glass-fill-2: color-mix(in oklch, white 62%, transparent);
-  --glass-rim: color-mix(in oklch, white 60%, transparent);
-  --glass-specular: rgba(255, 255, 255, 0.78);
-  --glass-tint: color-mix(in oklch, var(--color-brand) 14%, transparent);
-  --glass-glow: color-mix(in oklch, var(--color-brand) 22%, transparent);
-  --glass-edge-a: color-mix(in oklch, var(--color-brand) 55%, transparent);
-  --glass-edge-b: color-mix(in oklch, oklch(0.72 0.16 205) 45%, transparent);
-  --glass-radius: 16px;
+  /* Plate material (light: powder-coat panel) */
+  --plate: var(--card);
+  --plate-rim: var(--border);
+  --plate-rim-firm: color-mix(in oklch, var(--foreground) 28%, var(--border));
+  --well: color-mix(in oklch, var(--foreground) 4%, var(--card));
 
-  /* ── Cheap-twin tokens (no backdrop-filter; opaque enough to read on) ───── */
-  --lite-fill-1: color-mix(in oklch, white 95%, var(--card));
-  --lite-fill-2: color-mix(in oklch, white 87%, var(--card));
-  --lite-rim: color-mix(in oklch, var(--foreground) 11%, var(--border));
-  --lite-specular: rgba(255, 255, 255, 0.7);
+  /* Elevation: flat. One contact shadow, no levitation tiers. */
+  --elev-1: 0 1px 2px rgba(20, 18, 12, 0.06);
+  --elev-2: 0 1px 2px rgba(20, 18, 12, 0.06);
+  --elev-3: 0 2px 6px rgba(20, 18, 12, 0.1);
 
-  /* ── Elevation ──────────────────────────────────────────────────────────── */
-  --elev-1: 0 1px 2px rgba(20, 16, 40, 0.06);
-  --elev-2: 0 8px 24px -8px rgba(40, 30, 80, 0.18);
-  --elev-3: 0 24px 60px -22px rgba(40, 30, 80, 0.42);
-
-  /* ── Motion ─────────────────────────────────────────────────────────────── */
+  /* Motion */
   --spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --t-fast: 0.15s;
-  --t-mid: 0.24s;
-  --t-slow: 0.32s;
+  --settle: cubic-bezier(0.22, 1.24, 0.36, 1); /* slight needle overshoot */
+  --t-fast: 0.12s;
+  --t-mid: 0.2s;
+  --t-slow: 0.3s;
 
-  /* ── Iridescent Rig-card tweak tokens (overridable per instance) ────────── */
-  --rig-tilt: 9deg;
-  --rig-perspective: 900px;
-  --rig-irid-hue: 200deg;        /* base hue of the holographic sweep */
-  --rig-irid-intensity: 0.42;    /* sheen opacity */
-  --rig-glow-size: 160px;        /* specular radius */
-  --rig-glow-soft: 60%;          /* specular falloff */
-  --rig-noise-opacity: 0.55;
-  --rig-rim: rgba(255, 255, 255, 0.4);
-  --rig-radius: 18px;
+  /* Ruler-tick edge (structural level only: header bezel + section rules) */
+  --tick-edge: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 26%, transparent) 0 1px,
+    transparent 1px 8px
+  );
 
-  /* Static SVG-noise texture (cheap, runs everywhere). */
-  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Legacy variable aliases (markup/JS may still reference them) */
+  --glass-radius: 6px;
+  --rig-radius: 6px;
+  --rig-rim: var(--plate-rim-firm);
 }
 
 .dark {
-  /* Hero-tier glass tokens (B · deep architectural) */
-  --glass-blur: 18px;
-  --glass-sat: 165%;
-  --glass-fill-1: color-mix(in oklch, oklch(0.46 0.06 272) 62%, transparent);
-  --glass-fill-2: color-mix(in oklch, oklch(0.22 0.04 272) 48%, transparent);
-  --glass-rim: color-mix(in oklch, white 16%, transparent);
-  --glass-specular: rgba(255, 255, 255, 0.24);
-  --glass-tint: color-mix(in oklch, var(--color-brand) 26%, transparent);
-  --glass-glow: color-mix(in oklch, var(--color-brand) 42%, transparent);
-  --glass-edge-a: color-mix(in oklch, var(--color-brand) 70%, transparent);
-  --glass-edge-b: color-mix(in oklch, oklch(0.74 0.17 320) 55%, transparent);
-
-  --lite-fill-1: color-mix(in oklch, oklch(0.28 0.02 272) 92%, transparent);
-  --lite-fill-2: color-mix(in oklch, oklch(0.2 0.015 272) 92%, transparent);
-  --lite-rim: color-mix(in oklch, white 15%, transparent);
-  --lite-specular: rgba(255, 255, 255, 0.1);
-
-  --elev-2: 0 10px 30px -8px rgba(0, 0, 0, 0.5);
-  --elev-3: 0 28px 70px -22px rgba(0, 0, 0, 0.66);
-  --rig-rim: rgba(255, 255, 255, 0.34);
+  --well: color-mix(in oklch, white 3%, var(--card));
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --elev-3: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   AURORA / MESH BACKDROPS  (richer shading so glass has something to refract)
+   BACKDROP — the bare panel. The aurora markup stays; its blooms do not.
    ══════════════════════════════════════════════════════════════════════════ */
 .aurora {
   position: relative;
   isolation: isolate;
   background-color: var(--background);
-  /* Standalone/landscape only (env is 0 in a Safari tab and on desktop): keep the
-     header clear of the notch. The BOTTOM inset is handled on .gfooter instead, so
-     the footer's own background extends edge-to-edge into the home-indicator area
-     rather than leaving a separate band of body background below it. */
   padding-top: env(safe-area-inset-top, 0px);
 }
 .aurora > .aurora-bg {
@@ -105,209 +66,132 @@
   pointer-events: none;
   overflow: hidden;
 }
-/* A · warm paper — layered iris/violet/cyan blooms + soft vignette + grain */
-.aurora > .aurora-bg::before {
-  content: "";
-  position: absolute;
-  inset: -10%;
-  background:
-    radial-gradient(38% 42% at 14% 6%, color-mix(in oklch, var(--color-brand) 26%, transparent), transparent 64%),
-    radial-gradient(36% 40% at 88% 16%, color-mix(in oklch, oklch(0.72 0.16 320) 22%, transparent), transparent 66%),
-    radial-gradient(46% 50% at 72% 96%, color-mix(in oklch, oklch(0.74 0.14 205) 20%, transparent), transparent 64%),
-    radial-gradient(30% 34% at 38% 54%, color-mix(in oklch, oklch(0.8 0.12 272) 16%, transparent), transparent 70%),
-    conic-gradient(from 220deg at 60% 40%, transparent, color-mix(in oklch, var(--color-brand) 7%, transparent), transparent 60%);
-  filter: saturate(1.05);
+/* Matte faceplate: no gradients, no grain, no vignette. The surface is the
+   design. (::before/::after neutralized; the wrapper stays for layout.) */
+.aurora > .aurora-bg::before,
+.aurora > .aurora-bg::after {
+  content: none;
 }
-/* Clean backdrop: no grain / no smoky vignette overlay — color blooms only. */
-.aurora > .aurora-bg::after { content: none; }
-/* B · deep architectural — brighter, cleaner aurora (no smoke) */
-.dark.aurora > .aurora-bg::before,
-.dark .aurora > .aurora-bg::before {
-  background:
-    radial-gradient(40% 44% at 12% 4%, color-mix(in oklch, var(--color-brand) 62%, transparent), transparent 62%),
-    radial-gradient(38% 42% at 90% 14%, color-mix(in oklch, oklch(0.62 0.2 320) 52%, transparent), transparent 64%),
-    radial-gradient(50% 54% at 74% 100%, color-mix(in oklch, oklch(0.6 0.18 205) 46%, transparent), transparent 62%),
-    radial-gradient(34% 38% at 42% 58%, color-mix(in oklch, oklch(0.56 0.18 272) 34%, transparent), transparent 70%),
-    conic-gradient(from 210deg at 64% 36%, transparent, color-mix(in oklch, oklch(0.6 0.2 300) 14%, transparent), transparent 55%);
-  filter: saturate(1.18);
-}
-.dark.aurora > .aurora-bg::after,
-.dark .aurora > .aurora-bg::after { content: none; }
 .aurora > *:not(.aurora-bg) {
   position: relative;
   z-index: 1;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   GLASS SURFACES
+   PLATE SURFACES  (the .glass hooks keep their names; the material is matte)
    ══════════════════════════════════════════════════════════════════════════ */
 .glass {
   position: relative;
   border-radius: var(--glass-radius);
-  background: linear-gradient(155deg, var(--glass-fill-1), var(--glass-fill-2));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.05);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.05);
-  border: 1px solid var(--glass-rim);
-  box-shadow:
-    inset 0 1px 1px 0 var(--glass-specular),
-    inset 0 -12px 20px -14px rgba(255, 255, 255, 0.38),
-    inset 0 0 0 1px color-mix(in oklch, white 20%, transparent),
-    0 1px 0 rgba(255, 255, 255, 0.4),
-    var(--elev-2),
-    0 10px 34px -10px var(--glass-glow);
+  background: var(--plate);
+  border: 1px solid var(--plate-rim);
+  box-shadow: var(--elev-1);
 }
-/* iris tint + grain wash */
-.glass::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(120% 120% at 0% 0%, var(--glass-tint), transparent 55%),
-    var(--noise);
-  background-size: auto, 130px;
-  opacity: 0.38;
-  mix-blend-mode: soft-light;
-}
-/* chromatic-aberration edge rim (two-hue hairline ≈ 0.20) */
+.glass::before,
 .glass::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  pointer-events: none;
-  z-index: 2;
-  background: linear-gradient(135deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    var(--glass-edge-a) 13%,
-    transparent 36%,
-    transparent 64%,
-    var(--glass-edge-b) 87%,
-    rgba(255, 255, 255, 0.6) 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0.85;
+  content: none;
 }
-.glass > * { position: relative; z-index: 1; }
+.glass > * {
+  position: relative;
+  z-index: 1;
+}
 
-/* Cheap "always-on" twin — no backdrop-filter. Behind dense content. */
 .glass-lite {
   position: relative;
-  border-radius: 14px;
-  background: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2));
-  border: 1px solid var(--lite-rim);
-  box-shadow: inset 0 1px 0 0 var(--lite-specular), var(--elev-1);
+  border-radius: 4px;
+  background: var(--plate);
+  border: 1px solid var(--plate-rim);
+  box-shadow: var(--elev-1);
 }
 .glass-lite::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: var(--noise);
-  background-size: 130px;
-  opacity: 0.3;
-  mix-blend-mode: soft-light;
+  content: none;
 }
-.glass-lite > * { position: relative; }
-
-/* Dark: drop the grain/texture tint on glass — keep a clean tinted wash only. */
-.dark .glass::before {
-  background: radial-gradient(120% 120% at 0% 0%, var(--glass-tint), transparent 55%);
-  opacity: 0.6;
+.glass-lite > * {
+  position: relative;
 }
-/* tame the white chromatic rim on dark glass (the light-mode corners are too hot). */
-.dark .glass::after { opacity: 0.35; }
-.dark .glass-lite::before { display: none; }
 
-/* Spotlight glow following the cursor — pointer var, not a filter. */
-.spotlight { --mx: 50%; --my: 0%; isolation: isolate; }
+/* Spotlight: retired. The wrapper stays inert so markup needs no edits. */
+.spotlight {
+  isolation: isolate;
+}
 .spotlight > .spot {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(calc(var(--rig-glow-size) * 0.55) calc(var(--rig-glow-size) * 0.55) at var(--mx) var(--my), rgba(255, 255, 255, 0.6), transparent 60%),
-    radial-gradient(var(--rig-glow-size) var(--rig-glow-size) at var(--mx) var(--my), color-mix(in oklch, var(--color-brand) 24%, transparent), transparent 66%);
-  opacity: 0;
-  transition: opacity var(--t-mid) ease;
-  mix-blend-mode: overlay;
+  display: none;
 }
-.spotlight:hover > .spot { opacity: 1; }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   HEADER + NAV
+   HEADER — a fixed control-panel bezel, flush with the top edge
    ══════════════════════════════════════════════════════════════════════════ */
 .gh {
   position: sticky;
-  top: 12px; /* fallback if calc()/env() is unsupported, so the header still sticks */
-  top: calc(12px + env(safe-area-inset-top, 0px));
+  top: 0;
   z-index: 50;
   display: flex;
   align-items: center;
   gap: 10px;
-  width: min(var(--shell, 1180px), calc(100% - 2 * clamp(16px, 4vw, 32px)));
-  margin: 14px auto 4px;
-  padding: 7px 7px 7px 18px;
-  border-radius: 100px;
+  width: 100%;
+  margin: 0;
+  padding: 10px clamp(16px, 4vw, 32px);
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  border-radius: 0;
 }
-/* The aurora content-lift rule `.aurora > *:not(.aurora-bg)` (specificity 0,0,2,0)
-   outranks plain `.gh` (0,0,1,0), so it silently flattened the sticky header to
-   `position:relative; z-index:1` — equal to <main>, which paints later in DOM. That
-   buried BOTH the mobile dropdown and the header itself behind hero content, and
-   stopped the capsule from sticking on scroll. Re-assert the header's intent at
-   matching specificity (wins on source order, being later than line ~131). */
-.aurora > .gh { position: sticky; z-index: 50; }
-/* Floating Liquid-Glass capsule: clearer fill (content shows through) + bright bevel + lift */
+.aurora > .gh {
+  position: sticky;
+  z-index: 50;
+}
+/* The bezel: opaque panel, ink baseline, ruler-tick contact edge beneath. */
 .gh.glass {
-  background: linear-gradient(160deg, color-mix(in oklch, white 58%, transparent), color-mix(in oklch, white 32%, transparent));
-  box-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.92),
-    inset 0 -10px 18px -12px rgba(255, 255, 255, 0.4),
-    inset 0 0 0 1px color-mix(in oklch, white 26%, transparent),
-    0 1px 0 rgba(255, 255, 255, 0.45),
-    0 20px 44px -18px rgba(40, 30, 80, 0.42),
-    0 8px 18px -10px var(--glass-glow);
+  background: var(--background);
+  border: 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 55%, transparent);
+  box-shadow: none;
+}
+.gh.glass::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 4px;
+  background: var(--tick-edge);
+  -webkit-mask: none;
+  mask: none;
+  padding: 0;
+  opacity: 1;
+  border-radius: 0;
+  pointer-events: none;
 }
 .dark .gh.glass {
-  background: linear-gradient(160deg, color-mix(in oklch, oklch(0.5 0.07 272) 52%, transparent), color-mix(in oklch, oklch(0.22 0.04 272) 38%, transparent));
+  background: var(--background);
 }
-.gh .icon-btn { border-radius: 50%; }
-/* The mobile-nav dropdown carries Tailwind `.absolute`, but it also needs
-   `.glass-lite` for its material — and `.glass-lite { position: relative }` ties
-   `.absolute` on specificity (0,0,1,0) and wins on source order (glass.css loads
-   after Tailwind). That silently demoted the dropdown to a shrink-to-fit flex
-   item in the header row (a 136px strip overflowing the right edge instead of a
-   full-width panel). ID specificity (1,0,0) settles it for good. Same failure
-   family as the `.gh-nav` display clash — see tailwind-vs-component-css-display. */
-#mobile-nav { position: absolute; }
+.gh .icon-btn {
+  border-radius: 4px;
+}
+#mobile-nav {
+  position: absolute;
+}
 .gh-brand {
   display: flex;
   align-items: center;
   gap: 9px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   color: var(--foreground);
   text-decoration: none;
 }
+/* The mark sits bare on the bezel: no gradient tile, no glow. */
 .gh-brand .sq {
   display: grid;
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  background: linear-gradient(140deg, var(--color-brand), oklch(0.58 0.2 300));
-  color: white;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 3px 8px color-mix(in oklch, var(--color-brand) 40%, transparent);
+  border-radius: 0;
+  background: none;
+  color: var(--foreground);
+  box-shadow: none;
 }
-.gh-brand .run { color: var(--muted-foreground); }
+.gh-brand .run {
+  color: var(--muted-foreground);
+}
 .gh-status {
   display: none;
   align-items: center;
@@ -319,15 +203,19 @@
   letter-spacing: 0.12em;
   color: var(--muted-foreground);
 }
+/* Status: a square indicator lamp, steady. Instruments do not blink at rest. */
 .gh-status .dot {
-  width: 6px; height: 6px; border-radius: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
   background: var(--color-verdict-yes);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-verdict-yes) 25%, transparent);
+  box-shadow: none;
 }
-/* display is owned by the Tailwind `hidden sm:flex` utilities on the element, so
-   this rule must NOT set `display` (it would override `.hidden` on mobile and
-   render the full desktop nav inside the capsule). Cosmetics only. */
-.gh-nav { margin-left: auto; align-items: center; gap: 2px; }
+.gh-nav {
+  margin-left: auto;
+  align-items: center;
+  gap: 2px;
+}
 .gh-nav a {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -336,15 +224,32 @@
   color: var(--muted-foreground);
   text-decoration: none;
   padding: 7px 10px;
-  border-radius: 7px;
-  transition: background var(--t-fast), color var(--t-fast);
+  border-radius: 0;
+  /* Underline sweep: a needle-colored tick grows in from the left. */
+  background-image: linear-gradient(var(--color-brand), var(--color-brand));
+  background-repeat: no-repeat;
+  background-position: 10px calc(100% - 3px);
+  background-size: 0 2px;
+  transition:
+    color var(--t-fast),
+    background-size var(--t-fast) ease-out;
 }
-.gh-nav a:hover { color: var(--foreground); background: color-mix(in oklch, var(--color-brand) 8%, transparent); }
-.gh-nav a.on { color: var(--brand-ink); background: color-mix(in oklch, var(--color-brand) 13%, transparent); }
-@media (min-width: 760px) { .gh-status { display: flex; } }
+.gh-nav a:hover {
+  color: var(--foreground);
+  background-size: calc(100% - 20px) 2px;
+}
+.gh-nav a.on {
+  color: var(--foreground);
+  background-size: calc(100% - 20px) 2px;
+}
+@media (min-width: 760px) {
+  .gh-status {
+    display: flex;
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   FIELDS / SELECTS  (glass inputs over --input)
+   FIELDS / SELECTS — recessed instrument wells
    ══════════════════════════════════════════════════════════════════════════ */
 .gfield-label {
   display: block;
@@ -362,21 +267,23 @@
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  border-radius: 11px;
+  border-radius: 3px;
   padding: 10px 12px;
   font-size: 14px;
   color: var(--foreground);
-  background: color-mix(in oklch, var(--card) 80%, transparent);
-  /* A form control needs a clearly visible, theme-adaptive border (the white
-     --glass-rim bevel vanished on the warm-paper hero — read as "no border").
-     --foreground at low alpha stays visible in both themes. */
-  border: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  background: var(--well);
+  border: 1px solid color-mix(in oklch, var(--foreground) 22%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color var(--t-fast);
 }
-.dark .gfield { background: color-mix(in oklch, oklch(0.3 0.02 272) 58%, transparent); border-color: color-mix(in oklch, white 18%, transparent); }
+.dark .gfield {
+  background: var(--well);
+  border-color: color-mix(in oklch, white 20%, transparent);
+}
 .gfield:focus-within,
-.gfield:hover { border-color: color-mix(in oklch, var(--color-brand) 45%, transparent); }
+.gfield:hover {
+  border-color: var(--color-brand);
+}
 .gfield select {
   position: absolute;
   inset: 0;
@@ -386,134 +293,228 @@
   cursor: pointer;
   font: inherit;
 }
-.gfield .chev { color: var(--muted-foreground); flex: none; }
+.gfield .chev {
+  color: var(--muted-foreground);
+  flex: none;
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   BUTTONS
+   BUTTONS — machined, they press down, they never levitate
    ══════════════════════════════════════════════════════════════════════════ */
 .gbtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  border: 1px solid var(--glass-rim);
-  border-radius: 11px;
+  border: 1px solid var(--plate-rim-firm);
+  border-radius: 3px;
   padding: 10px 16px;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: var(--foreground);
-  background: linear-gradient(155deg, var(--glass-fill-1), var(--glass-fill-2));
-  -webkit-backdrop-filter: blur(10px) saturate(160%);
-  backdrop-filter: blur(10px) saturate(160%);
-  box-shadow: inset 0 1px 0 var(--glass-specular), var(--elev-1);
-  transition: transform var(--t-fast) var(--spring), box-shadow var(--t-fast);
+  background: var(--plate);
+  box-shadow: var(--elev-1);
+  transition:
+    border-color var(--t-fast),
+    transform var(--t-fast);
 }
-.gbtn:hover { box-shadow: inset 0 1px 0 var(--glass-specular), var(--elev-2); }
-.gbtn:active { transform: scale(0.97); }
+.gbtn:hover {
+  border-color: var(--color-brand);
+}
+.gbtn:active {
+  transform: translateY(1px);
+}
 
-/* Magnetic primary — solid iris, animated conic edge optional */
+/* Primary: solid needle ink. White glyphs pass AA large on #C5501E. */
 .gbtn--primary {
-  color: white;
-  border: 0;
-  background: linear-gradient(135deg, var(--color-brand), oklch(0.56 0.2 300));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 18px -4px color-mix(in oklch, var(--color-brand) 55%, transparent);
+  color: #fff;
+  border: 1px solid color-mix(in oklch, black 22%, var(--color-brand));
+  background: var(--color-brand);
+  box-shadow: var(--elev-1);
   will-change: transform;
-  /* opaque fill — cancel the inherited .gbtn blur so the solid CTA doesn't
-     allocate a hidden, invisible compositor layer on every page. */
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
 }
-.gbtn--primary:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 12px 28px -4px color-mix(in oklch, var(--color-brand) 65%, transparent); }
+.gbtn--primary:hover {
+  background: color-mix(in oklch, black 8%, var(--color-brand));
+  border-color: color-mix(in oklch, black 30%, var(--color-brand));
+}
 
-/* command chip */
+/* command chip: a stamped legend row */
 .cmd-chip {
   display: flex;
   align-items: center;
   gap: 9px;
-  border-radius: 11px;
+  border-radius: 3px;
   padding: 10px 13px;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--foreground);
-  background: color-mix(in oklch, var(--card) 58%, transparent);
-  border: 1px solid color-mix(in oklch, var(--glass-rim) 85%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: var(--well);
+  border: 1px solid var(--plate-rim);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-.dark .cmd-chip { background: color-mix(in oklch, oklch(0.3 0.02 272) 58%, transparent); }
-.cmd-chip .d { color: var(--brand-ink); }
-/* Scroll long commands horizontally but never show a track (avoids a persistent
-   scrollbar on systems set to "always show scrollbars"). */
-.cmd-chip .cmd-text { min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-.cmd-chip .cmd-text::-webkit-scrollbar { display: none; }
-.cmd-chip .copy { margin-left: auto; color: var(--muted-foreground); cursor: pointer; }
+.dark .cmd-chip {
+  background: var(--well);
+}
+.cmd-chip .d {
+  color: var(--brand-ink);
+}
+.cmd-chip .cmd-text {
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.cmd-chip .cmd-text::-webkit-scrollbar {
+  display: none;
+}
+.cmd-chip .copy {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.cmd-chip .copy:hover {
+  color: var(--brand-ink);
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   GAUGE-AS-LENS  (the signature, glass-edged)
+   GAUGE — the reading. Graduated track (see global.css); fill settles once.
    ══════════════════════════════════════════════════════════════════════════ */
 .gauge.lens {
   height: 0.7rem;
-  background: color-mix(in oklch, var(--gauge-track) 80%, transparent);
   box-shadow:
-    inset 0 0 0 1px color-mix(in oklch, var(--foreground) 8%, transparent),
-    inset 0 1px 2px rgba(0, 0, 0, 0.12),
-    inset 0 -1px 0 var(--glass-specular);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
+    inset 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
+    inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 .gauge.lens .gauge-fill {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 14px -2px color-mix(in oklch, var(--vc, var(--color-brand)) 60%, transparent);
+  box-shadow: none;
 }
-.gauge.lens .gauge-mark { box-shadow: 0 0 6px color-mix(in oklch, var(--foreground) 40%, transparent); }
+.gauge.lens .gauge-mark {
+  box-shadow: none;
+}
 
-/* verdict reveal spring + a subtle sheen on a Yes */
+/* The static pair-page stamp (server-rendered twin of .verdict-hero). */
+.verdict-stamp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+.verdict-stamp::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* The verdict line: an inked inspection stamp. Straight, double-ruled, done. */
 .verdict-hero {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: clamp(20px, 3.4vw, 26px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  animation: verdict-pop 0.34s var(--spring) both;
+  padding: 8px 16px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: clamp(18px, 3vw, 23px);
+  animation: stamp-press 0.18s var(--settle) both;
 }
-.verdict-hero .tok { color: var(--muted-foreground); font-weight: 500; font-size: 0.7em; font-family: var(--font-mono); }
-@keyframes verdict-pop {
-  from { opacity: 0; transform: translateY(7px) scale(0.97); }
-}
-.verdict-hero[data-v="yes"]::after {
+/* inner rule of the stamp */
+.verdict-hero::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
   pointer-events: none;
+  opacity: 0.7;
+}
+.verdict-hero .tok {
+  color: var(--muted-foreground);
+  font-weight: 400;
+  font-size: 0.55em;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+@keyframes stamp-press {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+.verdict-hero[data-v="yes"] {
+  color: var(--verdict-yes-fg);
+}
+.verdict-hero[data-v="tight"] {
+  color: var(--verdict-tight-fg);
+}
+.verdict-hero[data-v="no"] {
+  color: var(--verdict-no-fg);
+}
+.verdict-hero[data-v="yes"]::after {
+  content: none;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   VERDICT BADGES  (glass pills over verdict tokens — always on solid scrim)
+   VERDICT TAGS — silkscreen legends, not pills
    ══════════════════════════════════════════════════════════════════════════ */
 .gv {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid;
-  padding: 4px 11px;
-  font-size: 12px;
+  padding: 3px 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 500;
-  background: color-mix(in oklch, var(--card) 55%, transparent);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--plate);
 }
-.gv--y { color: var(--verdict-yes-fg); border-color: color-mix(in oklch, var(--color-verdict-yes) 38%, transparent); }
-.gv--t { color: var(--verdict-tight-fg); border-color: color-mix(in oklch, var(--color-verdict-tight) 38%, transparent); }
-.gv--n { color: var(--verdict-no-fg); border-color: color-mix(in oklch, var(--color-verdict-no) 38%, transparent); }
+.gv--y {
+  color: var(--verdict-yes-fg);
+  border-color: color-mix(in oklch, var(--color-verdict-yes) 55%, transparent);
+}
+.gv--t {
+  color: var(--verdict-tight-fg);
+  border-color: color-mix(in oklch, var(--color-verdict-tight) 55%, transparent);
+}
+.gv--n {
+  color: var(--verdict-no-fg);
+  border-color: color-mix(in oklch, var(--color-verdict-no) 55%, transparent);
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   STAT READOUT  (glass-lite tiles)
+   STAT READOUT — multimeter figures on recessed tiles
    ══════════════════════════════════════════════════════════════════════════ */
-.gstat-grid { display: grid; gap: 12px; }
+.gstat-grid {
+  display: grid;
+  gap: 12px;
+}
 .gstat {
   padding: 13px 15px;
-  border-radius: 13px;
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -536,27 +537,36 @@
   margin-top: 0;
   order: 1;
 }
-.gstat .v.yes { color: var(--brand-ink); }
+.gstat .v.yes {
+  color: var(--brand-ink);
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   LEADERBOARD  (cheap-tier panel + glass header bar)
+   LEADERBOARD — a datasheet table
    ══════════════════════════════════════════════════════════════════════════ */
-.lb { border-radius: 16px; overflow: hidden; }
+.lb {
+  border-radius: 4px;
+  overflow: hidden;
+}
 .lb-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--lite-rim);
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 45%, transparent);
 }
 .lb-lbl {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: color-mix(in oklch, var(--brand-ink) 75%, var(--muted-foreground));
+  color: var(--muted-foreground);
 }
-.lb table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.lb table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
 .lb thead th {
   padding: 9px 16px;
   font-family: var(--font-mono);
@@ -565,21 +575,41 @@
   text-transform: uppercase;
   color: var(--muted-foreground);
 }
-.lb th.l { text-align: left; }
-.lb th.r, .lb td.r { text-align: right; }
-.lb tbody tr { transition: background var(--t-fast); border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent); }
-.lb tbody tr:hover { background: color-mix(in oklch, var(--color-brand) 6%, transparent); }
-.lb td { padding: 11px 16px; color: var(--muted-foreground); }
-.lb td.model { color: var(--foreground); font-weight: 500; display: flex; align-items: center; gap: 9px; }
-/* animated conic/gradient border for the highlighted row */
+.lb th.l {
+  text-align: left;
+}
+.lb th.r,
+.lb td.r {
+  text-align: right;
+}
+.lb tbody tr {
+  border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+.lb tbody tr:hover {
+  background: color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+.lb td {
+  padding: 11px 16px;
+  color: var(--muted-foreground);
+}
+.lb td.model {
+  color: var(--foreground);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+/* the recommended row: a needle edge-stripe, no wash */
 .lb tr.rec {
-  background: color-mix(in oklch, var(--color-brand) 9%, transparent);
+  background: color-mix(in oklch, var(--color-brand) 5%, transparent);
   position: relative;
 }
-.lb tr.rec td:first-child { box-shadow: inset 3px 0 0 var(--color-brand); }
+.lb tr.rec td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-brand);
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   BENTO GRID
+   BENTO GRID — rating-plate tiles; borders brighten, nothing lifts
    ══════════════════════════════════════════════════════════════════════════ */
 .bento {
   display: grid;
@@ -587,16 +617,18 @@
   grid-template-columns: repeat(4, 1fr);
 }
 .bento-card {
-  border-radius: 16px;
+  border-radius: 4px;
   padding: 18px;
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: transform var(--t-mid) var(--spring), box-shadow var(--t-mid);
+  transition: border-color var(--t-fast);
 }
-.bento-card:hover { transform: translateY(-3px); box-shadow: var(--elev-2); }
+.bento-card:hover {
+  border-color: var(--color-brand);
+}
 .bento-card .bento-k {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -604,90 +636,168 @@
   text-transform: uppercase;
   color: var(--brand-ink);
 }
-.bento-card .bento-t { font-size: 16px; font-weight: 600; color: var(--foreground); letter-spacing: -0.01em; }
-.bento-card .bento-d { font-size: 13px; color: var(--muted-foreground); line-height: 1.5; }
-.bento-card .bento-go { margin-top: auto; font-family: var(--font-mono); font-size: 12px; color: var(--brand-ink); }
-.bento-card.col-2 { grid-column: span 2; }
-@media (max-width: 760px) { .bento { grid-template-columns: 1fr 1fr; } .bento-card.col-2 { grid-column: span 2; } }
+.bento-card .bento-t {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+.bento-card .bento-d {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+.bento-card .bento-go {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--brand-ink);
+}
+.bento-card.col-2 {
+  grid-column: span 2;
+}
+@media (max-width: 760px) {
+  .bento {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bento-card.col-2 {
+    grid-column: span 2;
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   IRIDESCENT COLLECTIBLE RIG CARD
+   RIG CARD — the engraved gunmetal rating plate (iridescence retired)
    ══════════════════════════════════════════════════════════════════════════ */
-.rig-stage { perspective: var(--rig-perspective); }
+.rig-stage {
+  perspective: none;
+}
 .rig-card {
-  --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg;
   position: relative;
   border-radius: var(--rig-radius);
   padding: 22px;
   overflow: hidden;
-  transform: rotateX(var(--rx)) rotateY(var(--ry));
-  transform-style: preserve-3d;
-  transition: transform var(--t-mid) var(--spring);
-  color: white;
-  will-change: transform;
-  background: linear-gradient(155deg, oklch(0.46 0.18 272), oklch(0.3 0.14 285) 60%, oklch(0.34 0.16 300));
-  border: 1px solid var(--rig-rim);
-  box-shadow: var(--elev-3), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  color: #edeff2;
+  background: #15171a;
+  border: 1px solid #2c2f34;
+  box-shadow: var(--elev-3);
 }
-/* holographic sheen — hue-shifting, tracks pointer, masked to highlights */
+/* graduated top edge: this plate displays a reading, so it earns a ruler */
 .rig-card::before {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(237, 239, 242, 0.35) 0 1px,
+    transparent 1px 8px
+  );
+  mix-blend-mode: normal;
+  opacity: 1;
+  -webkit-mask: none;
+  mask: none;
+  border-radius: 0;
   pointer-events: none;
   z-index: 1;
-  background: conic-gradient(
-    from var(--rig-irid-hue) at var(--mx) var(--my),
-    oklch(0.8 0.2 20), oklch(0.82 0.18 90), oklch(0.82 0.2 160),
-    oklch(0.82 0.2 230), oklch(0.8 0.22 300), oklch(0.8 0.2 20)
-  );
-  mix-blend-mode: color-dodge;
-  opacity: var(--rig-irid-intensity);
-  -webkit-mask: radial-gradient(120% 120% at var(--mx) var(--my), #000, transparent 60%);
-  mask: radial-gradient(120% 120% at var(--mx) var(--my), #000, transparent 60%);
 }
-/* specular glow tracking the mouse + grain */
 .rig-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 2;
-  background:
-    radial-gradient(var(--rig-glow-size) var(--rig-glow-size) at var(--mx) var(--my), rgba(255, 255, 255, 0.5), transparent var(--rig-glow-soft)),
-    var(--noise);
-  background-size: auto, 120px;
-  mix-blend-mode: overlay;
-  opacity: var(--rig-noise-opacity);
+  content: none;
 }
-.rig-card > * { position: relative; z-index: 3; }
-.rig-top { display: flex; align-items: center; justify-content: space-between; }
-.rig-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.85); }
-.rig-grade { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: white; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 999px; padding: 3px 11px; }
-.rig-score { font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-size: clamp(48px, 9vw, 68px); margin: 16px 0 4px; background: linear-gradient(120deg, #fff, oklch(0.85 0.12 300)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-.rig-dev { font-size: 15px; font-weight: 600; color: white; }
-.rig-meta { font-family: var(--font-mono); font-size: 12px; color: rgba(255, 255, 255, 0.82); margin-top: 3px; }
-.rig-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 13px; border-top: 1px solid rgba(255, 255, 255, 0.18); }
-.rig-foot span { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.82); }
+.rig-card > * {
+  position: relative;
+  z-index: 3;
+}
+.rig-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rig-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ba0a8;
+}
+.rig-grade {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #edeff2;
+  border: 1px solid rgba(237, 239, 242, 0.45);
+  border-radius: 2px;
+  padding: 3px 11px;
+}
+.rig-score {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-size: clamp(48px, 9vw, 68px);
+  margin: 16px 0 4px;
+  color: #edeff2;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: currentColor;
+}
+.rig-dev {
+  font-size: 15px;
+  font-weight: 600;
+  color: #edeff2;
+}
+.rig-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #9ba0a8;
+  margin-top: 3px;
+}
+.rig-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(237, 239, 242, 0.16);
+}
+.rig-foot span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #9ba0a8;
+}
 
-/* ── page-enter stagger (transform/opacity only) ────────────────────────── */
+/* ── page-enter stagger (one-shot, transform/opacity only) ──────────────── */
 @media (prefers-reduced-motion: no-preference) {
-  .enter > * { animation: enter-rise 0.5s var(--spring) both; }
-  .enter > *:nth-child(2) { animation-delay: 0.06s; }
-  .enter > *:nth-child(3) { animation-delay: 0.12s; }
-  .enter > *:nth-child(4) { animation-delay: 0.18s; }
-  .enter > *:nth-child(5) { animation-delay: 0.24s; }
+  .enter > * {
+    animation: enter-rise 0.45s var(--spring) both;
+  }
+  .enter > *:nth-child(2) {
+    animation-delay: 0.05s;
+  }
+  .enter > *:nth-child(3) {
+    animation-delay: 0.1s;
+  }
+  .enter > *:nth-child(4) {
+    animation-delay: 0.15s;
+  }
+  .enter > *:nth-child(5) {
+    animation-delay: 0.2s;
+  }
 }
 @keyframes enter-rise {
-  from { opacity: 0; transform: translateY(10px); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   DEGRADED / FALLBACKS  —  for every glass surface + every motion
+   DEGRADED / FALLBACKS — matte surfaces have nothing left to degrade; the
+   hooks stay so the toggle and older markup remain inert.
    ══════════════════════════════════════════════════════════════════════════ */
-/* Manual preview toggle: add "degraded" on any ancestor. */
 .degraded .glass,
 .degraded .gbtn,
 .degraded .gv,
@@ -697,38 +807,36 @@
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-.degraded .glass {
-  background: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2)) !important;
-}
 .degraded .glass::after,
-.degraded .spotlight > .spot { display: none; }
-.degraded .gv { background: color-mix(in oklch, var(--card) 94%, transparent) !important; }
-
-/* Automatic: browsers without backdrop-filter */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass { background: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2)); }
-  .gv { background: color-mix(in oklch, var(--card) 94%, transparent); }
-  .gbtn { background: var(--card); }
-  /* the modal scrim relies on blur for occlusion — without it, go mostly opaque
-     so dialog content doesn't bleed through the page behind. */
-  .gscrim { background: color-mix(in oklch, var(--background) 85%, transparent); }
+.degraded .spotlight > .spot {
+  display: none;
 }
-/* Automatic: user asked for less transparency */
 @media (prefers-reduced-transparency: reduce) {
-  .glass, .glass-lite, .gbtn, .gfield, .cmd-chip { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .glass::after { display: none; }
-  /* drop the remaining blur surfaces (keep their own fills/tracks). */
-  .gauge.lens, .gv, .gscrim { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass,
+  .glass-lite,
+  .gbtn,
+  .gfield,
+  .cmd-chip {
+    background: var(--card);
+  }
 }
 /* Motion off */
 @media (prefers-reduced-motion: reduce) {
-  .rig-card, .gbtn, .gbtn--primary, .bento-card, .verdict-hero { transition: none; animation: none; }
-  .enter > * { animation: none; }
-  .spotlight > .spot { transition: none; }
+  .rig-card,
+  .gbtn,
+  .gbtn--primary,
+  .bento-card,
+  .verdict-hero {
+    transition: none;
+    animation: none;
+  }
+  .enter > * {
+    animation: none;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   MODAL  (hero tier — glass sheet over a blurred scrim)
+   MODAL — an opaque instruction card over a dimmed bench. No blur.
    ══════════════════════════════════════════════════════════════════════════ */
 .gscrim {
   position: fixed;
@@ -737,291 +845,558 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: color-mix(in oklch, var(--background) 40%, transparent);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-  backdrop-filter: blur(8px) saturate(140%);
+  background: color-mix(in oklch, var(--background) 82%, transparent);
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--t-mid) ease, visibility var(--t-mid);
+  transition:
+    opacity var(--t-mid) ease,
+    visibility var(--t-mid);
 }
-.gscrim[data-open] { opacity: 1; visibility: visible; }
+.gscrim[data-open] {
+  opacity: 1;
+  visibility: visible;
+}
 .gmodal {
   width: 100%;
   max-width: 440px;
-  border-radius: 20px;
+  border-radius: 6px;
   padding: 24px;
-  transform: translateY(12px) scale(0.98);
+  border: 1px solid var(--plate-rim-firm);
+  transform: translateY(8px);
   transition: transform var(--t-mid) var(--spring);
 }
-.gscrim[data-open] .gmodal { transform: none; }
-.gmodal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-.gmodal-title { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; color: var(--foreground); margin: 0; }
-.gmodal-sub { font-size: 13px; color: var(--muted-foreground); margin: 5px 0 0; line-height: 1.5; }
-.gmodal-x {
-  flex: none; display: grid; place-items: center;
-  width: 32px; height: 32px; border-radius: 9px;
-  border: 1px solid var(--glass-rim); background: color-mix(in oklch, var(--card) 50%, transparent);
-  color: var(--muted-foreground); cursor: pointer;
+.gscrim[data-open] .gmodal {
+  transform: none;
 }
-.gmodal-body { margin-top: 18px; }
-.gmodal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.gmodal-actions .gbtn { flex: 1; justify-content: center; }
-@media (prefers-reduced-motion: reduce) { .gscrim, .gmodal { transition: none; } .gmodal { transform: none; } }
-@media (prefers-reduced-transparency: reduce) { .gscrim { background: color-mix(in oklch, var(--background) 80%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+.gmodal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.gmodal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  margin: 0;
+}
+.gmodal-sub {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+.gmodal-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  border: 1px solid var(--plate-rim);
+  background: var(--well);
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.gmodal-body {
+  margin-top: 18px;
+}
+.gmodal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.gmodal-actions .gbtn {
+  flex: 1;
+  justify-content: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gscrim,
+  .gmodal {
+    transition: none;
+  }
+  .gmodal {
+    transform: none;
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   STICKY ACTION BAR  (hero tier — appears at viewport bottom / top)
+   STICKY ACTION BAR — a flat readout strip
    ══════════════════════════════════════════════════════════════════════════ */
 .gsticky {
   position: sticky;
-  bottom: 14px; /* fallback if calc()/env() is unsupported */
+  bottom: 14px;
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 11px 11px 11px 17px;
-  border-radius: 16px;
+  border-radius: 4px;
   margin: 22px auto 0;
+  border: 1px solid var(--plate-rim-firm);
 }
-.gsticky .gs-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-verdict-yes) 0%, transparent); }
-.gsticky .gs-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
-.gsticky .gs-k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gsticky .gs-v { font-size: 15px; font-weight: 600; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
-.gsticky .gs-spacer { flex: 1; }
-.gsticky .cmd-chip { display: none; flex: none; }
-.gsticky .gbtn { flex: none; }
-@media (min-width: 760px) { .gsticky .cmd-chip { display: flex; } }
+.gsticky .gs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  flex: none;
+}
+.gsticky .gs-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+.gsticky .gs-k {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gsticky .gs-v {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+}
+.gsticky .gs-spacer {
+  flex: 1;
+}
+.gsticky .cmd-chip {
+  display: none;
+  flex: none;
+}
+.gsticky .gbtn {
+  flex: none;
+}
+@media (min-width: 760px) {
+  .gsticky .cmd-chip {
+    display: flex;
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   MOBILE LAYOUTS  (≤ 640px) — stack, enlarge touch targets, simplify chrome
+   MOBILE LAYOUTS  (≤ 640px)
    ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
-  .gh { gap: 6px; padding: 8px 8px 8px 14px; border-radius: 26px; width: calc(100% - 16px); margin: 8px auto 2px; top: 8px; top: calc(8px + env(safe-area-inset-top, 0px)); }
-  /* .gh-nav is hidden on mobile (the hamburger panel is used) — no scroll strip. */
-  .gh-brand { font-size: 14px; }
-  /* The theme toggle moves into the hamburger panel on mobile, so the hamburger
-     is the only right-side control and absorbs the free space. */
-  .gh > #mobile-menu-btn { margin-left: auto; }
+  .gh {
+    gap: 6px;
+    padding: 8px 14px;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+    border-radius: 0;
+    width: 100%;
+    margin: 0;
+    top: 0;
+  }
+  .gh-brand {
+    font-size: 14px;
+  }
+  .gh > #mobile-menu-btn {
+    margin-left: auto;
+  }
 
-  /* touch targets ≥ 44px */
-  .gbtn, .gbtn--primary { padding: 13px 18px; min-height: 44px; }
-  .gfield { padding: 13px 14px; min-height: 46px; }
-  .gv { padding: 6px 12px; }
+  .gbtn,
+  .gbtn--primary {
+    padding: 13px 18px;
+    min-height: 44px;
+  }
+  .gfield {
+    padding: 13px 14px;
+    min-height: 46px;
+  }
+  .gv {
+    padding: 5px 10px;
+  }
 
-  /* the detector + result stack cleanly */
-  .det-selects, .det-cta { grid-template-columns: 1fr !important; }
-  .det-cta { display: flex !important; flex-direction: column; }
-  .det-cta .gbtn--primary { width: 100%; justify-content: center; }
+  .det-selects,
+  .det-cta {
+    grid-template-columns: 1fr !important;
+  }
+  .det-cta {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .det-cta .gbtn--primary {
+    width: 100%;
+    justify-content: center;
+  }
 
-  /* dense grids fold to one/two columns */
-  .gstat-grid, .stats { grid-template-columns: 1fr 1fr !important; }
-  .bento { grid-template-columns: 1fr !important; }
-  .bento-card.col-2 { grid-column: span 1 !important; }
-  .g3, .g4 { grid-template-columns: 1fr 1fr !important; }
+  .gstat-grid,
+  .stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .bento {
+    grid-template-columns: 1fr !important;
+  }
+  .bento-card.col-2 {
+    grid-column: span 1 !important;
+  }
+  .g3,
+  .g4 {
+    grid-template-columns: 1fr 1fr !important;
+  }
 
-  /* leaderboard: hide the lowest-priority column to avoid h-scroll */
-  .lb thead th:nth-child(4), .lb tbody td:nth-child(4) { display: none; }
-  .lb td, .lb thead th { padding: 11px 12px; }
+  .lb thead th:nth-child(4),
+  .lb tbody td:nth-child(4) {
+    display: none;
+  }
+  .lb td,
+  .lb thead th {
+    padding: 11px 12px;
+  }
 
-  /* sticky bar hugs the bottom full-width */
-  .gsticky { bottom: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); margin-top: 14px; padding: 10px 12px; }
-  .gsticky .gbtn { padding: 12px 14px; }
+  .gsticky {
+    bottom: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    margin-top: 14px;
+    padding: 10px 12px;
+  }
+  .gsticky .gbtn {
+    padding: 12px 14px;
+  }
 
-  /* the rig card never overflows */
-  .rig-card { padding: 20px; }
+  .rig-card {
+    padding: 20px;
+  }
 
-  /* demo control becomes compact */
-  .demo { right: 10px; bottom: 10px; padding: 6px; gap: 4px; }
-  .demo .lbl { display: none; }
-  .demo button { padding: 9px 10px; }
+  .demo {
+    right: 10px;
+    bottom: 10px;
+    padding: 6px;
+    gap: 4px;
+  }
+  .demo .lbl {
+    display: none;
+  }
+  .demo button {
+    padding: 9px 10px;
+  }
 }
 
-/* Tablet tidy (641–880px) */
 @media (min-width: 641px) and (max-width: 880px) {
-  .g4 { grid-template-columns: 1fr 1fr; }
+  .g4 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   SCROLL-EDGE FADE  (content dissolves under the floating header)
-   ══════════════════════════════════════════════════════════════════════════ */
+/* The floating-header fade is retired with the capsule; keep the hook inert. */
 .scroll-edge {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 88px;
-  z-index: 48;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    var(--background) 6%,
-    color-mix(in oklch, var(--background) 55%, transparent) 48%,
-    transparent
-  );
+  display: none;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   TYPOGRAPHIC NORMALIZATION
-   Body line-height (1.6) is for prose; single-line labels / numerals / chips
-   inherit it and gain dead vertical space that throws off centering. Tighten
-   line-height on those, and force true vertical centering on every icon+text row.
+   TYPOGRAPHIC NORMALIZATION (unchanged layout duty)
    ══════════════════════════════════════════════════════════════════════════ */
-/* single-line labels & controls: tight line-height */
-.gh-brand, .gh-nav a, .gh-status,
-.lb-lbl, .lb thead th, .gfield-label, .gfield,
-.gv, .gbtn, .gbtn--primary, .cmd-chip,
-.gstat .k, .rig-eyebrow, .rig-grade, .rig-dev, .rig-meta, .rig-foot span,
-.gs-k, .gs-v, .bento-card .bento-k, .bento-card .bento-t, .bento-card .bento-go,
-.tier, .gmodal-title, .gmodal-x { line-height: 1.15; }
-/* big numerals / headline figures sit on their own metrics */
-.gstat .v, .rig-score, .verdict-hero, .lb .bp-stat-val { line-height: 1; }
-/* every icon+text row: center vertically, and pin inline SVGs to the text midline */
-.gv, .gbtn, .gbtn--primary, .cmd-chip, .verdict-hero, .gh-brand,
-.gs-info, .gsticky, .lb td.model, .gmodal-head, .gmodal-actions .gbtn,
-.bp-eyebrow, .bento-card .bento-go { display: inline-flex; align-items: center; }
-.gsticky, .lb td.model, .gmodal-head { display: flex; }
-.gv svg, .gbtn svg, .verdict-hero svg, .cmd-chip svg, .bento-card .bento-go svg { flex: none; }
-/* table cells: vertically center their content against the row */
-.lb td, .lb th { vertical-align: middle; }
-/* the gauge readout row + needs/usable line align on the same midline */
-.read, .det-cta, .card-actions { align-items: center; }
+.gh-brand,
+.gh-nav a,
+.gh-status,
+.lb-lbl,
+.lb thead th,
+.gfield-label,
+.gfield,
+.gv,
+.gbtn,
+.gbtn--primary,
+.cmd-chip,
+.gstat .k,
+.rig-eyebrow,
+.rig-grade,
+.rig-dev,
+.rig-meta,
+.rig-foot span,
+.gs-k,
+.gs-v,
+.bento-card .bento-k,
+.bento-card .bento-t,
+.bento-card .bento-go,
+.tier,
+.gmodal-title,
+.gmodal-x {
+  line-height: 1.15;
+}
+.gstat .v,
+.rig-score,
+.verdict-hero,
+.lb .bp-stat-val {
+  line-height: 1;
+}
+.gv,
+.gbtn,
+.gbtn--primary,
+.cmd-chip,
+.verdict-hero,
+.gh-brand,
+.gs-info,
+.gsticky,
+.lb td.model,
+.gmodal-head,
+.gmodal-actions .gbtn,
+.bp-eyebrow,
+.bento-card .bento-go {
+  display: inline-flex;
+  align-items: center;
+}
+.gsticky,
+.lb td.model,
+.gmodal-head {
+  display: flex;
+}
+.gv svg,
+.gbtn svg,
+.verdict-hero svg,
+.cmd-chip svg,
+.bento-card .bento-go svg {
+  flex: none;
+}
+.lb td,
+.lb th {
+  vertical-align: middle;
+}
+.read,
+.det-cta,
+.card-actions {
+  align-items: center;
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   BRAND MARK — charging animation (bolt pulses, tile glows). Logo-only ambient
-   motion; disabled under reduced-motion.
+   BRAND MARK — still. An instrument that shimmers at rest is not trustworthy.
+   The old charge-pulse is deleted, not slowed down.
    ══════════════════════════════════════════════════════════════════════════ */
-@media (prefers-reduced-motion: no-preference) {
-  .gh-brand .sq svg path {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: charge-pulse 2.4s ease-in-out infinite;
-  }
-  .gh-brand .sq {
-    animation: charge-glow 2.4s ease-in-out infinite;
-  }
-}
-@keyframes charge-pulse {
-  0%, 100% { opacity: 0.55; transform: scale(0.9); }
-  50%      { opacity: 1;    transform: scale(1.05); }
-}
-@keyframes charge-glow {
-  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 7px color-mix(in oklch, var(--color-brand) 36%, transparent); }
-  50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,0.66), 0 4px 15px color-mix(in oklch, var(--color-brand) 72%, transparent); }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   v2 ENHANCEMENTS  — skeleton, yes-sheen, line-draw, holo card, marquee,
-   context slider, how-it-works diagram, a11y, cross-doc view transitions
-   ══════════════════════════════════════════════════════════════════════════ */
-
-/* ── Cross-document view transitions (card → page morph) ──────────────────── */
-/* Names are kept so the real Astro app (which already uses view transitions) gets
-   the shared-element morph for free. The CSS `@view-transition` trigger is left to
-   the host app — enabling it standalone here emits a benign "skipped" rejection on
-   cross-document navigation. */
 .gh-brand { view-transition-name: lm-brand; }
 
-/* ── Skeleton / optimistic states ─────────────────────────────────────────── */
-.is-loading .skel { position: relative; color: transparent !important; }
+/* ── Skeleton / optimistic states (functional loading, neutral sweep) ─────── */
+.is-loading .skel {
+  position: relative;
+  color: transparent !important;
+}
 .skeleton {
-  border-radius: 8px;
-  background: linear-gradient(100deg,
+  border-radius: 3px;
+  background: linear-gradient(
+    100deg,
     color-mix(in oklch, var(--muted) 80%, transparent) 30%,
-    color-mix(in oklch, var(--color-brand) 14%, var(--muted)) 50%,
-    color-mix(in oklch, var(--muted) 80%, transparent) 70%);
+    color-mix(in oklch, var(--foreground) 8%, var(--muted)) 50%,
+    color-mix(in oklch, var(--muted) 80%, transparent) 70%
+  );
   background-size: 200% 100%;
   animation: skel-shimmer 1.1s linear infinite;
 }
-@keyframes skel-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-.det-result.is-loading .gauge-fill { opacity: 0.35; }
+@keyframes skel-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.det-result.is-loading .gauge-fill {
+  opacity: 0.35;
+}
 .det-result.is-loading #det-verdict,
-.det-result.is-loading .verdict-hero { opacity: 0.5; filter: saturate(0.4); }
-@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
-
-/* ── Verdict "Yes" specular sheen (one-shot) ──────────────────────────────── */
-.verdict-hero { overflow: hidden; }
-.verdict-hero.sheen::before {
-  content: "";
-  position: absolute;
-  top: 0; bottom: 0; left: -40%;
-  width: 40%;
-  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
-  transform: skewX(-18deg);
-  animation: sheen-sweep 0.7s cubic-bezier(0.22,1,0.36,1) 1;
-  pointer-events: none;
+.det-result.is-loading .verdict-hero {
+  opacity: 0.5;
 }
-@keyframes sheen-sweep { from { left: -45%; } to { left: 130%; } }
-@media (prefers-reduced-motion: reduce) { .verdict-hero.sheen::before { animation: none; display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
 
-/* ── Gauge threshold line-draw ────────────────────────────────────────────── */
+/* ── Gauge threshold line-draw (one-shot needle tick) ─────────────────────── */
 @media (prefers-reduced-motion: no-preference) {
-  [data-deck-active] .gauge-mark, .gauge .gauge-mark.draw,
-  .det-result .gauge-mark { transform-origin: bottom; animation: mark-draw 0.5s cubic-bezier(0.16,1,0.3,1) both; animation-delay: 0.25s; }
+  [data-deck-active] .gauge-mark,
+  .gauge .gauge-mark.draw,
+  .det-result .gauge-mark {
+    transform-origin: bottom;
+    animation: mark-draw 0.45s var(--settle) both;
+    animation-delay: 0.25s;
+  }
 }
-@keyframes mark-draw { from { transform: scaleY(0); opacity: 0; } }
+@keyframes mark-draw {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
 
-/* ── Context-length slider ────────────────────────────────────────────────── */
-.ctx-control { margin-top: 16px; }
-.ctx-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
-.ctx-head label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
-.ctx-head .ctx-val { font-family: var(--font-mono); font-size: 12px; color: var(--brand-ink); font-variant-numeric: tabular-nums; }
+/* ── Context-length slider — a fader with a square cap ────────────────────── */
+.ctx-control {
+  margin-top: 16px;
+}
+.ctx-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ctx-head label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.ctx-head .ctx-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--brand-ink);
+  font-variant-numeric: tabular-nums;
+}
 .ctx-control input[type="range"] {
-  -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 999px;
-  background: color-mix(in oklch, var(--color-brand) 18%, var(--muted)); outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--gauge-track);
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 16%, transparent) 0 1px,
+    transparent 1px 10%
+  );
+  outline: none;
 }
 .ctx-control input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-  background: var(--color-brand); border: 2px solid var(--card);
-  box-shadow: 0 1px 4px color-mix(in oklch, var(--color-brand) 50%, transparent); cursor: pointer;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--color-brand);
+  border: 1px solid color-mix(in oklch, black 25%, var(--color-brand));
+  cursor: pointer;
 }
 .ctx-control input[type="range"]::-moz-range-thumb {
-  width: 14px; height: 14px; border-radius: 50%; background: var(--color-brand); border: 2px solid var(--card); cursor: pointer;
+  width: 10px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--color-brand);
+  border: 1px solid color-mix(in oklch, black 25%, var(--color-brand));
+  cursor: pointer;
 }
 
-/* ── Runtime logo marquee ─────────────────────────────────────────────────── */
-.marquee { overflow: hidden; -webkit-mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-.marquee-track { display: flex; gap: 38px; width: max-content; animation: marquee 26s linear infinite; }
-.marquee:hover .marquee-track { animation-play-state: paused; }
-.marquee-item { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-mono); font-size: 13px; color: var(--muted-foreground); white-space: nowrap; }
-.marquee-item .mq-dot { width: 7px; height: 7px; border-radius: 2px; background: color-mix(in oklch, var(--color-brand) 55%, transparent); }
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; flex-wrap: wrap; } }
+/* ── Runtime strip — still. A parts list is read, not watched. ────────────── */
+.marquee {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee::-webkit-scrollbar {
+  display: none;
+}
+.marquee-track {
+  display: flex;
+  gap: 38px;
+  width: max-content;
+  animation: none;
+}
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.marquee-item .mq-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: color-mix(in oklch, var(--color-brand) 65%, transparent);
+}
 
-/* ── Holographic model-card variant (Rig treatment on a model card) ───────── */
+/* ── Holo model-card variant → engraved gunmetal, same as the rig plate ──── */
 .card-holo {
-  position: relative; overflow: hidden; color: white;
-  background: linear-gradient(155deg, oklch(0.44 0.16 272), oklch(0.3 0.12 280) 60%, oklch(0.36 0.15 300));
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: var(--elev-2), inset 0 1px 0 rgba(255,255,255,0.3);
+  position: relative;
+  overflow: hidden;
+  color: #edeff2;
+  background: #15171a;
+  border: 1px solid #2c2f34;
+  box-shadow: var(--elev-1);
 }
 .card-holo::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
-  background: conic-gradient(from 200deg at var(--mx,50%) var(--my,50%),
-    oklch(0.8 0.2 20), oklch(0.82 0.18 90), oklch(0.82 0.2 160), oklch(0.82 0.2 230), oklch(0.8 0.22 300), oklch(0.8 0.2 20));
-  mix-blend-mode: color-dodge; opacity: 0.32;
-  -webkit-mask: radial-gradient(120% 120% at var(--mx,50%) var(--my,50%), #000, transparent 60%);
-  mask: radial-gradient(120% 120% at var(--mx,50%) var(--my,50%), #000, transparent 60%);
+  content: none;
 }
-.card-holo > * { position: relative; z-index: 2; }
+.card-holo > * {
+  position: relative;
+  z-index: 2;
+}
 
 /* ── Device/compare helpers ───────────────────────────────────────────────── */
-.matrix { width: 100%; border-collapse: collapse; font-size: 13px; }
-.matrix th, .matrix td { padding: 9px 12px; text-align: center; border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent); }
-.matrix thead th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); border-top: 0; }
-.matrix th.row { text-align: left; font-weight: 500; color: var(--foreground); white-space: nowrap; }
-.matrix .cell { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
-.matrix .cell.y { color: var(--verdict-yes-fg); background: color-mix(in oklch, var(--color-verdict-yes) 14%, transparent); }
-.matrix .cell.t { color: var(--verdict-tight-fg); background: color-mix(in oklch, var(--color-verdict-tight) 14%, transparent); }
-.matrix .cell.n { color: var(--verdict-no-fg); background: color-mix(in oklch, var(--color-verdict-no) 12%, transparent); }
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.matrix th,
+.matrix td {
+  padding: 9px 12px;
+  text-align: center;
+  border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+.matrix thead th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  border-top: 0;
+}
+.matrix th.row {
+  text-align: left;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.matrix .cell {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+.matrix .cell.y {
+  color: var(--verdict-yes-fg);
+  background: color-mix(in oklch, var(--color-verdict-yes) 14%, transparent);
+}
+.matrix .cell.t {
+  color: var(--verdict-tight-fg);
+  background: color-mix(in oklch, var(--color-verdict-tight) 14%, transparent);
+}
+.matrix .cell.n {
+  color: var(--verdict-no-fg);
+  background: color-mix(in oklch, var(--color-verdict-no) 12%, transparent);
+}
 
-/* ── Leaderboard hub: every-benchmarked-model grid ────────────────────────── */
-/* A sparse matrix (most models sit on one board). Grouped score columns + quiet
-   empties so present numbers read as data and blanks read as normal, not broken.
-   min-width keeps the score block from crushing on phones; the panel scrolls-x. */
-.lb-grid { width: 100%; min-width: 660px; border-collapse: collapse; font-size: 13px; }
+/* ── Leaderboard hub grid (datasheet duty unchanged) ──────────────────────── */
+.lb-grid {
+  width: 100%;
+  min-width: 660px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
 .lb-grid thead th {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted-foreground); font-weight: 500;
-  padding: 8px 12px; white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  padding: 8px 12px;
+  white-space: nowrap;
 }
 .lb-grid thead .lb-group {
   text-align: center;
@@ -1029,46 +1404,98 @@
   border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
   padding-bottom: 4px;
 }
-.lb-grid thead tr:last-child th { padding-top: 4px; }
-.lb-grid tbody th, .lb-grid tbody td {
-  padding: 9px 12px; vertical-align: middle;
+.lb-grid thead tr:last-child th {
+  padding-top: 4px;
+}
+.lb-grid tbody th,
+.lb-grid tbody td {
+  padding: 9px 12px;
+  vertical-align: middle;
   border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
 }
-.lb-grid tbody tr:hover { background: color-mix(in oklch, var(--color-brand) 4%, transparent); }
-.lb-grid .lb-model { text-align: left; font-weight: 500; }
-.lb-grid .lb-model a { min-width: 0; }
-.lb-grid .lb-sc { width: 72px; text-align: right; }
-/* a hairline before the score cluster and before "runs on" sets each block apart */
-.lb-grid .lb-sc-lead { border-left: 1px solid color-mix(in oklch, var(--border) 45%, transparent); }
-.lb-grid .lb-runs {
-  text-align: right; white-space: nowrap; font-size: 12px; color: var(--muted-foreground);
+.lb-grid tbody tr:hover {
+  background: color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+.lb-grid .lb-model {
+  text-align: left;
+  font-weight: 500;
+}
+.lb-grid .lb-model a {
+  min-width: 0;
+}
+.lb-grid .lb-sc {
+  width: 72px;
+  text-align: right;
+}
+.lb-grid .lb-sc-lead {
   border-left: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
 }
-.lb-grid .lb-runs a:hover { color: var(--foreground); }
+.lb-grid .lb-runs {
+  text-align: right;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  border-left: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+}
+.lb-grid .lb-runs a:hover {
+  color: var(--foreground);
+}
 .lb-grid .lb-val {
-  font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
-  font-weight: 600; color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 600;
+  color: var(--brand-ink);
 }
-.lb-grid .lb-none { color: color-mix(in oklch, var(--muted-foreground) 28%, transparent); }
+.lb-grid .lb-none {
+  color: color-mix(in oklch, var(--muted-foreground) 28%, transparent);
+}
 
-/* ── How-it-works animated diagram (SVG line-draw) ────────────────────────── */
-.hiw-diagram path.draw { stroke-dasharray: var(--len, 200); stroke-dashoffset: var(--len, 200); }
+/* ── How-it-works diagram (one-shot line-draw: draws once, settles) ───────── */
+.hiw-diagram path.draw {
+  stroke-dasharray: var(--len, 200);
+  stroke-dashoffset: var(--len, 200);
+}
 @media (prefers-reduced-motion: no-preference) {
-  .hiw-diagram.in path.draw { animation: line-draw 1.1s cubic-bezier(0.16,1,0.3,1) forwards; }
-  .hiw-diagram.in path.draw:nth-of-type(2) { animation-delay: 0.25s; }
-  .hiw-diagram.in path.draw:nth-of-type(3) { animation-delay: 0.5s; }
-}
-@keyframes line-draw { to { stroke-dashoffset: 0; } }
-
-/* ── prefers-contrast: firmer borders on glass ────────────────────────────── */
-@media (prefers-contrast: more) {
-  .glass, .glass-lite, .gfield, .gbtn, .gv, .cmd-chip, .bento-card {
-    border-color: color-mix(in oklch, var(--foreground) 38%, var(--border));
+  .hiw-diagram.in path.draw {
+    animation: line-draw 1.1s var(--spring) forwards;
   }
-  .gv { border-width: 1.5px; }
+  .hiw-diagram.in path.draw:nth-of-type(2) {
+    animation-delay: 0.25s;
+  }
+  .hiw-diagram.in path.draw:nth-of-type(3) {
+    animation-delay: 0.5s;
+  }
+}
+@keyframes line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
-/* Verdict line: small readout sits on the verdict's baseline; icon optically centered */
-.verdict-hero { align-items: baseline; }
-.verdict-hero > svg { align-self: center; }
-.verdict-hero .tok { align-self: baseline; }
+/* ── prefers-contrast: firmer rules ───────────────────────────────────────── */
+@media (prefers-contrast: more) {
+  .glass,
+  .glass-lite,
+  .gfield,
+  .gbtn,
+  .gv,
+  .cmd-chip,
+  .bento-card {
+    border-color: color-mix(in oklch, var(--foreground) 45%, var(--border));
+  }
+  .gv {
+    border-width: 1.5px;
+  }
+}
+
+/* Verdict line baseline alignment */
+.verdict-hero {
+  align-items: baseline;
+}
+.verdict-hero > svg {
+  align-self: center;
+}
+.verdict-hero .tok {
+  align-self: baseline;
+}

@@ -1,123 +1,82 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   GAUGE · GLASS — site-wide bridge
-   Loads AFTER glass.css. Maps the existing .bp-* primitives (used by all ~3,515
-   page templates) onto the glass material, so every page reskins centrally with
-   ZERO per-template edits. Purely presentational — adds no copy, headings, or
-   numbers (pSEO-safe), and changes no semantics.
-
-   TIER BUDGET (enforced):
-     · backdrop-filter is allowed ONLY on contained chrome: .gh (header),
-       .bp-instrument (the ONE hero card per page), .gscrim (modal), .gsticky.
-     · every dense/scrolling surface — .bp-panel, tables, stat grids, the pSEO
-       body — uses the cheap glass-lite twin (NO backdrop-filter, zero INP cost).
+   THE CALIBRATED INSTRUMENT — site-wide bridge
+   Loads AFTER the skin. Maps the .bp-* primitives (used by all page templates)
+   onto the matte plate material, so every page reskins centrally with ZERO
+   per-template edits. Purely presentational (pSEO-safe).
+   With glass retired there is no tier budget left to enforce: nothing here
+   (or anywhere) uses backdrop-filter.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── CLS fix: pin the aurora backdrop to the viewport, not the document ──────
-   glass.css renders .aurora-bg as position:absolute;inset:0, so it sizes to the
-   full document height. As content settles after first paint (island hydration,
-   font swap) the body grows, the aurora resizes, and its full-bleed gradient
-   ::before repaints at a new position — Lighthouse scores that as a large CLS.
-   Fixing it to the viewport makes it scroll-stable and resize-proof (CLS ~0),
-   and reads as a nicer fixed aurora behind the scrolling glass. */
-.aurora > .aurora-bg {
-  position: fixed;
-}
-
 /* a11y: the .gfield native <select> is opacity:0, so its own :focus-visible
-   outline is invisible. Put the keyboard focus ring on the visible wrapper
-   (unlayered so it wins the cascade over the @layer base outline). */
+   outline is invisible. Put the keyboard focus ring on the visible wrapper. */
 .gfield:has(:focus-visible) {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
-/* AA: brand-ink active nav text on the dark glass header is too dim (3.2:1). */
-.dark .gh-nav a.on {
-  color: oklch(0.9 0.08 272);
-}
-
-/* Perf: .bp-instrument already blurs at hero tier; cancel child backdrop-filters
-   (detector button, gauge lens) so they don't allocate invisible blur layers. */
-.bp-instrument .gbtn:not(.gbtn--primary),
-.bp-instrument .gauge.lens {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
 @layer components {
-  /* ── .bp-panel → cheap-tier glass-lite material ────────────────────────── */
-  /* Translucent gradient fill + hairline rim + inner specular + soft lift. No
-     backdrop-filter (these wrap tables, prose, dense grids — blur would tank
-     INP). The existing ::before brand-hairline is kept untouched. */
+  /* ── .bp-panel → matte plate ───────────────────────────────────────────── */
   .bp-panel {
-    background-color: transparent;
-    background-image: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2));
-    border-color: var(--lite-rim);
-    box-shadow:
-      inset 0 1px 0 0 var(--lite-specular),
-      var(--elev-1);
+    background-color: var(--card);
+    background-image: none;
+    border-color: var(--border);
+    box-shadow: var(--elev-1);
+  }
+  /* The machined top-edge highlight reads glassy; plates get plain hairlines. */
+  .bp-panel::before,
+  .bp-instrument::before {
+    content: none;
   }
 
-  /* ── .bp-instrument → hero-tier glass (the single contained card per page) ─ */
-  /* This is the detector card / primary result panel — one per page, never
-     behind scrolling content, so real backdrop-filter is safe for INP. Its
-     ::before stays the brand hairline; the chromatic rim rides the free
-     ::after. */
+  /* ── .bp-instrument → the engraved hero plate (one per page) ───────────── */
   .bp-instrument {
-    background-color: transparent;
-    background-image: linear-gradient(155deg, var(--glass-fill-1), var(--glass-fill-2));
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.04);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.04);
-    border-color: var(--glass-rim);
-    box-shadow:
-      inset 0 1px 1px 0 var(--glass-specular),
-      inset 0 0 0 1px color-mix(in oklch, white 18%, transparent),
-      var(--elev-3),
-      0 16px 50px -16px var(--glass-glow);
+    background-color: var(--card);
+    background-image: none;
+    border-color: color-mix(in oklch, var(--foreground) 32%, var(--border));
+    box-shadow: var(--elev-1);
   }
-  /* iris tint wash (kept off the ::before hairline) */
+  /* Its ::after used to carry the chromatic rim; now it carries the ruler:
+     this plate displays the fit reading, so it earns a graduated top edge. */
   .bp-instrument::after {
     content: "";
     position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    padding: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--foreground) 30%, transparent) 0 1px,
+      transparent 1px 8px
+    );
+    -webkit-mask: none;
+    mask: none;
+    opacity: 1;
+    border-radius: 0;
     pointer-events: none;
     z-index: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.9) 0%,
-      var(--glass-edge-a) 14%,
-      transparent 38%,
-      transparent 62%,
-      var(--glass-edge-b) 86%,
-      rgba(255, 255, 255, 0.55) 100%
-    );
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0.8;
   }
-  /* keep the instrument's own content above the rim */
   .bp-instrument > * {
     position: relative;
     z-index: 1;
   }
 
-  /* ── Hover lift on seam cards → glass elevation ────────────────────────── */
+  /* ── Seam cards: the seam brightens; the card does not levitate ─────────── */
   .card-seam:hover {
-    box-shadow: var(--elev-2);
+    transform: none;
+    box-shadow: var(--elev-1);
+    border-color: var(--color-brand);
   }
 
-  /* ── Stat readouts: lift onto the brand-ink so figures pop on glass ─────── */
+  /* ── Stat readouts ──────────────────────────────────────────────────────── */
   .bp-stat-yes {
     color: var(--brand-ink);
   }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   DETECTOR ISLAND LAYOUT (the mock's inline det-* rules, kept out of glass.css)
-   The .bp-detector-wrap already pads 1.25rem, so .det-body adds no padding.
+   DETECTOR ISLAND LAYOUT (unchanged duty)
    ══════════════════════════════════════════════════════════════════════════ */
 .det-selects {
   display: grid;
@@ -127,7 +86,7 @@
 .det-result {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid color-mix(in oklch, var(--glass-rim) 70%, transparent);
+  border-top: 1px solid var(--border);
 }
 .read {
   display: flex;
@@ -157,9 +116,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   HERO H1 model-name rotator. The sizer (visibility:hidden) reserves the widest
-   name's width so the absolutely-positioned word crossfades in place — the rest
-   of the headline never reflows, so this adds ZERO CLS.
+   HERO H1 model-name rotator (zero-CLS crossfade, unchanged mechanics)
    ══════════════════════════════════════════════════════════════════════════ */
 .hero-rot {
   position: relative;
@@ -171,17 +128,16 @@
 }
 .hero-rot-word {
   position: absolute;
-  /* Content-width, left-aligned. The slot (.hero-rot) hugs the current word because
-     the JS keeps the hidden sizer text in sync with it, so the word never leaves a
-     gap before "locally?" and never floats centred in a too-wide box. */
   left: 0;
   top: 0;
   white-space: nowrap;
-  transition: opacity 0.34s var(--spring), transform 0.34s var(--spring);
+  transition:
+    opacity 0.3s var(--spring),
+    transform 0.3s var(--spring);
 }
 .hero-rot-word.hr-out {
   opacity: 0;
-  transform: translateY(-0.16em);
+  transform: translateY(-0.14em);
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-rot-word {
@@ -189,70 +145,46 @@
   }
 }
 
-/* ── Footer chrome (cheap tier — sits below scrolling content, no blur) ──── */
+/* ── Footer chrome: a flat closing plate with a ruler contact edge on top ── */
 .gfooter {
-  background-color: transparent;
-  background-image: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2));
-  border-top: 1px solid var(--lite-rim);
-  /* Extend the footer's own background into the bottom safe area (home indicator)
-     so the page reads as one continuous surface to the screen edge, with the footer
-     content still padded clear of the home indicator. 0 on desktop / non-safe-area. */
+  background-color: var(--card);
+  background-image: none;
+  border-top: 1px solid color-mix(in oklch, var(--foreground) 45%, transparent);
+  position: relative;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+.gfooter::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1px;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 22%, transparent) 0 1px,
+    transparent 1px 8px
+  );
+  pointer-events: none;
+}
 
-/* ── Breadcrumb capsule (cheap tier) ──────────────────────────────────────── */
+/* ── Breadcrumb: a small stamped legend ───────────────────────────────────── */
 .gbreadcrumb {
   display: inline-flex;
   align-items: center;
-  border-radius: 9px;
+  border-radius: 2px;
   padding: 4px 11px;
-  background: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2));
-  border: 1px solid var(--lite-rim);
-  box-shadow: inset 0 1px 0 0 var(--lite-specular);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   FALLBACKS — match glass.css so bridged surfaces degrade identically
-   ══════════════════════════════════════════════════════════════════════════ */
-/* No backdrop-filter → the instrument falls back to the opaque card; drop the rim. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .bp-instrument {
-    background-image: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2));
-  }
-  .bp-instrument::after {
-    display: none;
-  }
-}
-/* Reduced transparency → solid card, no blur, no rim. */
-@media (prefers-reduced-transparency: reduce) {
-  .bp-panel,
-  .bp-instrument,
-  .gfooter,
-  .gbreadcrumb {
-    background-image: none;
-    background-color: var(--card);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  .bp-instrument::after {
-    display: none;
-  }
-}
-/* Manual degraded preview → instrument drops to the cheap twin. */
-.degraded .bp-instrument {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  background-image: linear-gradient(155deg, var(--lite-fill-1), var(--lite-fill-2)) !important;
-}
-.degraded .bp-instrument::after {
-  display: none;
-}
-/* Firmer borders when the user asks for more contrast. */
+/* ── prefers-contrast: firmer rules on the bridged plates ─────────────────── */
 @media (prefers-contrast: more) {
   .bp-panel,
   .bp-instrument,
   .gfooter,
   .gbreadcrumb {
-    border-color: color-mix(in oklch, var(--foreground) 38%, var(--border));
+    border-color: color-mix(in oklch, var(--foreground) 45%, var(--border));
   }
 }
