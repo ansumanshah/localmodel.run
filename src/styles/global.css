@@ -521,7 +521,9 @@
     gap: 1.4rem;
   }
   .bp-h1 {
-    font-size: clamp(2.25rem, 4.5vw + 0.75rem, 3.75rem);
+    /* Floor lowered 2.25rem -> 2rem so "Can I run DeepSeek R1" (the widest
+       rotating name) holds one line down to 320px viewports. */
+    font-size: clamp(2rem, 4.5vw + 0.75rem, 3.75rem);
     line-height: 1.05;
     letter-spacing: -0.035em;
     font-weight: 700;

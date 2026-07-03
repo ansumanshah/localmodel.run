@@ -122,6 +122,11 @@
   position: relative;
   display: inline-block;
   vertical-align: bottom;
+  /* The rotator is presentation only (aria-hidden): keep it out of text
+     selection so copying the headline yields the sr-only sentence, not the
+     sizer + current name mashed together. */
+  -webkit-user-select: none;
+  user-select: none;
 }
 .hero-rot-sizer {
   visibility: hidden;
