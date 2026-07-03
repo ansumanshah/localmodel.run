@@ -39,9 +39,12 @@ const biggest = score.biggest?.name ?? "";
     <div class="rig-meta">
       runs {score.runnable} of {score.total} models{biggest ? ` · biggest ${biggest}` : ""}
     </div>
+    {/* Footer: URL only. The "models covered" caption lives on the exported
+        PNG (1200px wide, where it labels the coverage bar); at the card's
+        fixed 240px column the two strings no longer share a line since the
+        mono face changed, and the caption is redundant with the meta line. */}
     <div class="rig-foot">
       <span>localmodel.run/rig</span>
-      <span>models covered</span>
     </div>
   </div>
 </div>
