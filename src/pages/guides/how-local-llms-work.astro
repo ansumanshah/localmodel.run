@@ -128,7 +128,7 @@ const jsonLd = [
         attention state for every token in your context. It grows with context length and can add several
         GB. Then a few hundred MB of runtime overhead. The site adds these three up against your device's
         usable memory; the exact formula is on the
-        <a href="/methodology" class="text-[var(--color-brand)] hover:underline">methodology page</a>.
+        <a href="/methodology" class="text-[var(--brand-ink)] hover:underline">methodology page</a>.
       </p>
     </section>
 
@@ -140,7 +140,7 @@ const jsonLd = [
         4 bits, cutting a 7B model from ~14 GB at full precision to around 4-5 GB while holding most of the
         quality. Go higher (Q5, Q6, Q8) for more fidelity if you have the headroom, or lower (Q3, Q2) to
         squeeze into a tight budget. The
-        <a href="/guides/quantization" class="text-[var(--color-brand)] hover:underline">quantization guide</a>
+        <a href="/guides/quantization" class="text-[var(--brand-ink)] hover:underline">quantization guide</a>
         covers each level with concrete sizes.
       </p>
     </section>
@@ -153,7 +153,7 @@ const jsonLd = [
         and run many times quicker than CPU-only inference. Apple Silicon shares one unified memory pool
         between CPU and GPU, so a model that fits runs fully accelerated with no transfer cost. On a discrete
         GPU, if the model does not fit in VRAM the runtime spills layers to system RAM and speed drops sharply.
-        See <a href="/guides/vram-vs-ram" class="text-[var(--color-brand)] hover:underline">VRAM vs RAM</a>.
+        See <a href="/guides/vram-vs-ram" class="text-[var(--brand-ink)] hover:underline">VRAM vs RAM</a>.
       </p>
     </section>
 
@@ -165,7 +165,7 @@ const jsonLd = [
         <div class="p-4"><p class="font-medium">llama.cpp</p><p class="mt-1 text-sm text-muted-foreground">The C/C++ engine under both, and the origin of GGUF. A tiny static binary that runs on almost anything; use it directly for the lowest layer.</p></div>
         <div class="p-4"><p class="font-medium">MLX</p><p class="mt-1 text-sm text-muted-foreground">Apple's framework built for M-series unified memory. The fastest path on a Mac; use mlx-lm directly for maximum throughput or fine-tuning.</p></div>
       </div>
-      <p class="mt-3 text-muted-foreground">Per-platform picks, including iOS and Android apps, are on the <a href="/tools" class="text-[var(--color-brand)] hover:underline">tools page</a>.</p>
+      <p class="mt-3 text-muted-foreground">Per-platform picks, including iOS and Android apps, are on the <a href="/tools" class="text-[var(--brand-ink)] hover:underline">tools page</a>.</p>
     </section>
 
     <section class="mt-8">

@@ -331,9 +331,9 @@
   transform: translateY(1px);
 }
 
-/* Primary: solid needle ink. White on #C5501E measures 4.63:1, passing the
-   normal-text 4.5:1 bar (the 13px/600 label does NOT count as WCAG large text);
-   if the brand hex ever lightens, re-check this pairing first. */
+/* Primary: solid calibration-blue ink. White on #2D5FA8 measures 6.3:1,
+   comfortably past the normal-text 4.5:1 bar; if the brand hex ever lightens,
+   re-check this pairing first. */
 .gbtn--primary {
   color: #fff;
   border: 1px solid color-mix(in oklch, black 22%, var(--color-brand));

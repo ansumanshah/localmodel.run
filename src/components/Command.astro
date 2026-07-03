@@ -9,7 +9,7 @@ const { code, label } = Astro.props;
 <div class="group relative">
   {label && <div class="mb-1.5 text-xs font-medium text-muted-foreground">{label}</div>}
   <div class="relative flex items-start gap-3 rounded-xl border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] px-4 py-3 font-mono text-sm shadow-[inset_0_1px_0_0_var(--lite-specular)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-[var(--color-brand)] before:content-['']">
-    <span class="select-none text-[var(--color-brand)]">$</span>
+    <span class="select-none text-[var(--brand-ink)]">$</span>
     <code class="min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-words" data-copy-text={code}>{code}</code>
     <button
       type="button"

@@ -21,7 +21,7 @@ const items = urls
 
 {items.length > 0 && (
   <section class={compact ? "" : "mt-8"} aria-label={title}>
-    {!compact && <h2 id="sources" class="scroll-mt-20 font-mono text-[11px] uppercase tracking-widest text-[var(--color-brand)]">{title}</h2>}
+    {!compact && <h2 id="sources" class="scroll-mt-20 font-mono text-[11px] uppercase tracking-widest text-[var(--brand-ink)]">{title}</h2>}
     <ul class={`flex flex-wrap gap-2 ${compact ? "" : "mt-3"}`}>
       {items.map((it) => (
         <li>

@@ -32,7 +32,7 @@ import { featuredModels, featuredDevices } from "@/lib/data";
           <ul class="space-y-1.5">
             {featuredModels.slice(0, 4).map((m) => (
               <li>
-                <a href={`/model/${m.id}`} class="text-sm text-[var(--color-brand)] hover:underline">
+                <a href={`/model/${m.id}`} class="text-sm text-[var(--brand-ink)] hover:underline">
                   {m.name}
                 </a>
               </li>
@@ -46,7 +46,7 @@ import { featuredModels, featuredDevices } from "@/lib/data";
           <ul class="space-y-1.5">
             {featuredDevices.slice(0, 4).map((d) => (
               <li>
-                <a href={`/best-llm-for/${d.id}`} class="text-sm text-[var(--color-brand)] hover:underline">
+                <a href={`/best-llm-for/${d.id}`} class="text-sm text-[var(--brand-ink)] hover:underline">
                   {d.name}
                 </a>
               </li>

@@ -68,7 +68,7 @@ const jsonLd = [
         {tools.map((t) => (
           <a
             href={`#${t.platform}`}
-            class="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklch,var(--color-brand)_25%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)] px-3 py-1.5 font-mono text-xs tracking-wide text-[var(--color-brand)] transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_12%,transparent)]"
+            class="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklch,var(--color-brand)_25%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)] px-3 py-1.5 font-mono text-xs tracking-wide text-[var(--brand-ink)] transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_12%,transparent)]"
           >
             <EntityIcon os={t.platform} size={12} />
             {platformLabel(t.platform)}
@@ -95,7 +95,7 @@ const jsonLd = [
             <!-- Pick cards -->
             <div class="grid gap-3 p-4 sm:grid-cols-2">
               <div class="rounded-lg border border-[color-mix(in_oklch,var(--color-brand)_30%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)] p-4">
-                <div class="bp-stat-label text-[var(--color-brand)]">Beginner pick</div>
+                <div class="bp-stat-label text-[var(--brand-ink)]">Beginner pick</div>
                 <div class="mt-1.5 text-lg font-semibold">{t.beginner.name}</div>
                 <p class="mt-1 text-sm text-muted-foreground">{t.beginner.why}</p>
               </div>
@@ -125,7 +125,7 @@ const jsonLd = [
                 <tbody class="divide-y divide-border">
                   {t.runtimes.map((r) => (
                     <tr class="transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_4%,transparent)]">
-                      <td class="px-4 py-2.5"><a href={r.url} rel="noopener nofollow" class="font-medium text-foreground hover:text-[var(--color-brand)] hover:underline">{r.name}</a></td>
+                      <td class="px-4 py-2.5"><a href={r.url} rel="noopener nofollow" class="font-medium text-foreground hover:text-[var(--brand-ink)] hover:underline">{r.name}</a></td>
                       <td class="px-4 py-2.5 text-muted-foreground">{r.what}</td>
                       <td class="px-4 py-2.5 text-muted-foreground">{r.status}</td>
                     </tr>
@@ -176,7 +176,7 @@ const jsonLd = [
                 <td class="px-4 py-2.5 text-muted-foreground">{b.model}</td>
                 <td class="px-4 py-2.5 num font-mono text-foreground">{b.mlx}</td>
                 <td class="px-4 py-2.5 num font-mono text-muted-foreground">{b.ollama}</td>
-                <td class="px-4 py-2.5"><a href={b.src} rel="noopener nofollow" class="text-[var(--color-brand)] hover:underline">{b.srcLabel}</a></td>
+                <td class="px-4 py-2.5"><a href={b.src} rel="noopener nofollow" class="text-[var(--brand-ink)] hover:underline">{b.srcLabel}</a></td>
               </tr>
             ))}
           </tbody>
@@ -210,7 +210,7 @@ const jsonLd = [
                 <td class="px-4 py-2.5 font-medium text-foreground">{b.tool}</td>
                 <td class="px-4 py-2.5 num font-mono text-muted-foreground">{b.single}</td>
                 <td class="px-4 py-2.5 num font-mono text-muted-foreground">{b.batched}</td>
-                <td class="px-4 py-2.5"><a href={b.src} rel="noopener nofollow" class="text-[var(--color-brand)] hover:underline">{b.srcLabel}</a></td>
+                <td class="px-4 py-2.5"><a href={b.src} rel="noopener nofollow" class="text-[var(--brand-ink)] hover:underline">{b.srcLabel}</a></td>
               </tr>
             ))}
           </tbody>

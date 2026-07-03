@@ -1,7 +1,7 @@
 # Design system: The Calibrated Instrument ↔ Claude Design
 
 The visual language of localmodel.run is **"The Calibrated Instrument"** (*a reading you can
-trust*): matte panel surfaces, a burnt calibration-needle orange as the single accent, inked
+trust*): matte panel surfaces, a calibration-certificate blue as the single accent, inked
 inspection-stamp verdicts, graduated gauges with real tick marks, monospace numerals everywhere a
 number appears, and deliberate stillness (a needle moves once, settles, and stops; nothing floats,
 blurs, or follows the cursor). It replaced the earlier liquid-glass system in July 2026. This doc
@@ -15,7 +15,7 @@ All tokens live in **`src/styles/global.css`**; the component skin lives in
 kept frozen because hundreds of templates and the import graph reference them — see
 `docs/naming-conventions.md`).
 
-- **Tokens** (`global.css`) — CSS custom properties: `--color-brand` (needle `#C5501E`, with
+- **Tokens** (`global.css`) — CSS custom properties: `--color-brand` (calibration blue `#2D5FA8`, with
   `--brand-ink` darkened/lifted per theme for AA text), `--background` / `--foreground`
   (matte panel `#EDEAE2` light default, gunmetal `#15171A` dark), `--card`, `--border`,
   `--muted-foreground`, the verdict pair (`--color-verdict-*` for fills/borders,

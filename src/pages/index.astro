@@ -56,7 +56,7 @@ const jsonLd = [
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]}>
   <!-- Hero: the live detector IS the instrument; the page frames it cleanly
-       on the bare panel, ink plus one needle-orange accent. -->
+       on the bare panel, ink plus one calibration-blue accent. -->
   <section class="bp-hero">
     <div class="bp-inner">
       <!-- Copy column -->
@@ -217,7 +217,7 @@ const jsonLd = [
       </svg>
     </div>
     <p class="mt-4 text-sm text-muted-foreground">
-      Every verdict comes from this math, sourced and documented. <a href="/methodology" class="text-[var(--color-brand)] underline underline-offset-2">See the full methodology →</a>
+      Every verdict comes from this math, sourced and documented. <a href="/methodology" class="text-[var(--brand-ink)] underline underline-offset-2">See the full methodology →</a>
     </p>
   </section>
 
@@ -225,7 +225,7 @@ const jsonLd = [
   <section class="mx-auto max-w-5xl px-4 py-16">
     <div class="flex items-end justify-between">
       <h2 class="text-2xl font-bold tracking-tight">Popular models</h2>
-      <a href="/can-i-run" class="text-sm text-[var(--color-brand)] hover:underline">All {allModels.length} models →</a>
+      <a href="/can-i-run" class="text-sm text-[var(--brand-ink)] hover:underline">All {allModels.length} models →</a>
     </div>
     <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {popularModels.map((m) => (
@@ -239,7 +239,7 @@ const jsonLd = [
           </div>
           <p class="mt-1 text-sm text-muted-foreground"><span class="font-semibold text-foreground">{m.q4_k_m_gb ?? "?"} GB</span> at Q4_K_M · {m.default_context_k}k context</p>
           {m.pulls_text && <p class="mt-0.5 text-xs text-muted-foreground">{m.pulls_text} Ollama pulls</p>}
-          <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--color-brand)] group-hover:underline">Requirements →</span>
+          <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--brand-ink)] group-hover:underline">Requirements →</span>
         </a>
       ))}
     </div>
@@ -250,7 +250,7 @@ const jsonLd = [
     <div class="mx-auto max-w-5xl px-4 py-16">
       <div class="flex items-end justify-between">
         <h2 class="text-2xl font-bold tracking-tight">Popular hardware</h2>
-        <a href="/best-llm-for" class="text-sm text-[var(--color-brand)] hover:underline">All {devices.length} devices →</a>
+        <a href="/best-llm-for" class="text-sm text-[var(--brand-ink)] hover:underline">All {devices.length} devices →</a>
       </div>
       <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {featuredDevices.map((d) => {
@@ -268,7 +268,7 @@ const jsonLd = [
                 <span>Llama 3.1 8B:</span>
                 <VerdictBadge verdict={best.verdict} />
               </div>
-              <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--color-brand)] group-hover:underline">Best LLMs →</span>
+              <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--brand-ink)] group-hover:underline">Best LLMs →</span>
             </a>
           );
         })}
@@ -291,7 +291,7 @@ const jsonLd = [
         <a href={c.href} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
           <div class="flex items-center justify-between gap-2">
             <h3 class="font-semibold">{c.t}</h3>
-            <span aria-hidden="true" class="text-[var(--color-brand)] opacity-60 group-hover:opacity-100 transition-opacity">→</span>
+            <span aria-hidden="true" class="text-[var(--brand-ink)] opacity-60 group-hover:opacity-100 transition-opacity">→</span>
           </div>
           <p class="mt-1 text-sm text-muted-foreground">{c.d}</p>
         </a>
@@ -321,7 +321,7 @@ const jsonLd = [
     <div class="mx-auto max-w-5xl px-4 py-16">
       <div class="flex items-end justify-between">
         <h2 class="text-2xl font-bold tracking-tight">Best LLM runtime per platform</h2>
-        <a href="/tools" class="text-sm text-[var(--color-brand)] hover:underline">LLM runtimes guide →</a>
+        <a href="/tools" class="text-sm text-[var(--brand-ink)] hover:underline">LLM runtimes guide →</a>
       </div>
       <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {tools.map((t) => (

@@ -35,7 +35,7 @@ const C = {
   card: '#1c1f24',
   text: '#edeff2',
   muted: '#9ba0a8',
-  brand: '#e07b4c',
+  brand: '#85ace2',
   green: '#8fbf88',
   amber: '#d9a94f',
   red: '#e08579',
@@ -79,7 +79,7 @@ export async function renderOg(markup: string, width = 1200, height = 630): Prom
 const shell = (inner: string) => `
 <div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:64px;background:${C.bg};font-family:Geist;color:${C.text}">
   <div style="display:flex;align-items:center;gap:14px">
-    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:4px;border:1px solid ${C.border};background:${C.bg2}"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 19 A 9 9 0 0 1 21 19" stroke="${C.text}" stroke-width="2.2" stroke-linecap="round"/><line x1="12" y1="19" x2="14.5" y2="11.4" stroke="#c5501e" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="19" r="1.9" fill="#c5501e"/></svg></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:4px;border:1px solid ${C.border};background:${C.bg2}"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 19 A 9 9 0 0 1 21 19" stroke="${C.text}" stroke-width="2.2" stroke-linecap="round"/><line x1="12" y1="19" x2="14.5" y2="11.4" stroke="#7fa8e0" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="19" r="1.9" fill="#7fa8e0"/></svg></div>
     <div style="display:flex;font-size:28px;font-weight:700">localmodel<span style="color:${C.muted}">.run</span></div>
   </div>
   ${inner}

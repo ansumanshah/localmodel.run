@@ -22,10 +22,11 @@
   /* Manufactured tolerances, not friendly SaaS corners. */
   --radius: 0.25rem;
 
-  /* Brand + verdict accents. Brand is the burnt calibration-needle orange
-     (4.6:1 on the light panel, 5.1:1 on gunmetal). Verdicts are inked stamp
-     hues, desaturated from the outgoing neon; semantics unchanged. */
-  --color-brand: #c5501e;
+  /* Brand + verdict accents. Brand is calibration-certificate blue, the ink
+     real inspection stamps and drafting prints use (white text on it: 6.3:1;
+     on the light panel: 5.3:1). Deliberately orthogonal to all three verdict
+     hues. Verdicts are inked stamp tones; semantics unchanged. */
+  --color-brand: #2d5fa8;
   --color-verdict-yes: #3e6b3a;
   --color-verdict-tight: #8a5a12;
   --color-verdict-no: #9c3b30;
@@ -56,8 +57,9 @@
   --verdict-yes-fg: #3e6b3a;
   --verdict-tight-fg: #7c5a10;
   --verdict-no-fg: #9c3b30;
-  /* Brand text tuned darker for AA-comfortable body-size links on the panel. */
-  --brand-ink: #a8431a;
+  /* Brand text tuned darker for AA-comfortable body-size links on the panel
+     (6.8:1 on panel, 7.4:1 on card). */
+  --brand-ink: #1f4e96;
   /* Modality accents: inked, desaturated to sit beside the stamp hues. */
   --modality-text: var(--brand-ink);
   --modality-image: oklch(0.47 0.08 200);
@@ -86,13 +88,13 @@
   --accent-foreground: #edeff2;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 13%);
-  --ring: var(--color-brand);
+  --ring: var(--brand-ink); /* the fill blue sits under 3:1 on gunmetal; the ink ring is unmissable */
   /* Backlit-LCD verdict inks for gunmetal (7.3-8.1:1). */
   --verdict-yes-fg: #8fbf88;
   --verdict-tight-fg: #d9a94f;
   --verdict-no-fg: #e08579;
-  /* Brand text on dark: the needle warmed and lifted for legibility. */
-  --brand-ink: #e07b4c;
+  /* Brand text on dark: the ink lifted for gunmetal (7.7:1 / 7.1:1). */
+  --brand-ink: #85ace2;
   /* Modality accents, lifted for dark surfaces. */
   --modality-text: var(--brand-ink);
   --modality-image: oklch(0.75 0.09 200);
@@ -399,7 +401,8 @@
     background: color-mix(in oklch, var(--vc) 8%, transparent);
   }
   .bp-panel--verdict .bp-panel-label {
-    color: color-mix(in oklch, var(--vc) 72%, var(--muted-foreground));
+    /* foreground-heavy so the label passes AA on the tinted header both themes */
+    color: color-mix(in oklch, var(--vc) 40%, var(--foreground));
   }
 
   /* Panel header / footer bars with mono micro-labels */

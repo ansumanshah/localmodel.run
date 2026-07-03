@@ -29,7 +29,7 @@ whether they run on CPU.
 ## Stack
 
 - **Astro 7** (Rolldown), static output, near-zero JS on content pages for Core Web Vitals and crawlability.
-- **Tailwind v4** (via `@tailwindcss/vite`) with design tokens in CSS custom properties: matte-panel light default, gunmetal dark, needle-orange brand, inked verdict stamps ("The Calibrated Instrument" design language, see `docs/design-system.md`).
+- **Tailwind v4** (via `@tailwindcss/vite`) with design tokens in CSS custom properties: matte-panel light default, gunmetal dark, calibration-blue needle accent, inked verdict stamps ("The Calibrated Instrument" design language, see `docs/design-system.md`).
 - **React 19 island**, only the interactive hardware detector ships JS.
 - **astro-icon** (simple-icons + lucide) for maker, device and OS marks, with lettered-chip fallbacks.
 - **Fjalla One + Public Sans + JetBrains Mono** (display / body / data), self-hosted via `@fontsource` (no third-party font CDN).
