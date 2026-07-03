@@ -38,10 +38,15 @@
     transparent 1px 8px
   );
 
-  /* Legacy variable aliases (markup/JS may still reference them) */
+  /* Legacy variable aliases (markup/JS may still reference them). The --lite-*
+     pair is load-bearing: Command.astro and Sources.astro use them in Tailwind
+     arbitrary values, and an undefined var() silently invalidates the whole
+     declaration (border falls to currentColor, box-shadow drops). */
   --glass-radius: 6px;
   --rig-radius: 6px;
   --rig-rim: var(--plate-rim-firm);
+  --lite-rim: var(--border);
+  --lite-specular: transparent;
 }
 
 .dark {
@@ -326,7 +331,9 @@
   transform: translateY(1px);
 }
 
-/* Primary: solid needle ink. White glyphs pass AA large on #C5501E. */
+/* Primary: solid needle ink. White on #C5501E measures 4.63:1, passing the
+   normal-text 4.5:1 bar (the 13px/600 label does NOT count as WCAG large text);
+   if the brand hex ever lightens, re-check this pairing first. */
 .gbtn--primary {
   color: #fff;
   border: 1px solid color-mix(in oklch, black 22%, var(--color-brand));
@@ -1313,23 +1320,6 @@
   height: 7px;
   border-radius: 1px;
   background: color-mix(in oklch, var(--color-brand) 65%, transparent);
-}
-
-/* ── Holo model-card variant → engraved gunmetal, same as the rig plate ──── */
-.card-holo {
-  position: relative;
-  overflow: hidden;
-  color: #edeff2;
-  background: #15171a;
-  border: 1px solid #2c2f34;
-  box-shadow: var(--elev-1);
-}
-.card-holo::before {
-  content: none;
-}
-.card-holo > * {
-  position: relative;
-  z-index: 2;
 }
 
 /* ── Device/compare helpers ───────────────────────────────────────────────── */

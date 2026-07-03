@@ -122,8 +122,10 @@
   --color-ring: var(--ring);
   --color-brand-ink: var(--brand-ink);
   --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  /* Explicit values: the old calc(var(--radius) - 4px) derivation underflowed
+     to 0 when --radius tightened to 0.25rem for the instrument corners. */
+  --radius-md: 3px;
+  --radius-sm: 2px;
 }
 
 @layer base {
