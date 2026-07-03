@@ -557,7 +557,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                 <ul class="mt-3 flex flex-wrap gap-2">
                   {familySiblings.map((o) => (
                     <li>
-                      <a href={`/compare/${comparePair(o)}`} class="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">
+                      <a href={`/compare/${comparePair(o)}`} class="inline-flex items-center rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">
                         {model.name} vs {o.name}
                       </a>
                     </li>

@@ -174,9 +174,9 @@ const jsonLd = [
       <h2 class="bp-section-label mb-3">Other use cases</h2>
       <div class="flex flex-wrap gap-2">
         {USE_CASES.filter((uc) => uc !== task && models.filter((x) => useCasesFor(x).includes(uc)).length >= MIN).map((uc) => (
-          <a href={`/best-for/${uc}`} class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">{USE_CASE_META[uc].label}</a>
+          <a href={`/best-for/${uc}`} class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">{USE_CASE_META[uc].label}</a>
         ))}
-        <a href="/best-llm-for" class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">Browse by device →</a>
+        <a href="/best-llm-for" class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">Browse by device →</a>
       </div>
     </nav>
 

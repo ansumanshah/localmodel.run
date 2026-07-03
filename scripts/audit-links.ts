@@ -127,6 +127,47 @@ if (orphans.length === 0) {
 }
 console.log("");
 
+// ---- CSS token audit ------------------------------------------------------
+// An undefined var() with no fallback silently INVALIDATES its declaration
+// (border-color falls to currentColor, box-shadow drops). This bit the 2026-07
+// reskin twice: components referenced retired tokens via Tailwind arbitrary
+// values and nothing errored. Diff every var(--x) usage in the built CSS
+// against the set of defined custom properties, minus vars that are set at
+// runtime via inline style="--x:..." attributes or JS.
+const RUNTIME_VARS = new Set([
+  // set inline per-element in templates or by scripts
+  "--at",
+  "--delay",
+  "--vc",
+  "--shell",
+  "--bp-accent",
+  "--len",
+  "--index",
+  "--mx",
+  "--my",
+  "--rx",
+  "--ry",
+]);
+const cssDefined = new Set<string>();
+const cssUsed = new Map<string, string>(); // var -> example file
+for await (const rel of new Glob("_astro/*.css").scan({ cwd: DIST })) {
+  const css = await Bun.file(`${DIST}/${rel}`).text();
+  for (const m of css.matchAll(/(--[a-zA-Z0-9_-]+)\s*:/g)) cssDefined.add(m[1]);
+  for (const m of css.matchAll(/var\(\s*(--[a-zA-Z0-9_-]+)\s*([,)])/g)) {
+    // a var() WITH a fallback (comma) degrades gracefully; only flag bare uses
+    if (m[2] === ")" && !cssUsed.has(m[1])) cssUsed.set(m[1], rel);
+  }
+}
+const undefinedVars = [...cssUsed.keys()].filter((v) => !cssDefined.has(v) && !RUNTIME_VARS.has(v));
+if (undefinedVars.length === 0) {
+  console.log(`✓ CSS tokens: every bare var() resolves (${cssDefined.size} defined).`);
+} else {
+  console.log(`✗ ${undefinedVars.length} var() reference(s) to tokens defined nowhere:`);
+  for (const v of undefinedVars) console.log(`   ${v}  (e.g. in ${cssUsed.get(v)})`);
+  console.log("   Define the token, add a legacy alias, or give the var() a fallback.");
+}
+console.log("");
+
 // Cloudflare Pages hard-fails any deployment over 20,000 files (the whole build
 // succeeds, then asset validation rejects it — hit on 2026-07-03 at 20,612).
 // Fail CI at 19,500 so the cliff is caught before CF sees it.
@@ -144,5 +185,6 @@ if (overBudget)
   );
 console.log("");
 
-// Broken links and the file budget are hard failures; orphans are informational.
-process.exit(brokenTargets.size > 0 || overBudget ? 1 : 0);
+// Broken links, undefined tokens, and the file budget are hard failures;
+// orphans are informational.
+process.exit(brokenTargets.size > 0 || undefinedVars.length > 0 || overBudget ? 1 : 0);

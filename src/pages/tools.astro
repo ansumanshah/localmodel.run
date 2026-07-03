@@ -68,7 +68,7 @@ const jsonLd = [
         {tools.map((t) => (
           <a
             href={`#${t.platform}`}
-            class="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklch,var(--color-brand)_25%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)] px-3 py-1.5 font-mono text-xs tracking-wide text-[var(--brand-ink)] transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_12%,transparent)]"
+            class="inline-flex items-center gap-1.5 rounded-[3px] border border-[color-mix(in_oklch,var(--color-brand)_25%,transparent)] bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)] px-3 py-1.5 font-mono text-xs tracking-wide text-[var(--brand-ink)] transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_12%,transparent)]"
           >
             <EntityIcon os={t.platform} size={12} />
             {platformLabel(t.platform)}

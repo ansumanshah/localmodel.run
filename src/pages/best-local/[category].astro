@@ -252,7 +252,7 @@ const jsonLd = [
         {["image-generation", "video-generation", "audio"]
           .filter((c) => c !== category)
           .map((c) => (
-            <a href={`/best-local/${c}`} class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+            <a href={`/best-local/${c}`} class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
               {c === "audio" ? "Speech & audio" : c === "image-generation" ? "Image generation" : "Video generation"}
             </a>
           ))}

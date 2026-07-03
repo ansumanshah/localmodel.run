@@ -140,7 +140,7 @@ const TIERS: { key: string; heading: string; blurb: string; models: ModelRow[]; 
     {TIERS.map((tier) => (
       <section class="mt-8">
         <h2 class="flex items-center gap-2 text-xl font-semibold">
-          <span class="inline-block h-2.5 w-2.5 rounded-full" style={`background:${tier.vc}`} aria-hidden="true"></span>
+          <span class="inline-block h-2.5 w-2.5 rounded-[1px]" style={`background:${tier.vc}`} aria-hidden="true"></span>
           {tier.heading}
           <span class="bp-stat-label font-normal">{tier.models.length}</span>
         </h2>
@@ -191,8 +191,8 @@ const TIERS: { key: string; heading: string; blurb: string; models: ModelRow[]; 
     <nav class="mt-8" aria-label="Related">
       <h2 class="bp-section-label mb-3">Next</h2>
       <div class="flex flex-wrap gap-2">
-        <a href="/best-llm-for-ram" class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Which fits your memory →</a>
-        <a href="/leaderboard" class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Quality leaderboard →</a>
+        <a href="/best-llm-for-ram" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Which fits your memory →</a>
+        <a href="/leaderboard" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Quality leaderboard →</a>
       </div>
     </nav>
 

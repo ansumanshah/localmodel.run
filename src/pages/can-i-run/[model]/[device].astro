@@ -295,7 +295,7 @@ if (fits && commands.length > 0) {
           {tps != null && (
             <a
               href="/methodology"
-              class="inline-flex items-baseline gap-1 rounded-full border border-border px-2.5 py-1 text-sm transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+              class="inline-flex items-baseline gap-1 rounded-[3px] border border-border px-2.5 py-1 text-sm transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
               title="Estimated generation speed, memory-bandwidth-bound. See methodology."
               aria-label={`Estimated generation speed about ${tps} tokens per second, see methodology`}
             >
@@ -564,7 +564,7 @@ if (fits && commands.length > 0) {
         <p class="bp-eyebrow mb-3"><span class="bp-dot" aria-hidden="true"></span>Run {model.name} on other hardware</p>
         <div class="flex flex-wrap gap-2">
           {otherDevices.map((d) => (
-            <a href={`/can-i-run/${model.id}/${d.id}`} class="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">{d.name}</a>
+            <a href={`/can-i-run/${model.id}/${d.id}`} class="rounded-[3px] border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">{d.name}</a>
           ))}
         </div>
       </section>

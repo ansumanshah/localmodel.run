@@ -299,7 +299,7 @@ const jsonLd = [
                   {r.verdicts.map((v) => (
                     <a
                       href={`/can-i-run/${r.model.id}/${v.interp.device.id}`}
-                      class="inline-flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+                      class="inline-flex items-center gap-1 rounded-[3px] border border-border px-1.5 py-0.5 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
                       aria-label={`${r.model.name} on a ${gb}GB ${TYPE_SHORT[v.interp.type]}: ${v.result.verdict}`}
                     >
                       <span class="bp-stat-label">{TYPE_SHORT[v.interp.type]}</span>
@@ -348,7 +348,7 @@ const jsonLd = [
           {phones.map((d) => (
             <a
               href={`/best-llm-for/${d.id}`}
-              class="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+              class="inline-flex items-center gap-1.5 rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
             >
               <EntityIcon device={d.category} size={14} class="shrink-0" />
               {d.name} <span class="bp-stat-label">~{d.usable_memory_gb} GB</span>
@@ -365,7 +365,7 @@ const jsonLd = [
           {tooLarge.map((r) => (
             <a
               href={`/model/${r.model.id}`}
-              class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+              class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
             >
               {r.model.name} <span class="bp-stat-label">{r.model.params_b}B</span>
             </a>
@@ -392,14 +392,14 @@ const jsonLd = [
         {BUDGETS.filter((b) => b !== gb).map((b) => (
           <a
             href={`/best-llm-for-ram/${b}gb`}
-            class="rounded-full border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+            class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
           >
             {b}GB
           </a>
         ))}
         <a
           href="/best-llm-for"
-          class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+          class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
         >
           Browse by device →
         </a>

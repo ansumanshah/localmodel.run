@@ -168,7 +168,7 @@ export function rigCard(opts: {
   const col = GRADE_COLOR[opts.grade] ?? C.muted
   return shell(`
   <div style="display:flex;align-items:center;margin-top:auto;gap:48px">
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:240px;height:240px;border-radius:32px;background:${C.card};border:3px solid ${col}">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:240px;height:240px;border-radius:8px;background:${C.card};border:3px solid ${col}">
       <div style="display:flex;font-size:30px;color:${C.muted}">Rig Score</div>
       <div style="display:flex;font-size:150px;font-weight:700;line-height:1;color:${col}">${opts.grade}</div>
     </div>
@@ -182,5 +182,5 @@ export function rigCard(opts: {
 }
 
 function pill(text: string): string {
-  return `<div style="display:flex;align-items:center;padding:10px 20px;border-radius:999px;background:${C.card};border:1px solid ${C.border};font-size:26px;color:${C.text}">${text}</div>`
+  return `<div style="display:flex;align-items:center;padding:10px 20px;border-radius:4px;background:${C.card};border:1px solid ${C.border};font-size:26px;color:${C.text}">${text}</div>`
 }
