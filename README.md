@@ -11,9 +11,9 @@ for ChatGPT / Gemini / Claude to crawl and cite.
 
 ## Modalities
 
-72 models across four modalities, each with its own sourced memory model:
+138 models across four modalities, each with its own sourced memory model:
 
-- **Text LLMs** (44): Llama, Qwen, DeepSeek, Gemma, Mistral, Phi, Sarvam, and more. Memory = weights at the chosen quant + KV cache + runtime overhead.
+- **Text LLMs** (110): Llama, Qwen, DeepSeek, Gemma, Mistral, Phi, GLM, Kimi, and more. Memory = weights at the chosen quant + KV cache + runtime overhead.
 - **Image generation** (6): FLUX.1 dev/schnell, SDXL, SD 3.5 Large, Stable Diffusion 1.5, Qwen-Image.
 - **Video generation** (11): Wan 2.1/2.2, LTX-Video, CogVideoX, HunyuanVideo, Mochi 1, Stable Video Diffusion.
 - **Audio and voice** (11): Whisper (STT), Kokoro / Bark / Dia / Orpheus (TTS), MusicGen / Stable Audio (music).
@@ -28,8 +28,8 @@ whether they run on CPU.
 
 ## Stack
 
-- **Astro 6**, static output, near-zero JS on content pages for Core Web Vitals and crawlability.
-- **Tailwind v4** (via PostCSS) with shadcn-style OKLCH tokens, dark-first, indigo brand mark.
+- **Astro 7** (Rolldown), static output, near-zero JS on content pages for Core Web Vitals and crawlability.
+- **Tailwind v4** (via `@tailwindcss/vite`) with OKLCH design tokens, warm-paper light default, electric-iris brand.
 - **React 19 island**, only the interactive hardware detector ships JS.
 - **astro-icon** (simple-icons + lucide) for maker, device and OS marks, with lettered-chip fallbacks.
 - **Geist** (Sans + Mono), self-hosted via `@fontsource-variable` (no third-party font CDN).
@@ -43,7 +43,7 @@ a `sources[]` array that the pages render.
 
 - `src/data/models.json`, text LLMs: params, GGUF quant sizes (Q4_K_M, Q8_0), context, Ollama tag.
 - `src/data/image-models.json`, `video-models.json`, `audio-models.json`: backbone params, component sizes, and a sourced peak-VRAM/peak-memory anchor (with its own source URL) per model.
-- `src/data/devices.json`, 30 devices: Macs, NVIDIA/AMD GPUs, RAM-only laptops, iPhones/iPads, Android, with realistic usable memory.
+- `src/data/devices.json`, 40 devices: Macs, NVIDIA/AMD GPUs, unified-memory APUs, RAM-only laptops, iPhones/iPads, Android, with sourced usable memory, bandwidth, MSRP and TDP.
 - `src/data/tools.json`, per-platform runtime recommendations.
 - `src/lib/compute.ts`, the text memory estimator (bits-per-weight, KV cache, MoE-aware, Apple unified-memory handling).
 - `src/lib/compute-mm.ts`, the multi-modal engine: dispatches text to `compute.ts` unchanged, and uses the sourced anchors + runtime gate for image/video/audio. See `/methodology`.
@@ -79,14 +79,11 @@ validates, and commits any changes. The push triggers a redeploy.
 
 ## Deploy (Cloudflare Pages)
 
-Two options:
-
-1. **Git integration (simplest):** in the Cloudflare dashboard, create a Pages
-   project from this repo. Build command `bun run build`, output dir `dist`, set
-   `SITE_URL` to the production origin.
-2. **GitHub Action:** `.github/workflows/deploy.yml` deploys on push to `main`.
-   Add secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and (optionally)
-   a `SITE_URL` repo variable.
+Git integration: in the Cloudflare dashboard, create a Pages project from this
+repo. Build command `bun run validate-data && bun run build`, output dir `dist`,
+set `SITE_URL` to the production origin. `.github/workflows/purge-on-deploy.yml`
+purges the edge cache when a deploy completes (needs `CLOUDFLARE_API_TOKEN` with
+Cache Purge scope, `CLOUDFLARE_ZONE_ID`).
 
 Optional build-time env vars (Cloudflare Pages → Settings → Environment variables):
 
@@ -96,8 +93,8 @@ Optional build-time env vars (Cloudflare Pages → Settings → Environment vari
 
 ## SEO + AI-crawlability
 
-- One indexable page per `model × device` (`/can-i-run/[model]/[device]`), per device (`/best-llm-for/[device]`), and per model (`/model/[model]`), about 2,000 pages.
+- One indexable page per `model × device` (`/can-i-run/[model]/[device]`), per device (`/best-llm-for/[device]`), and per model (`/model/[model]`), plus `/compare` head-to-heads, `/rig-for/[model]`, `/leaderboard` (Aider / BFCL / LMArena with hardware fit), `/best-llm-for-ram/[budget]`, embeddable SVG badges (`/badge/[model]/[device].svg`) and an OpenAPI spec (`/api/openapi.json`); about 5,600 pages.
 - JSON-LD on every page: TechArticle, FAQPage, BreadcrumbList, ItemList, Dataset, WebApplication, Organization, WebSite.
 - `robots.txt` explicitly allows AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended) since being citable is the strategy.
-- `/llms.txt` and `/llms-full.txt` expose all 72 models (text, image, video, audio) for answer engines.
+- `/llms.txt` and `/llms-full.txt` expose all 138 models (text, image, video, audio) for answer engines.
 - Sitemap, RSS, canonical URLs, OG/Twitter cards (dynamic per page via Satori), fast static HTML.
