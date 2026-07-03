@@ -135,8 +135,12 @@
   gap: 10px;
   width: 100%;
   margin: 0;
-  padding: 10px clamp(16px, 4vw, 32px);
-  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  /* The bezel bar spans the full viewport (a control panel edge-to-edge), but
+     its CONTENTS align to the site shell: side padding grows to center a
+     --shell-wide row once the viewport exceeds it, so brand + nav line up
+     with the content column instead of hugging the screen edges. */
+  padding: 14px max(clamp(16px, 4vw, 32px), calc((100% - var(--shell, 72rem)) / 2));
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
   border-radius: 0;
 }
 .aurora > .gh {
