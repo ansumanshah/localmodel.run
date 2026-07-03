@@ -8,8 +8,10 @@
               ruler-tick edges at ONE structural level (header bezel + section
               rules only), graticule only where a reading is displayed.
    MOTION     a needle moves once, settles, and stops. One-shot reveals only;
-              hovers are immediate border/underline changes. Nothing floats,
-              breathes, tilts, or follows the cursor.
+              hovers are immediate border/underline changes. Nothing tilts or
+              follows the cursor. ONE sanctioned ambient exception: the runtime
+              ticker (.marquee, user-pinned) loops continuously, pauses on
+              hover, and collapses to a static wrapped list under reduced motion.
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -1294,21 +1296,42 @@
   cursor: pointer;
 }
 
-/* ── Runtime strip — still. A parts list is read, not watched. ────────────── */
+/* ── Runtime ticker — the ONE sanctioned ambient motion (user-pinned). The
+   track content is duplicated for a seamless loop, so it must always animate:
+   frozen, the duplicate items read as a rendering bug. Pauses on hover;
+   collapses to a wrapped static list under reduced motion. ─────────────────── */
 .marquee {
-  overflow-x: auto;
-  scrollbar-width: none;
+  overflow: hidden;
   -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
   mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-}
-.marquee::-webkit-scrollbar {
-  display: none;
 }
 .marquee-track {
   display: flex;
   gap: 38px;
   width: max-content;
-  animation: none;
+  animation: marquee 26s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    -webkit-mask: none;
+    mask: none;
+  }
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+  }
 }
 .marquee-item {
   display: inline-flex;

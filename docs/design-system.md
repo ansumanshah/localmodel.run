@@ -30,9 +30,11 @@ kept frozen because hundreds of templates and the import graph reference them �
   verdict tags), `.bp-eyebrow`, `.bp-panel` / `.bp-instrument` (matte plates; the instrument
   plate carries a ruler-tick top edge), `.gh` (the flush header bezel with its tick contact
   edge), `.bp-stat-*`, `.card-seam`, `.num`, and friends.
-- **Motion** — one-shot only: `bar-grow` (needle-overshoot fill sweep), `stamp-press`,
-  `mark-draw`, `enter-rise`, count-ups. All guarded by `prefers-reduced-motion`. The cursor
-  effects of the previous system (spotlight, tilt, magnetic) were deleted, not disabled.
+- **Motion** — one-shot reveals (`bar-grow` needle-overshoot sweep, `stamp-press`,
+  `mark-draw`, `enter-rise`, count-ups) plus ONE sanctioned ambient exception: the runtime
+  ticker (`.marquee`) loops continuously, pauses on hover. Everything guarded by
+  `prefers-reduced-motion` (ticker collapses to a wrapped static list). The cursor effects of
+  the previous system (spotlight, tilt, magnetic) were deleted, not disabled.
 
 Rule: **if the CSS and any mirror drift, the CSS wins.** Accent and tone changes are one-token
 edits here, and everything inherits them.
