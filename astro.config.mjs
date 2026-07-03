@@ -36,7 +36,14 @@ export default defineConfig({
   // ~9% off the wall time here (25.3s -> 23.2s); the bulk is the 135 OG PNG
   // endpoints (satori + resvg WASM), which are I/O/WASM-bound and don't fully
   // parallelise. Zero-risk win; the bigger lever would be caching dist/og/.
-  build: { format: "file", inlineStylesheets: "auto", concurrency: 10 },
+  // BUILD_CONCURRENCY overrides for memory-constrained builders: the Cloudflare
+  // Pages box OOMed at 10 once the catalog passed ~5,700 pages (2026-07-03),
+  // while local and GitHub CI were fine. CF sets BUILD_CONCURRENCY=2.
+  build: {
+    format: "file",
+    inlineStylesheets: "auto",
+    concurrency: Number(process.env.BUILD_CONCURRENCY ?? 10),
+  },
   // Prefetch links on hover/focus so the view-transition navigations feel
   // instant. Pairs with <ClientRouter /> in Base.astro.
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
