@@ -127,5 +127,22 @@ if (orphans.length === 0) {
 }
 console.log("");
 
-// Broken links are a hard failure; orphans are informational.
-process.exit(brokenTargets.size > 0 ? 1 : 0);
+// Cloudflare Pages hard-fails any deployment over 20,000 files (the whole build
+// succeeds, then asset validation rejects it — hit on 2026-07-03 at 20,612).
+// Fail CI at 19,500 so the cliff is caught before CF sees it.
+const CF_PAGES_FILE_LIMIT = 20_000;
+const FILE_BUDGET = 19_500;
+let distFileCount = 0;
+for (const _ of new Bun.Glob("**/*").scanSync({ cwd: DIST, onlyFiles: true })) distFileCount++;
+const overBudget = distFileCount > FILE_BUDGET;
+console.log(
+  `${overBudget ? "✗" : "✓"} ${distFileCount} files in ${DIST}/ (budget ${FILE_BUDGET}, Cloudflare Pages limit ${CF_PAGES_FILE_LIMIT}).`,
+);
+if (overBudget)
+  console.log(
+    "   Over budget: trim a per-pair surface (md/json/svg) or split a surface into its own Pages project.",
+  );
+console.log("");
+
+// Broken links and the file budget are hard failures; orphans are informational.
+process.exit(brokenTargets.size > 0 || overBudget ? 1 : 0);
