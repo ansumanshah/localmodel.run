@@ -5,3 +5,17 @@
 # Reasons we skip: cloud-only (no GGUF), embeddings/rerankers, duplicates of a tracked
 # family, or fine-tune spam. Add a trailing comment after the slug if you like.
 glm-5.2   # in catalog (2026-07-03), sized from unsloth HF GGUFs; Ollama listing is cloud-only so ollama_tag is null
+kimi-k2.6   # in catalog (2026-07-04) sized from unsloth GGUFs; Ollama listing is cloud-only
+kimi-k2.7-code   # in catalog (2026-07-04); Ollama cloud-only
+deepseek-v4-flash   # in catalog (2026-07-04) sized from community GGUFs; Ollama cloud-only
+deepseek-v4-pro   # in catalog (2026-07-04); Ollama cloud-only
+minimax-m3   # in catalog (2026-07-04) sized from unsloth GGUFs; Ollama cloud-only
+laguna-xs.2   # superseded by laguna-xs-2.1 (in catalog)
+minicpm-v4.5   # superseded by minicpm-v4.6 (in catalog)
+granite4.1-guardian   # guardrail classifier, not a chat/instruct model
+medgemma   # medical domain model, out of catalog scope
+medgemma1.5   # medical domain model, out of catalog scope
+mistral-medium-3.5   # gated/API-only (HF 401), no open weights
+glm-5.1   # same 744B-A40B footprint as GLM-5.2 (in catalog)
+nemotron-3-ultra   # cloud-only on Ollama, no open GGUF found
+minimax-m2.7   # cloud-only on Ollama; M3 (in catalog) is the current open release
