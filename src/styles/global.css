@@ -1,100 +1,104 @@
 @import "tailwindcss";
 
 /*
-  Design system: "Gauge". Capacity, measured.
-  A precision instrument for one question: does this model fit your memory?
-  Dark-first, with a warm-paper light mode. Tokens in OKLCH; the React detector
-  reuses the exact same variables for visual parity. The signature element is the
-  fit gauge (.gauge): a capacity bar with a usable-memory threshold, reused as the
-  site's recurring visual language. All motion is transform/opacity only and
-  guarded by prefers-reduced-motion.
+  Design system: "The Calibrated Instrument". A reading you can trust.
+  The chrome is built out of measurement conventions: tick marks, engraved
+  labels, monospace numerals, a stamped verdict. Matte panel light mode
+  (default), gunmetal bench dark. One accent: the calibration-needle orange.
+  Nothing floats, breathes, or shimmers; a needle moves once, settles, stops.
+  All motion is transform/opacity only and guarded by prefers-reduced-motion.
 */
 
 @theme {
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "Geist Mono Variable", ui-monospace, "SF Mono", "Cascadia Code",
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", "Cascadia Code",
     Menlo, monospace;
+  /* Engraved-faceplate display face. Single weight (400); font-synthesis is
+     disabled on headings so Tailwind font-bold cannot fake a bold. */
+  --font-display: "Fjalla One", "Avenir Next Condensed", "Arial Narrow", ui-sans-serif,
+    sans-serif;
 
-  --radius: 0.625rem;
+  /* Manufactured tolerances, not friendly SaaS corners. */
+  --radius: 0.25rem;
 
-  /* Brand + verdict accents. Brand is a single vivid electric-iris used for the
-     mark, links, icons and accents in both themes (legible on dark, acceptable
-     link contrast on paper, dark glyph on the brand fill passes AA at large). */
-  --color-brand: oklch(0.65 0.2 272);
-  --color-verdict-yes: oklch(0.72 0.17 152);
-  --color-verdict-tight: oklch(0.78 0.16 86); /* amber */
-  --color-verdict-no: oklch(0.64 0.21 25); /* red */
+  /* Brand + verdict accents. Brand is the burnt calibration-needle orange
+     (4.6:1 on the light panel, 5.1:1 on gunmetal). Verdicts are inked stamp
+     hues, desaturated from the outgoing neon; semantics unchanged. */
+  --color-brand: #c5501e;
+  --color-verdict-yes: #3e6b3a;
+  --color-verdict-tight: #8a5a12;
+  --color-verdict-no: #9c3b30;
 }
 
 :root {
-  /* Light: warm paper, not cold gray. A faint warm tint (hue ~90) gives the
-     surface a printed-spec-sheet feel that the old cold gray lacked. */
-  --background: oklch(0.975 0.008 90);
-  --foreground: oklch(0.23 0.012 265);
-  --card: oklch(0.995 0.004 90);
-  --card-foreground: oklch(0.23 0.012 265);
-  --popover: oklch(0.995 0.004 90);
-  --popover-foreground: oklch(0.23 0.012 265);
-  --primary: oklch(0.24 0.02 270);
-  --primary-foreground: oklch(0.98 0.004 90);
-  --secondary: oklch(0.95 0.007 90);
-  --secondary-foreground: oklch(0.24 0.02 270);
-  --muted: oklch(0.95 0.007 90);
-  --muted-foreground: oklch(0.47 0.016 265);
-  --accent: oklch(0.95 0.007 90);
-  --accent-foreground: oklch(0.24 0.02 270);
-  --border: oklch(0.9 0.008 90);
-  --input: oklch(0.9 0.008 90);
+  /* Light (default): matte powder-coat panel, like the face of bench test
+     equipment. Flatter and less luminous than paper; text is laser-etched ink. */
+  --background: #edeae2;
+  --foreground: #20211f;
+  --card: #f6f4ee;
+  --card-foreground: #20211f;
+  --popover: #f6f4ee;
+  --popover-foreground: #20211f;
+  --primary: #20211f;
+  --primary-foreground: #f6f4ee;
+  --secondary: #e4e0d6;
+  --secondary-foreground: #20211f;
+  --muted: #e4e0d6;
+  --muted-foreground: #5c5b55;
+  --accent: #e4e0d6;
+  --accent-foreground: #20211f;
+  --border: #cfcac0;
+  --input: #cfcac0;
   --ring: var(--color-brand);
-  /* Verdict colors as TEXT on a light surface: darkened to meet WCAG AA 4.5:1.
-     The lighter --color-verdict-* values stay for fills/borders. */
-  --verdict-yes-fg: oklch(0.48 0.15 152);
-  --verdict-tight-fg: oklch(0.46 0.13 86);
-  --verdict-no-fg: oklch(0.52 0.21 25);
-  /* Brand text tuned for AA on paper (darker than the fill brand). */
-  --brand-ink: oklch(0.52 0.2 272);
-  /* Modality accents (cool spectrum, distinct from the warm verdict colors).
-     Light-mode values: darker for contrast on a warm surface. */
+  /* Verdict colors as TEXT on the light panel: the inked hues already pass
+     AA (5.2 / 5.4 / 5.6 : 1), so fill and text share a value. */
+  --verdict-yes-fg: #3e6b3a;
+  --verdict-tight-fg: #7c5a10;
+  --verdict-no-fg: #9c3b30;
+  /* Brand text tuned darker for AA-comfortable body-size links on the panel. */
+  --brand-ink: #a8431a;
+  /* Modality accents: inked, desaturated to sit beside the stamp hues. */
   --modality-text: var(--brand-ink);
-  --modality-image: oklch(0.52 0.12 200);
-  --modality-video: oklch(0.5 0.2 325);
-  --modality-audio: oklch(0.52 0.16 245);
+  --modality-image: oklch(0.47 0.08 200);
+  --modality-video: oklch(0.46 0.12 325);
+  --modality-audio: oklch(0.47 0.1 245);
   /* Gauge surfaces. */
-  --gauge-track: oklch(0.93 0.008 90);
+  --gauge-track: #ddd9cd;
 }
 
 .dark {
-  /* Dark: a deep, faintly iris-tinted near-black. Premium, not flat charcoal. */
-  --background: oklch(0.165 0.013 272);
-  --foreground: oklch(0.96 0.004 270);
-  --card: oklch(0.205 0.015 272);
-  --card-foreground: oklch(0.96 0.004 270);
-  --popover: oklch(0.205 0.015 272);
-  --popover-foreground: oklch(0.96 0.004 270);
-  --primary: oklch(0.96 0.004 270);
-  --primary-foreground: oklch(0.21 0.02 270);
-  --secondary: oklch(0.26 0.014 272);
-  --secondary-foreground: oklch(0.96 0.004 270);
-  --muted: oklch(0.26 0.014 272);
-  --muted-foreground: oklch(0.73 0.012 272);
-  --accent: oklch(0.3 0.016 272);
-  --accent-foreground: oklch(0.96 0.004 270);
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 12%);
+  /* Dark: matte gunmetal graphite, a bench instrument under inspection light.
+     Deliberately cooler and flatter than the old iris-tinted near-black. */
+  --background: #15171a;
+  --foreground: #edeff2;
+  --card: #1c1f24;
+  --card-foreground: #edeff2;
+  --popover: #1c1f24;
+  --popover-foreground: #edeff2;
+  --primary: #edeff2;
+  --primary-foreground: #15171a;
+  --secondary: #23262b;
+  --secondary-foreground: #edeff2;
+  --muted: #23262b;
+  --muted-foreground: #9ba0a8;
+  --accent: #282c32;
+  --accent-foreground: #edeff2;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 13%);
   --ring: var(--color-brand);
-  /* Lighter verdict text for dark surfaces. */
-  --verdict-yes-fg: oklch(0.8 0.16 152);
-  --verdict-tight-fg: oklch(0.84 0.15 86);
-  --verdict-no-fg: oklch(0.72 0.19 25);
-  /* Brand text on dark: brighter than the fill brand for legibility. */
-  --brand-ink: oklch(0.78 0.16 272);
-  /* Modality accents, lighter for dark surfaces. */
+  /* Backlit-LCD verdict inks for gunmetal (7.3-8.1:1). */
+  --verdict-yes-fg: #8fbf88;
+  --verdict-tight-fg: #d9a94f;
+  --verdict-no-fg: #e08579;
+  /* Brand text on dark: the needle warmed and lifted for legibility. */
+  --brand-ink: #e07b4c;
+  /* Modality accents, lifted for dark surfaces. */
   --modality-text: var(--brand-ink);
-  --modality-image: oklch(0.78 0.13 200);
-  --modality-video: oklch(0.76 0.17 325);
-  --modality-audio: oklch(0.76 0.15 245);
-  --gauge-track: oklch(0.26 0.014 272);
+  --modality-image: oklch(0.75 0.09 200);
+  --modality-video: oklch(0.74 0.12 325);
+  --modality-audio: oklch(0.75 0.1 245);
+  --gauge-track: #23262b;
 }
 
 /* Map tokens into Tailwind's color space so utilities like bg-card work. */
@@ -118,8 +122,10 @@
   --color-ring: var(--ring);
   --color-brand-ink: var(--brand-ink);
   --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  /* Explicit values: the old calc(var(--radius) - 4px) derivation underflowed
+     to 0 when --radius tightened to 0.25rem for the instrument corners. */
+  --radius-md: 3px;
+  --radius-sm: 2px;
 }
 
 @layer base {
@@ -138,8 +144,17 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
+  /* Faceplate headings: the engraved display face at its one true weight.
+     font-synthesis off so a stray Tailwind font-bold can't fake a 700. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-synthesis: none;
+    letter-spacing: 0.01em;
+  }
   ::selection {
-    background: color-mix(in oklch, var(--color-brand) 28%, transparent);
+    background: color-mix(in oklch, var(--color-brand) 24%, transparent);
   }
   /* Calmer focus ring, consistent across the site. */
   :focus-visible {
@@ -158,11 +173,11 @@
   }
 
   /* Capacity/score fill: animate transform (compositor-friendly) instead of
-     width. Grows once on load and eases on every value change. */
+     width. Sweeps once with a slight needle overshoot, settles, and stops. */
   .bar-fill {
     transform-origin: left;
-    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-    animation: bar-grow 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: transform 0.55s cubic-bezier(0.22, 1.24, 0.36, 1);
+    animation: bar-grow 0.65s cubic-bezier(0.22, 1.24, 0.36, 1) both;
     will-change: transform;
   }
   @keyframes bar-grow {
@@ -190,15 +205,23 @@
     position: relative;
     height: 0.625rem;
     width: 100%;
-    border-radius: 999px;
-    background: var(--gauge-track);
+    border-radius: 2px;
+    /* Graduated track: a minor tick every 10%, like the edge of a steel rule.
+       The graticule lives ONLY where a reading is displayed (here and the
+       memory strip), never as page wallpaper. */
+    background-color: var(--gauge-track);
+    background-image: repeating-linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--foreground) 16%, transparent) 0 1px,
+      transparent 1px 10%
+    );
     overflow: visible;
-    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--foreground) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent);
   }
   .gauge-fill {
     position: absolute;
     inset: 0;
-    border-radius: 999px;
+    border-radius: 1px;
     transform-origin: left;
   }
   /* Vertical threshold tick (usable memory). Sits above the fill with a hairline
@@ -258,18 +281,14 @@
     );
   }
 
-  /* Accent word for headings: a calm static iris duotone (no infinite shimmer). */
+  /* Accent word for headings: solid needle ink. Real board materials do not
+     gradient into each other; neither does the type. */
   .bp-accent {
-    background: linear-gradient(100deg, var(--color-brand) 0%, oklch(0.7 0.17 250) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .light .bp-accent {
-    background: linear-gradient(100deg, oklch(0.5 0.2 272) 0%, oklch(0.48 0.16 235) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+    color: var(--brand-ink);
   }
 
   /* Inline code chip */
@@ -356,18 +375,10 @@
     );
     pointer-events: none;
   }
-  /* The instrument is the hero-weight panel: a touch more presence and a soft
-     brand-tinted lift, but no glass blur. */
+  /* The instrument is the hero-weight panel: a firmer machined frame, no glow. */
   .bp-instrument {
-    border-color: color-mix(in oklch, var(--color-brand) 24%, var(--border));
-    box-shadow:
-      0 1px 2px oklch(0 0 0 / 0.06),
-      0 16px 40px color-mix(in oklch, var(--color-brand) 12%, transparent);
-  }
-  .light .bp-instrument {
-    box-shadow:
-      0 1px 2px oklch(0 0 0 / 0.05),
-      0 18px 44px color-mix(in oklch, var(--color-brand) 9%, transparent);
+    border-color: color-mix(in oklch, var(--foreground) 32%, var(--border));
+    box-shadow: 0 1px 2px oklch(0 0 0 / 0.06);
   }
 
   /* Verdict-keyed panel: swaps brand tint for the verdict color (via --vc). */
@@ -480,22 +491,9 @@
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    /* Transparent base so the page aurora flows continuously through the hero.
-       (It used to paint an opaque var(--background), which cut the aurora off at
-       the header edge.) The transparent-based brand wash below still layers on. */
-    background-image: radial-gradient(
-      110% 70% at 50% -10%,
-      color-mix(in oklch, var(--color-brand) 13%, transparent) 0%,
-      transparent 60%
-    );
+    /* Matte: the hero sits on the bare panel. No radial brand wash; the only
+       color on the faceplate is ink and the needle. */
     padding: clamp(2.5rem, 7vh, 5rem) clamp(1rem, 4vw, 3rem);
-  }
-  .light .bp-hero {
-    background-image: radial-gradient(
-      110% 70% at 50% -10%,
-      color-mix(in oklch, var(--color-brand) 8%, transparent) 0%,
-      transparent 60%
-    );
   }
   .bp-inner {
     position: relative;

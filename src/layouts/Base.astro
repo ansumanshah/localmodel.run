@@ -1,12 +1,17 @@
 ---
-import "@fontsource-variable/geist";
-import "@fontsource-variable/geist-mono";
+// The Calibrated Instrument type trio: engraved display + datasheet body + the
+// data face that carries every numeral on the site. All self-hosted, no CDN.
+import "@fontsource/fjalla-one";
+import "@fontsource/public-sans";
+import "@fontsource/public-sans/500.css";
+import "@fontsource/public-sans/600.css";
+import "@fontsource-variable/jetbrains-mono";
 import "@/styles/global.css";
-// Gauge·Glass liquid-glass layer — loads AFTER global.css so it inherits Gauge
-// tokens (it only adds --glass-*/--lite-*/--rig-* + .glass*/.g*/.rig-* classes).
+// Instrument skin layer — loads AFTER global.css so it inherits the tokens
+// (matte plates, bezel, stamp, tags; the file keeps its historical name).
 import "@/styles/glass.css";
-// Site-wide bridge — maps the .bp-* primitives onto the glass material so every
-// template reskins centrally. Loads AFTER glass.css so its overrides win.
+// Site-wide bridge — maps the .bp-* primitives onto the plate material so every
+// template reskins centrally. Loads AFTER the skin so its overrides win.
 import "@/styles/glass-bridge.css";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
