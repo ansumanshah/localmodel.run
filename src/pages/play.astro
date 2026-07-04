@@ -57,7 +57,9 @@ const jsonLd = [faqLd(faqs)];
 
       <!-- Question view -->
       <div class="p-5 sm:p-6" id="play-q">
-        <h2 class="text-2xl sm:text-3xl" id="play-model" tabindex="-1">&nbsp;</h2>
+        {/* tabindex=-1: focused per round so AT announces it; outline-none since
+            it's a read target, not a control (the ring reads as a stray highlight) */}
+        <h2 class="text-2xl outline-none sm:text-3xl" id="play-model" tabindex="-1">&nbsp;</h2>
         <div class="mt-2 flex flex-wrap gap-2">
           <span class="gv" id="play-params">&nbsp;</span>
         </div>
@@ -94,7 +96,7 @@ const jsonLd = [faqLd(faqs)];
       <!-- End view -->
       <div class="hidden p-5 sm:p-6" id="play-end" aria-live="polite">
         <p class="bp-eyebrow"><span class="bp-dot" aria-hidden="true"></span>Result</p>
-        <p class="mt-3 text-4xl" id="end-score-line" tabindex="-1" style="font-family:var(--font-display);font-weight:400;font-synthesis:none"><span class="num" id="end-score"></span><span class="text-muted-foreground text-2xl" id="end-total">/8</span></p>
+        <p class="mt-3 text-4xl outline-none" id="end-score-line" tabindex="-1" style="font-family:var(--font-display);font-weight:400;font-synthesis:none"><span class="num" id="end-score"></span><span class="text-muted-foreground text-2xl" id="end-total">/8</span></p>
         <p class="mt-1 text-sm text-muted-foreground" id="end-grade"></p>
         <div class="mt-4 flex gap-1.5" id="end-grid" aria-hidden="true"></div>
         <p class="mt-3 font-mono text-xs uppercase tracking-wider text-muted-foreground" id="end-streak"></p>
