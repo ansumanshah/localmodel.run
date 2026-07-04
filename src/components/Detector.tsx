@@ -248,6 +248,7 @@ export default function Detector() {
           <div
             className="gauge-mark"
             data-label={`usable ${usable} GB`}
+            data-edge={markAt < 15 ? "start" : markAt > 85 ? "end" : undefined}
             style={{ "--at": `${markAt}%` } as CSSProperties}
             aria-hidden="true"
           />

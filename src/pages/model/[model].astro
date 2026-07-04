@@ -318,7 +318,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                       </div>
                       <div class="gauge lens mt-4" role="img" aria-label={`Memory: needs ${fitDefault.need} GB, device has ${fitDefault.usable} GB usable`}>
                         <div class="gauge-fill" id="fc-fill" style={`transform:scaleX(${fitDefault.fillScale});background:color-mix(in oklch, ${VERDICT_COL[fitDefault.verdict]} 88%, transparent);--vc:${VERDICT_COL[fitDefault.verdict]}`}></div>
-                        <div class="gauge-mark" id="fc-mark" style={`--at:${fitDefault.markAt}%`} data-label={`usable ${fitDefault.usable} GB`} aria-hidden="true"></div>
+                        <div class="gauge-mark" id="fc-mark" style={`--at:${fitDefault.markAt}%`} data-label={`usable ${fitDefault.usable} GB`} data-edge={fitDefault.markAt < 15 ? "start" : fitDefault.markAt > 85 ? "end" : undefined} aria-hidden="true"></div>
                       </div>
                       <div class="read">
                         <span>needs <b class="num" id="fc-need">{fitDefault.need} GB</b></span>
@@ -372,7 +372,7 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                           el.style.background = "color-mix(in oklch, " + COL[d.verdict] + " 88%, transparent)";
                           el.style.setProperty("--vc", COL[d.verdict]);
                         });
-                        set("fc-mark", (el) => { el.style.setProperty("--at", d.markAt + "%"); el.setAttribute("data-label", "usable " + d.usable + " GB"); });
+                        set("fc-mark", (el) => { el.style.setProperty("--at", d.markAt + "%"); el.setAttribute("data-label", "usable " + d.usable + " GB"); if (d.markAt < 15) el.setAttribute("data-edge", "start"); else if (d.markAt > 85) el.setAttribute("data-edge", "end"); else el.removeAttribute("data-edge"); });
                         set("fc-need", (el) => (el.textContent = d.need + " GB"));
                         set("fc-usable", (el) => (el.textContent = d.usable + " GB"));
                         set("fc-link", (el) => el.setAttribute("href", "/can-i-run/" + modelId + "/" + d.id));

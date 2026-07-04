@@ -251,6 +251,18 @@
     letter-spacing: 0.02em;
     color: var(--muted-foreground);
   }
+  /* Near a track edge the centered label would overflow and clip (e.g. a
+     965 GB model on an 8 GB device pins the usable mark at ~0.5%); anchor
+     the label inward instead. Call sites set data-edge from the mark %. */
+  .gauge-mark[data-edge="start"]::after {
+    left: 0;
+    transform: none;
+  }
+  .gauge-mark[data-edge="end"]::after {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
 
   /* ── Monospace eyebrow + signature tick ──────────────────────────────── */
   .bp-eyebrow {
