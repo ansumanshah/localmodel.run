@@ -13,6 +13,19 @@
  */
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/* Haptic tick. Web vibration exists on Android Chrome only (iOS Safari exposes
+ * no vibration API), so this is a progressive nicety: a short pulse on press,
+ * distinct patterns for the quiz via window.lmrBuzz. Skipped under
+ * prefers-reduced-motion; silently a no-op everywhere unsupported. */
+const buzz = (pattern: number | number[]): void => {
+  if (reduceMotion()) return
+  try {
+    navigator.vibrate?.(pattern)
+  } catch {
+    /* unsupported */
+  }
+}
+
 function initGlass(): void {
   // Count-up on .num[data-count] when scrolled into view.
   const counters = document.querySelectorAll<HTMLElement>('.num[data-count]:not([data-glass-count])')
@@ -176,6 +189,7 @@ function bindModals(): void {
 declare global {
   interface Window {
     __glassBound?: boolean
+    lmrBuzz?: (pattern: number | number[]) => void
   }
 }
 
@@ -185,6 +199,17 @@ if (!window.__glassBound) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') document.querySelectorAll<HTMLElement>('.gscrim[data-open]').forEach(closeModal)
   })
+  // Haptics: one delegated press-tick for every control, bound once.
+  window.lmrBuzz = buzz
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      const t = e.target
+      if (!(t instanceof Element)) return
+      if (t.closest('.gbtn, .play-choice, [data-copy], .cmd-chip .copy, .gh button, .gh a, .bp-cta-link')) buzz(8)
+    },
+    { passive: true },
+  )
 }
 
 // Initial load + after every Astro view-transition navigation.

@@ -459,6 +459,42 @@
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
+/* Round progress: 8 ruler ticks in the panel header, inked as you answer. */
+.play-ticks {
+  display: inline-flex;
+  gap: 4px;
+}
+.play-ticks i {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--border);
+  border-radius: 1px;
+}
+.play-ticks i.ok,
+.play-ticks i.miss {
+  animation: stamp-press 0.18s var(--settle) both;
+}
+.play-ticks i.ok {
+  background: var(--color-verdict-yes);
+  border-color: var(--color-verdict-yes);
+}
+.play-ticks i.miss {
+  background: var(--color-verdict-no);
+  border-color: var(--color-verdict-no);
+}
+/* Result board: the day's calls as inked cells, pressed in one by one. */
+.play-cell {
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+  animation: stamp-press 0.18s var(--settle) both;
+}
+.play-cell.ok {
+  background: var(--color-verdict-yes);
+}
+.play-cell.miss {
+  background: var(--color-verdict-no);
+}
 
 /* The verdict line: an inked inspection stamp. Straight, double-ruled, done. */
 .verdict-hero {
@@ -865,7 +901,9 @@
   .gbtn,
   .gbtn--primary,
   .bento-card,
-  .verdict-hero {
+  .verdict-hero,
+  .play-ticks i,
+  .play-cell {
     transition: none;
     animation: none;
   }
