@@ -54,6 +54,13 @@ const eloLine =
     : "";
 
 const sources = dedupeSources(s.sources, l.sources);
+
+// Prefilled share intents (same pattern as /rig): the size-gap fact is the tweet.
+const pageUrl = new URL(path, Astro.site).href;
+const shareText = `${s.name} needs ~${sQ4.totalGb} GB at Q4_K_M, ${l.name} needs ~${lQ4.totalGb} GB. Which one runs on your hardware:`;
+const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`;
+const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(pageUrl)}&title=${encodeURIComponent(`${s.name} vs ${l.name}: memory requirements compared`)}`;
+
 const title = `${s.name} vs ${l.name}: which runs on your hardware? (${year}) · localmodel.run`;
 const description = truncate(
   `${s.name} needs ~${sQ4.totalGb} GB at Q4_K_M, ${l.name} needs ~${lQ4.totalGb} GB. Side-by-side memory, quant sizes, and which devices run each.`,
@@ -121,7 +128,7 @@ const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 t
     </h1>
     <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
       <strong>{s.name} needs ~{sQ4.totalGb} GB</strong> at Q4_K_M; <strong>{l.name} needs ~{lQ4.totalGb} GB</strong>.
-      That ~{Math.round((lQ4.totalGb - sQ4.totalGb) * 10) / 10} GB gap decides which hardware runs each &mdash; they differ on {differ} of the {rows.length} devices below.
+      That ~{Math.round((lQ4.totalGb - sQ4.totalGb) * 10) / 10} GB gap decides which hardware runs each; they differ on {differ} of the {rows.length} devices below.
     </p>
 
     <div class="bp-wire mt-5" aria-hidden="true"></div>
@@ -199,6 +206,10 @@ const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 t
         {eloLine ? `${eloLine} ` : ""}The larger {l.name} needs ~{lQ4.totalGb} GB; {s.name} runs on lighter hardware at ~{sQ4.totalGb} GB with more headroom and faster responses. Check each against your exact device:
         <a href={`/rig-for/${s.id}`} class="underline">what runs {s.name}</a> &middot; <a href={`/rig-for/${l.id}`} class="underline">what runs {l.name}</a>.
       </p>
+      <div class="mt-4 flex flex-wrap gap-2.5">
+        <a href={xUrl} rel="noopener noreferrer" target="_blank" class="gbtn" aria-label={`Share ${s.name} vs ${l.name} on X`}>Share on X</a>
+        <a href={redditUrl} rel="noopener noreferrer" target="_blank" class="gbtn" aria-label={`Share ${s.name} vs ${l.name} on Reddit`}>Share on Reddit</a>
+      </div>
     </section>
 
     <section class="mt-10">

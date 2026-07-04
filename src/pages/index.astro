@@ -13,12 +13,46 @@ import {
   devices,
   meta,
 } from "@/lib/data";
-import { canRun, usableGb } from "@/lib/compute";
+import { canRun, usableGb, estimateMemory } from "@/lib/compute";
 import { faqLd, softwareAppLd, datasetLd, truncate, type FaqItem } from "@/lib/seo";
 
 // Reference model for the "popular hardware" cards; fail loudly at build if removed.
 const refModel = models.find((m) => m.id === "llama-3.1-8b");
 if (!refModel) throw new Error("index.astro: reference model 'llama-3.1-8b' not found in models.json");
+
+// "The extremes": the engine at the edges of the catalog. Hand-picked pairs,
+// but every number is computed at build time (never hardcoded), so the weekly
+// data cron keeps them honest. Fails the build if a slug leaves the catalog.
+const sizeLabel = (p: number) => (p >= 1000 ? `${p / 1000}T` : p < 1 ? `${Math.round(p * 1000)}M` : `${p}B`);
+const extremes = [
+  {
+    m: "deepseek-v4-pro",
+    d: "apple-m3-ultra-256gb",
+    hook: "The largest open-weight model does not fit the biggest Mac you can buy. Not at any quant.",
+  },
+  {
+    m: "kimi-k2.6",
+    d: "nvidia-rtx-4090-24gb",
+    hook: "A trillion-parameter vision model against the flagship consumer GPU. Not close.",
+  },
+  {
+    m: "smollm2-135m",
+    d: "iphone-17-pro",
+    hook: "The other end of the catalog runs on the phone already in your pocket.",
+  },
+].map(({ m, d, hook }) => {
+  const model = models.find((x) => x.id === m);
+  const device = devices.find((x) => x.id === d);
+  if (!model || !device) throw new Error(`index.astro extremes: pair ${m} / ${d} not found`);
+  return {
+    model,
+    device,
+    hook,
+    verdict: canRun(model, device).verdict,
+    neededGb: estimateMemory(model, "q4_k_m").totalGb,
+    usable: usableGb(device),
+  };
+});
 
 const path = "/";
 // Homepage only: brand-first (the homepage IS the brand page). pSEO/content
@@ -319,6 +353,29 @@ const jsonLd = [
           <h3 class="mt-3 font-semibold">{s.t}</h3>
           <p class="mt-1 text-sm text-muted-foreground">{s.d}</p>
         </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- The extremes: the same math at the edges of the catalog -->
+  <section class="mx-auto max-w-5xl px-4 py-16">
+    <div class="flex items-end justify-between">
+      <h2 class="text-2xl font-bold tracking-tight">The extremes</h2>
+      <a href="/can-i-run" class="text-sm text-[var(--brand-ink)] hover:underline">Check any pair →</a>
+    </div>
+    <p class="mt-1 text-sm text-muted-foreground">The same memory math, at the edges of the catalog.</p>
+    <div class="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-3">
+      {extremes.map((e) => (
+        <a href={`/can-i-run/${e.model.id}/${e.device.id}`} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
+          <div class="flex items-center justify-between gap-2">
+            <VerdictBadge verdict={e.verdict} />
+            <span class="num shrink-0 text-xs text-muted-foreground">{sizeLabel(e.model.params_b)}{e.model.is_moe ? " MoE" : ""}</span>
+          </div>
+          <h3 class="mt-3 font-semibold">{e.model.name} on {e.device.name}</h3>
+          <p class="mt-1 text-sm"><span class="num font-semibold text-foreground">~{e.neededGb} GB</span><span class="text-muted-foreground"> needed · </span><span class="num text-muted-foreground">~{e.usable} GB</span><span class="text-muted-foreground"> usable</span></p>
+          <p class="mt-2 text-sm text-muted-foreground">{e.hook}</p>
+          <span aria-hidden="true" class="mt-3 inline-block text-sm text-[var(--brand-ink)] group-hover:underline">The full math →</span>
+        </a>
       ))}
     </div>
   </section>

@@ -25,6 +25,8 @@ import {
   estimateMemory,
   usableGb,
   QUANT_LABEL,
+  verdictLabel,
+  verdictLabelShort,
   estTokPerSec,
   estOffloadTokPerSec,
   electricityCostPerMtokUsd,
@@ -150,6 +152,15 @@ const whyNotFit =
 const path = `/can-i-run/${model.id}/${device.id}`;
 const titleBase = `Can I run ${model.name} on ${device.name}?`;
 const title = titleBase.length <= 48 ? `${titleBase} · localmodel.run` : titleBase;
+
+// Share surface: prefilled intents + a paste-ready markdown one-liner, built
+// from the numbers already computed above (nothing recomputed client-side).
+const pageUrl = new URL(path, Astro.site).href;
+const shareTitle = `${titleBase} ${verdictLabelShort(result.verdict)}.`;
+const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(pageUrl)}`;
+const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(pageUrl)}&title=${encodeURIComponent(shareTitle)}`;
+const quantWord = isText ? "Q4_K_M" : (result.quantLabel ?? "Q4");
+const shareMarkdown = `**${model.name} on ${device.name}: ${verdictLabel(result.verdict)}.** Needs ~${neededGb} GB at ${quantWord}; ${device.name} has ~${usable} GB usable.\nFull breakdown: ${pageUrl}`;
 
 const verdictText = isText
   ? fits
@@ -357,6 +368,34 @@ if (fits && commands.length > 0) {
           </div>
         )}
       </dl>
+
+      <!-- Share row: the verdict is the shareable artifact. PNG card for
+           threads and chats, markdown for a paste-ready Reddit/HN answer,
+           intents for one-tap posting. -->
+      <div class="bp-panel-footer">
+        <div class="flex flex-wrap gap-2.5">
+          <button
+            type="button"
+            class="gbtn"
+            data-verdict-card
+            data-verdict={result.verdict}
+            data-stamp={verdictLabel(result.verdict)}
+            data-model={model.name}
+            data-device={device.name}
+            data-needed={String(neededGb)}
+            data-usable={String(usable)}
+            data-quant={quantWord}
+            data-path={path}
+            data-dl={`verdict-${model.id}-${device.id}.png`}
+          >
+            Download verdict card (PNG)
+          </button>
+          <button type="button" class="gbtn" data-copy={shareMarkdown}>Copy as Markdown</button>
+          <a href={xUrl} rel="noopener noreferrer" target="_blank" class="gbtn" aria-label={`Share this verdict on X`}>Share on X</a>
+          <a href={redditUrl} rel="noopener noreferrer" target="_blank" class="gbtn" aria-label={`Share this verdict on Reddit`}>Share on Reddit</a>
+        </div>
+        <span class="bp-panel-label hidden sm:block">localmodel.run</span>
+      </div>
     </div>
 
     {elecPerMtok != null && (
@@ -609,3 +648,149 @@ if (fits && commands.length > 0) {
     </p>
   </article>
 </Base>
+
+<script>
+  // Shareable verdict card: draws the SSR-computed verdict (read from data-*
+  // on the button, nothing recomputed) onto the instrument plate and downloads
+  // it as a PNG. Landscape 1200x630 so it embeds cleanly in threads and chats.
+  const STAMP_COLOR: Record<string, string> = {
+    yes: "#8fbf88",
+    tight: "#d9a94f",
+    no: "#e08579",
+    unknown: "#9aa1a9",
+  };
+  const DISPLAY = '"Fjalla One", "Avenir Next Condensed", "Arial Narrow", sans-serif';
+  const MONO = '"JetBrains Mono Variable", ui-monospace, Menlo, monospace';
+
+  async function drawVerdictCard(d: DOMStringMap) {
+    await document.fonts?.ready;
+    const W = 1200;
+    const H = 630;
+    const scale = 2;
+    const c = document.createElement("canvas");
+    c.width = W * scale;
+    c.height = H * scale;
+    const x = c.getContext("2d");
+    if (!x) return;
+    x.scale(scale, scale);
+    const rr = (rx: number, ry: number, rw: number, rh: number, rad: number) => {
+      x.beginPath();
+      x.moveTo(rx + rad, ry);
+      x.arcTo(rx + rw, ry, rx + rw, ry + rh, rad);
+      x.arcTo(rx + rw, ry + rh, rx, ry + rh, rad);
+      x.arcTo(rx, ry + rh, rx, ry, rad);
+      x.arcTo(rx, ry, rx + rw, ry, rad);
+      x.closePath();
+    };
+    // The instrument plate: matte gunmetal, a whisper of top light (same
+    // family as the rig-score card).
+    const g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#1c1f24");
+    g.addColorStop(1, "#15171a");
+    rr(0, 0, W, H, 16);
+    x.fillStyle = g;
+    x.fill();
+    const sh = x.createLinearGradient(0, 0, 0, H * 0.3);
+    sh.addColorStop(0, "rgba(237,239,242,0.06)");
+    sh.addColorStop(1, "rgba(237,239,242,0)");
+    rr(0, 0, W, H, 16);
+    x.fillStyle = sh;
+    x.fill();
+
+    const pad = 72;
+    x.textBaseline = "alphabetic";
+    x.fillStyle = "rgba(255,255,255,0.72)";
+    x.font = "600 24px " + MONO;
+    x.fillText("COMPATIBILITY VERDICT", pad, pad + 10);
+    const brand = "localmodel.run";
+    x.fillText(brand, W - pad - x.measureText(brand).width, pad + 10);
+
+    // The inked stamp: uppercase verdict inside a double rule, in the
+    // verdict's dark-surface WCAG color (mirrors .verdict-stamp).
+    const stampColor = STAMP_COLOR[d.verdict ?? "unknown"] ?? STAMP_COLOR.unknown;
+    const stampText = (d.stamp ?? "").toUpperCase();
+    x.font = "400 58px " + DISPLAY;
+    const stW = x.measureText(stampText).width;
+    const stX = pad;
+    const stY = pad + 78;
+    const boxW = stW + 64;
+    const boxH = 106;
+    x.strokeStyle = stampColor;
+    x.lineWidth = 3;
+    x.strokeRect(stX, stY, boxW, boxH);
+    x.lineWidth = 1.5;
+    x.strokeRect(stX + 7, stY + 7, boxW - 14, boxH - 14);
+    x.fillStyle = stampColor;
+    x.fillText(stampText, stX + 32, stY + boxH / 2 + 21);
+
+    // Model on device, shrink-to-fit so long names never clip.
+    const fitText = (text: string, weight: string, family: string, startPx: number, minPx: number) => {
+      let px = startPx;
+      x.font = `${weight} ${px}px ${family}`;
+      while (px > minPx && x.measureText(text).width > W - pad * 2) {
+        px -= 2;
+        x.font = `${weight} ${px}px ${family}`;
+      }
+      return px;
+    };
+    x.fillStyle = "#fff";
+    fitText(d.model ?? "", "400", DISPLAY, 64, 34);
+    x.fillText(d.model ?? "", pad, pad + 300);
+    x.fillStyle = "rgba(255,255,255,0.8)";
+    const onLine = "on " + (d.device ?? "");
+    fitText(onLine, "600", "system-ui, sans-serif", 40, 26);
+    x.fillText(onLine, pad, pad + 356);
+
+    // The one real number pair that decides the verdict.
+    x.fillStyle = "rgba(255,255,255,0.85)";
+    const numsPx = fitText(
+      `needs ~${d.needed} GB at ${d.quant} · ~${d.usable} GB usable`,
+      "500",
+      MONO,
+      30,
+      20,
+    );
+    x.font = `500 ${numsPx}px ` + MONO;
+    x.fillText(`needs ~${d.needed} GB at ${d.quant} · ~${d.usable} GB usable`, pad, pad + 424);
+
+    // Footer rule + the page URL for citability.
+    x.strokeStyle = "rgba(255,255,255,0.2)";
+    x.lineWidth = 2;
+    x.beginPath();
+    x.moveTo(pad, H - 96);
+    x.lineTo(W - pad, H - 96);
+    x.stroke();
+    x.fillStyle = "rgba(255,255,255,0.7)";
+    const urlPx = fitText("localmodel.run" + (d.path ?? ""), "500", MONO, 24, 14);
+    x.font = `500 ${urlPx}px ` + MONO;
+    x.fillText("localmodel.run" + (d.path ?? ""), pad, H - 52);
+
+    c.toBlob((blob) => {
+      if (!blob) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = d.dl ?? "verdict.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }, "image/png");
+  }
+
+  // Delegated once at the document so it survives view-transition swaps
+  // (same pattern as the [data-copy] handler in Base.astro).
+  declare global {
+    interface Window {
+      __verdictCardBound?: boolean;
+    }
+  }
+  if (!window.__verdictCardBound) {
+    window.__verdictCardBound = true;
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+      if (!(t instanceof Element)) return;
+      const btn = t.closest<HTMLElement>("[data-verdict-card]");
+      if (btn) drawVerdictCard(btn.dataset);
+    });
+  }
+</script>

@@ -65,8 +65,22 @@ const biggest = score.biggest?.name ?? "";
     const share = document.getElementById("rig-share");
     if (share && !share.dataset.bound) {
       share.dataset.bound = "1";
-      share.addEventListener("click", () => {
+      // On touch devices the native share sheet beats copy-paste-switch-app;
+      // desktop keeps the copy-link button (its share dialogs are worse).
+      const nativeShare =
+        typeof navigator.share === "function" && matchMedia("(pointer: coarse)").matches;
+      if (nativeShare) share.textContent = "Share";
+      share.addEventListener("click", async () => {
         const url = location.origin + location.pathname;
+        if (nativeShare) {
+          const text = `My ${d.device} runs ${d.runnable} of ${d.total} local AI models (${d.pct}%). What's yours?`;
+          try {
+            await navigator.share({ url, text });
+          } catch {
+            // user closed the sheet; nothing to do
+          }
+          return;
+        }
         if (navigator.clipboard) navigator.clipboard.writeText(url);
         const prev = share.textContent;
         share.textContent = "Link copied";
