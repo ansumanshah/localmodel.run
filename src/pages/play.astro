@@ -36,8 +36,7 @@ const jsonLd = [faqLd(faqs)];
     </p>
     <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Can it run?</h1>
     <p class="mt-3 text-pretty text-muted-foreground">
-      Eight real pairs. Does the model fit in the machine's memory? Everyone gets the
-      same set; a new one drops at midnight UTC.
+      Eight real pairs a day, the same for everyone. Does the model fit?
     </p>
 
     <!-- The game instrument -->
@@ -52,8 +51,7 @@ const jsonLd = [faqLd(faqs)];
 
       <noscript>
         <p class="p-5 text-sm text-muted-foreground">
-          The quiz needs JavaScript. The rest of the site works without it:
-          <a href="/can-i-run" class="underline">browse all models</a>.
+          The quiz needs JavaScript. <a href="/can-i-run" class="underline">Browse all models</a> instead.
         </p>
       </noscript>
 
@@ -78,7 +76,7 @@ const jsonLd = [faqLd(faqs)];
           </button>
         </div>
         <div class="mt-7 hidden flex-wrap gap-2.5" id="play-gb"></div>
-        <p class="mt-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground" id="play-hint">Keyboard: Y / N</p>
+        <p class="mt-3 hidden font-mono text-[11px] uppercase tracking-wider text-muted-foreground sm:block" id="play-hint">Y / N</p>
       </div>
 
       <!-- Reveal view -->
@@ -104,25 +102,21 @@ const jsonLd = [faqLd(faqs)];
         <div class="mt-5 flex flex-wrap gap-2.5">
           <button type="button" class="gbtn gbtn--primary" id="end-copy">Copy result</button>
           <button type="button" class="gbtn hidden" id="end-share">Share</button>
-          <a href="#" rel="noopener noreferrer" target="_blank" class="gbtn" id="end-x">Share on X</a>
-          <button type="button" class="gbtn" id="end-card">Download card (PNG)</button>
-        </div>
-        <div class="mt-4 flex flex-wrap items-center gap-2.5">
-          <span class="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Keep playing:</span>
-          <button type="button" class="gbtn" id="end-practice">Practice fits</button>
+          <a href="#" rel="noopener noreferrer" target="_blank" class="gbtn" id="end-x">Post on X</a>
+          <button type="button" class="gbtn" id="end-card">PNG card</button>
+          <button type="button" class="gbtn" id="end-practice">Practice</button>
           <button type="button" class="gbtn" id="end-gb">Guess the GB</button>
         </div>
         <p class="mt-5 text-sm text-muted-foreground">
-          Next set in <span class="num" id="end-count">--:--:--</span>. Meanwhile:
-          <a href="/can-i-run" class="text-[var(--brand-ink)] hover:underline">check your own machine &rarr;</a>
+          Next set in <span class="num" id="end-count">--:--:--</span> &middot;
+          <a href="/can-i-run" class="text-[var(--brand-ink)] hover:underline">check your machine &rarr;</a>
         </p>
       </div>
     </div>
 
     <p class="mt-6 text-xs text-muted-foreground">
-      Sizes assume the standard 4-bit download (Q4_K_M) plus running overhead, against each
-      device's realistic usable memory. Same engine as every page here; estimates, not
-      guarantees. See <a href="/methodology" class="underline">methodology</a>.
+      Standard 4-bit download (Q4_K_M) plus overhead, against realistic usable memory.
+      Estimates, not guarantees: <a href="/methodology" class="underline">methodology</a>.
     </p>
   </section>
 </Base>
@@ -549,16 +543,16 @@ const jsonLd = [faqLd(faqs)];
       };
       tickCountdown();
       window.__playCountdown = setInterval(tickCountdown, 1000);
-      $("end-streak").textContent = `Streak ${state.streak} day${state.streak === 1 ? "" : "s"} · best score ${state.best}/${rounds.length}`;
+      $("end-streak").textContent = `Streak ${state.streak} · best ${state.best}/${rounds.length}`;
       // Lifetime readout, with the weakest well-sampled dimension called out.
       const st2 = loadStats();
       if (st2.calls >= 8) {
         const pct = Math.round((st2.correct / st2.calls) * 100);
         const dims: [string, [number, number]][] = [
-          ["easy calls", st2.e],
-          ["medium calls", st2.m],
-          ["borderline fits", st2.h],
-          ["MoE models", st2.moe],
+          ["easy", st2.e],
+          ["medium", st2.m],
+          ["borderline", st2.h],
+          ["MoE", st2.moe],
         ];
         let blind = "";
         let worst = 65;
@@ -570,7 +564,7 @@ const jsonLd = [faqLd(faqs)];
             blind = ` · blind spot: ${label} ${a}%`;
           }
         }
-        $("end-stats").textContent = `Lifetime ${pct}% over ${st2.calls} calls${blind}`;
+        $("end-stats").textContent = `Lifetime ${pct}% · ${st2.calls} calls${blind}`;
       } else {
         $("end-stats").textContent = "";
       }
