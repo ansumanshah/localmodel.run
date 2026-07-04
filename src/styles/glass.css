@@ -83,6 +83,13 @@
   position: relative;
   z-index: 1;
 }
+/* The skip link must stay OUT of flow while visually hidden: the blanket rule
+   above outspecifies .sr-only's position:absolute and would re-insert it as a
+   ~16px flow box above the header, making the sticky bar travel ~14px before
+   pinning to the top. Focused, it is absolute anyway (focus:absolute). */
+.aurora > .sr-only {
+  position: absolute;
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
    PLATE SURFACES  (the .glass hooks keep their names; the material is matte)
