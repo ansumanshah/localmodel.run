@@ -69,15 +69,16 @@ const jsonLd = [faqLd(faqs)];
           <span class="gv" id="play-mem">&nbsp;</span>
         </div>
 
-        <div class="mt-7 flex flex-wrap gap-3" id="play-fit">
-          <button type="button" class="verdict-stamp play-choice" id="play-yes" style="color:var(--verdict-yes-fg)">
+        {/* Equal-width pair: the two calls carry equal weight, so they get equal ink */}
+        <div class="mt-7 grid max-w-md grid-cols-2 gap-3" id="play-fit">
+          <button type="button" class="verdict-stamp play-choice justify-center" id="play-yes" style="color:var(--verdict-yes-fg)">
             Runs
           </button>
-          <button type="button" class="verdict-stamp play-choice" id="play-no" style="color:var(--verdict-no-fg)">
+          <button type="button" class="verdict-stamp play-choice justify-center" id="play-no" style="color:var(--verdict-no-fg)">
             Doesn't run
           </button>
         </div>
-        <div class="mt-7 hidden flex-wrap gap-2.5" id="play-gb"></div>
+        <div class="mt-7 hidden max-w-md grid-cols-2 gap-2.5 sm:grid-cols-4" id="play-gb"></div>
         <p class="mt-3 hidden font-mono text-[11px] uppercase tracking-wider text-muted-foreground sm:block" id="play-hint">Y / N</p>
       </div>
 
@@ -449,7 +450,7 @@ const jsonLd = [faqLd(faqs)];
       // Fit call vs GB guess: swap the answer row.
       $("play-fit").classList.toggle("hidden", mode === "gb");
       $("play-gb").classList.toggle("hidden", mode !== "gb");
-      $("play-gb").classList.toggle("flex", mode === "gb");
+      $("play-gb").classList.toggle("grid", mode === "gb");
       $("play-hint").classList.toggle("hidden", mode === "gb");
       if (mode === "gb") {
         // One real figure, three decoys spread around it; re-nudge any decoy
