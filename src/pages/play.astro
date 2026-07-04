@@ -69,7 +69,7 @@ const jsonLd = [faqLd(faqs)];
           <span class="gv" id="play-mem">&nbsp;</span>
         </div>
 
-        <div class="mt-7 flex flex-wrap gap-3">
+        <div class="mt-7 flex flex-wrap gap-3" id="play-fit">
           <button type="button" class="verdict-stamp play-choice" id="play-yes" style="color:var(--verdict-yes-fg)">
             Runs
           </button>
@@ -77,7 +77,8 @@ const jsonLd = [faqLd(faqs)];
             Doesn't run
           </button>
         </div>
-        <p class="mt-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Keyboard: Y / N</p>
+        <div class="mt-7 hidden flex-wrap gap-2.5" id="play-gb"></div>
+        <p class="mt-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground" id="play-hint">Keyboard: Y / N</p>
       </div>
 
       <!-- Reveal view -->
@@ -99,11 +100,17 @@ const jsonLd = [faqLd(faqs)];
         <p class="mt-1 text-sm text-muted-foreground" id="end-grade"></p>
         <div class="mt-4 flex gap-1.5" id="end-grid" aria-hidden="true"></div>
         <p class="mt-3 font-mono text-xs uppercase tracking-wider text-muted-foreground" id="end-streak"></p>
+        <p class="mt-1.5 font-mono text-xs uppercase tracking-wider text-muted-foreground" id="end-stats"></p>
         <div class="mt-5 flex flex-wrap gap-2.5">
           <button type="button" class="gbtn gbtn--primary" id="end-copy">Copy result</button>
           <button type="button" class="gbtn hidden" id="end-share">Share</button>
           <a href="#" rel="noopener noreferrer" target="_blank" class="gbtn" id="end-x">Share on X</a>
-          <button type="button" class="gbtn" id="end-practice">Practice mode</button>
+          <button type="button" class="gbtn" id="end-card">Download card (PNG)</button>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-2.5">
+          <span class="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Keep playing:</span>
+          <button type="button" class="gbtn" id="end-practice">Practice fits</button>
+          <button type="button" class="gbtn" id="end-gb">Guess the GB</button>
         </div>
         <p class="mt-5 text-sm text-muted-foreground">
           Next set in <span class="num" id="end-count">--:--:--</span>. Meanwhile:
@@ -135,6 +142,7 @@ const jsonLd = [faqLd(faqs)];
     url: string;
     t: "e" | "m" | "h";
     n?: string;
+    moe?: 1;
   }
   interface SavedState {
     lastDone: number;
@@ -143,8 +151,20 @@ const jsonLd = [faqLd(faqs)];
     streak: number;
     best: number;
   }
+  // Lifetime fit-call stats ([correct, total] per dimension). GB-guess rounds
+  // are a different skill and stay out of these numbers.
+  interface Stats {
+    calls: number;
+    correct: number;
+    e: [number, number];
+    m: [number, number];
+    h: [number, number];
+    moe: [number, number];
+    games: number;
+  }
 
   const STORE = "lmr-play-v1";
+  const STATS = "lmr-play-stats-v1";
   // Puzzle #1 = 2026-07-04 UTC (launch day of the quiz).
   const START_DAY = Math.floor(Date.UTC(2026, 6, 4) / 864e5);
 
@@ -208,6 +228,45 @@ const jsonLd = [faqLd(faqs)];
     return seededShuffle(picked, rand);
   }
 
+  function loadStats(): Stats {
+    try {
+      const s = JSON.parse(localStorage.getItem(STATS) || "") as Stats;
+      if (typeof s.calls === "number" && Array.isArray(s.e) && Array.isArray(s.moe)) return s;
+    } catch {
+      /* fresh or corrupt: start over */
+    }
+    return { calls: 0, correct: 0, e: [0, 0], m: [0, 0], h: [0, 0], moe: [0, 0], games: 0 };
+  }
+  function saveStats(s: Stats): void {
+    try {
+      localStorage.setItem(STATS, JSON.stringify(s));
+    } catch {
+      /* private mode */
+    }
+  }
+  function recordCall(r: Round, correct: boolean): void {
+    const s = loadStats();
+    s.calls++;
+    if (correct) s.correct++;
+    const tier = s[r.t];
+    tier[1]++;
+    if (correct) tier[0]++;
+    if (r.moe) {
+      s.moe[1]++;
+      if (correct) s.moe[0]++;
+    }
+    saveStats(s);
+  }
+
+  const gradeOf = (score: number) =>
+    score === 8
+      ? "Perfectly calibrated."
+      : score >= 6
+        ? "Well calibrated."
+        : score >= 4
+          ? "Drifting. Recalibrate tomorrow."
+          : "Out of calibration.";
+
   function loadState(): SavedState | null {
     try {
       const raw = localStorage.getItem(STORE);
@@ -250,9 +309,10 @@ const jsonLd = [faqLd(faqs)];
     let marks = "";
     let answered = false;
 
-    // Practice mode: endless random rounds after the daily is done. No streak,
-    // no storage, no grid; just reps against the same honest pool.
-    let practice = false;
+    // Practice modes: endless random rounds after the daily is done. No streak,
+    // no daily storage, no grid; "fit" replays the yes/no call, "gb" asks for
+    // the actual memory figure from four options.
+    let mode: "daily" | "fit" | "gb" = "daily";
     let pQueue: Round[] = [];
     let pScore = 0;
     let pTotal = 0;
@@ -261,6 +321,100 @@ const jsonLd = [faqLd(faqs)];
       return pQueue.pop() as Round;
     };
     let current: Round;
+    let gbAnswer = "";
+    let lastState: SavedState | null = null;
+    const fmtGb = (v: number) => (v >= 10 ? String(Math.round(v)) : String(Math.round(v * 10) / 10));
+
+    // Shareable score card: the day's result on the instrument plate, drawn
+    // from the saved state (real numbers only), downloaded as a PNG.
+    const drawQuizCard = async (state: SavedState) => {
+      await document.fonts?.ready;
+      const DISPLAY = '"Fjalla One", "Avenir Next Condensed", "Arial Narrow", sans-serif';
+      const MONO = '"JetBrains Mono Variable", ui-monospace, Menlo, monospace';
+      const W = 1200;
+      const H = 630;
+      const scale = 2;
+      const c = document.createElement("canvas");
+      c.width = W * scale;
+      c.height = H * scale;
+      const x = c.getContext("2d");
+      if (!x) return;
+      x.scale(scale, scale);
+      const rr = (rx: number, ry: number, rw: number, rh: number, rad: number) => {
+        x.beginPath();
+        x.moveTo(rx + rad, ry);
+        x.arcTo(rx + rw, ry, rx + rw, ry + rh, rad);
+        x.arcTo(rx + rw, ry + rh, rx, ry + rh, rad);
+        x.arcTo(rx, ry + rh, rx, ry, rad);
+        x.arcTo(rx, ry, rx + rw, ry, rad);
+        x.closePath();
+      };
+      const g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#1c1f24");
+      g.addColorStop(1, "#15171a");
+      rr(0, 0, W, H, 16);
+      x.fillStyle = g;
+      x.fill();
+      const sh = x.createLinearGradient(0, 0, 0, H * 0.3);
+      sh.addColorStop(0, "rgba(237,239,242,0.06)");
+      sh.addColorStop(1, "rgba(237,239,242,0)");
+      rr(0, 0, W, H, 16);
+      x.fillStyle = sh;
+      x.fill();
+      const pad = 72;
+      x.textBaseline = "alphabetic";
+      x.fillStyle = "rgba(255,255,255,0.72)";
+      x.font = "600 24px " + MONO;
+      x.fillText(`CAN IT RUN? · PUZZLE #${num}`, pad, pad + 10);
+      const brand = "localmodel.run";
+      x.fillText(brand, W - pad - x.measureText(brand).width, pad + 10);
+      // The score, big.
+      x.fillStyle = "#fff";
+      x.font = "400 170px " + DISPLAY;
+      const scoreStr = String(state.score);
+      x.fillText(scoreStr, pad, pad + 240);
+      const sw = x.measureText(scoreStr).width;
+      x.fillStyle = "rgba(255,255,255,0.55)";
+      x.font = "400 72px " + DISPLAY;
+      x.fillText(`/${state.grid.length}`, pad + sw + 14, pad + 240);
+      x.fillStyle = "rgba(255,255,255,0.8)";
+      x.font = "600 34px system-ui, sans-serif";
+      x.fillText(gradeOf(state.score), pad, pad + 310);
+      // The board.
+      const cell = 46;
+      const gap = 12;
+      state.grid.split("").forEach((ch, i) => {
+        x.fillStyle = ch === "1" ? "#8fbf88" : "#e08579";
+        rr(pad + i * (cell + gap), pad + 356, cell, cell, 4);
+        x.fill();
+      });
+      x.fillStyle = "rgba(255,255,255,0.7)";
+      x.font = "500 26px " + MONO;
+      x.fillText(
+        `STREAK ${state.streak} DAY${state.streak === 1 ? "" : "S"} · BEST ${state.best}/${state.grid.length}`,
+        pad,
+        pad + 356 + cell + 48,
+      );
+      x.strokeStyle = "rgba(255,255,255,0.2)";
+      x.lineWidth = 2;
+      x.beginPath();
+      x.moveTo(pad, H - 96);
+      x.lineTo(W - pad, H - 96);
+      x.stroke();
+      x.fillStyle = "rgba(255,255,255,0.7)";
+      x.font = "500 24px " + MONO;
+      x.fillText("localmodel.run/play · a new set every day", pad, H - 52);
+      c.toBlob((blob) => {
+        if (!blob) return;
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `can-it-run-${num}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }, "image/png");
+    };
 
     // Progress ticks: one square per round, inked green/red as you answer.
     const ticksEl = $("play-ticks");
@@ -284,16 +438,42 @@ const jsonLd = [faqLd(faqs)];
     };
 
     const renderRound = () => {
+      const practice = mode !== "daily";
       current = practice ? nextPracticeRound() : rounds[idx];
-      $("play-progress").textContent = practice
-        ? `Practice · round ${pTotal + 1}`
-        : `Round ${idx + 1} / ${rounds.length}`;
+      $("play-progress").textContent =
+        mode === "daily"
+          ? `Round ${idx + 1} / ${rounds.length}`
+          : `${mode === "gb" ? "Guess the GB" : "Practice"} · round ${pTotal + 1}`;
       $("play-score").textContent = practice ? `Correct ${pScore} / ${pTotal}` : `Score ${score}`;
       ticksEl.classList.toggle("hidden", practice);
       $("play-model").textContent = current.m;
       $("play-params").textContent = `${current.p} params`;
       $("play-device").textContent = current.d;
       $("play-mem").textContent = `${current.mem} GB memory`;
+      // Fit call vs GB guess: swap the answer row.
+      $("play-fit").classList.toggle("hidden", mode === "gb");
+      $("play-gb").classList.toggle("hidden", mode !== "gb");
+      $("play-gb").classList.toggle("flex", mode === "gb");
+      $("play-hint").classList.toggle("hidden", mode === "gb");
+      if (mode === "gb") {
+        // One real figure, three decoys spread around it; re-nudge any decoy
+        // that rounds into a collision so all four read distinct.
+        gbAnswer = fmtGb(current.g);
+        const opts = new Set<string>([gbAnswer]);
+        for (const f of [0.55, 1.7, 2.9]) {
+          let v = current.g * f;
+          let s = fmtGb(v);
+          while (opts.has(s)) {
+            v *= 1.21;
+            s = fmtGb(v);
+          }
+          opts.add(s);
+        }
+        $("play-gb").innerHTML = [...opts]
+          .sort(() => Math.random() - 0.5)
+          .map((o) => `<button type="button" class="gbtn" data-gb="${o}">~${o} GB</button>`)
+          .join("");
+      }
       answered = false;
       show("q");
       $("play-model").focus({ preventScroll: true });
@@ -320,20 +500,17 @@ const jsonLd = [faqLd(faqs)];
         } catch {
           // private mode: play still works, streak just won't persist
         }
+        const st = loadStats();
+        st.games++;
+        saveStats(st);
       }
+      lastState = state;
       const emoji = state.grid
         .split("")
         .map((c) => (c === "1" ? "\u{1F7E9}" : "\u{1F7E5}"))
         .join("");
       $("end-score").textContent = String(state.score);
-      $("end-grade").textContent =
-        state.score === 8
-          ? "Perfectly calibrated."
-          : state.score >= 6
-            ? "Well calibrated."
-            : state.score >= 4
-              ? "Drifting. Recalibrate tomorrow."
-              : "Out of calibration.";
+      $("end-grade").textContent = gradeOf(state.score);
       // The result board: the day's calls as inked cells, pressed in one by one.
       // Emoji lives only in the share text.
       $("end-grid").innerHTML = state.grid
@@ -373,6 +550,30 @@ const jsonLd = [faqLd(faqs)];
       tickCountdown();
       window.__playCountdown = setInterval(tickCountdown, 1000);
       $("end-streak").textContent = `Streak ${state.streak} day${state.streak === 1 ? "" : "s"} · best score ${state.best}/${rounds.length}`;
+      // Lifetime readout, with the weakest well-sampled dimension called out.
+      const st2 = loadStats();
+      if (st2.calls >= 8) {
+        const pct = Math.round((st2.correct / st2.calls) * 100);
+        const dims: [string, [number, number]][] = [
+          ["easy calls", st2.e],
+          ["medium calls", st2.m],
+          ["borderline fits", st2.h],
+          ["MoE models", st2.moe],
+        ];
+        let blind = "";
+        let worst = 65;
+        for (const [label, [c, t]] of dims) {
+          if (t < 6) continue;
+          const a = Math.round((c / t) * 100);
+          if (a < worst) {
+            worst = a;
+            blind = ` · blind spot: ${label} ${a}%`;
+          }
+        }
+        $("end-stats").textContent = `Lifetime ${pct}% over ${st2.calls} calls${blind}`;
+      } else {
+        $("end-stats").textContent = "";
+      }
       const shareText = `Can it run? #${num} · ${state.score}/${rounds.length}\n${emoji}\nlocalmodel.run/play`;
       $("end-copy").setAttribute("data-copy", shareText);
       ($("end-x") as HTMLAnchorElement).href =
@@ -397,20 +598,22 @@ const jsonLd = [faqLd(faqs)];
       $("end-score-line").focus({ preventScroll: true });
     };
 
-    const reveal = (guessRuns: boolean) => {
+    const reveal = (guess: { runs?: boolean; gb?: string }) => {
       if (answered) return;
       answered = true;
       const r = current;
-      const correct = guessRuns === (r.r === 1);
-      if (practice) {
-        pTotal++;
-        if (correct) pScore++;
-      } else {
+      const correct = mode === "gb" ? guess.gb === gbAnswer : guess.runs === (r.r === 1);
+      if (mode === "daily") {
         if (correct) score++;
         marks += correct ? "1" : "0";
         const tick = ticksEl.children[idx] as HTMLElement | undefined;
         if (tick) tick.className = correct ? "ok" : "miss";
+      } else {
+        pTotal++;
+        if (correct) pScore++;
       }
+      // Lifetime fit-call stats (GB guesses are a different skill, not counted).
+      if (mode !== "gb") recordCall(r, correct);
       // Haptics: a double tap for a right call, one firm buzz for a miss
       // (Android only; iOS gets the visual stamp press instead).
       window.lmrBuzz?.(correct ? [14, 45, 22] : 65);
@@ -430,15 +633,20 @@ const jsonLd = [faqLd(faqs)];
       $("reveal-usable").textContent = `~${r.u} GB`;
       $("reveal-note").textContent = r.n ?? "";
       ($("reveal-link") as HTMLAnchorElement).href = r.url;
-      $("play-score").textContent = practice ? `Correct ${pScore} / ${pTotal}` : `Score ${score}`;
+      $("play-score").textContent =
+        mode === "daily" ? `Score ${score}` : `Correct ${pScore} / ${pTotal}`;
       show("reveal");
       $("play-next").focus({ preventScroll: true });
     };
 
-    $("play-yes").addEventListener("click", () => reveal(true));
-    $("play-no").addEventListener("click", () => reveal(false));
+    $("play-yes").addEventListener("click", () => reveal({ runs: true }));
+    $("play-no").addEventListener("click", () => reveal({ runs: false }));
+    $("play-gb").addEventListener("click", (e) => {
+      const b = (e.target as Element).closest<HTMLElement>("[data-gb]");
+      if (b) reveal({ gb: b.dataset.gb });
+    });
     $("play-next").addEventListener("click", () => {
-      if (practice) {
+      if (mode !== "daily") {
         renderRound();
         return;
       }
@@ -446,9 +654,16 @@ const jsonLd = [faqLd(faqs)];
       if (idx < rounds.length) renderRound();
       else finish();
     });
-    $("end-practice").addEventListener("click", () => {
-      practice = true;
+    const startPractice = (m: "fit" | "gb") => {
+      mode = m;
+      pScore = 0;
+      pTotal = 0;
       renderRound();
+    };
+    $("end-practice").addEventListener("click", () => startPractice("fit"));
+    $("end-gb").addEventListener("click", () => startPractice("gb"));
+    $("end-card").addEventListener("click", () => {
+      if (lastState) drawQuizCard(lastState);
     });
     const saved = loadState();
     if (saved && saved.lastDone === day) finish(saved);
@@ -471,6 +686,8 @@ const jsonLd = [faqLd(faqs)];
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const q = document.getElementById("play-q");
       if (!q || q.classList.contains("hidden")) return;
+      // Y/N only answer the fit call, never the hidden buttons in GB mode.
+      if (document.getElementById("play-fit")?.classList.contains("hidden")) return;
       const k = e.key.toLowerCase();
       if (k === "y") document.getElementById("play-yes")?.click();
       if (k === "n") document.getElementById("play-no")?.click();

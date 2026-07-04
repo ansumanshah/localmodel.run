@@ -30,6 +30,8 @@ export interface GameRound {
   t: "e" | "m" | "h";
   /** reveal note (MoE gotcha, tight fit, near miss) */
   n?: string;
+  /** 1 = mixture of experts (drives the lifetime-stats blind-spot readout) */
+  moe?: 1;
 }
 
 const sizeLabel = (p: number, moe: boolean) =>
@@ -144,6 +146,7 @@ export function buildGamePool(): GameRound[] {
         url: `/can-i-run/${model.id}/${device.id}`,
         t,
         n,
+        moe: model.is_moe ? 1 : undefined,
         _h: hash(`${model.id}|${device.id}`),
         _f: fame,
         _mid: model.id,
