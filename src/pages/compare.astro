@@ -1,0 +1,130 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { models, devices, modelsBySize, devicesByMemory } from "@/lib/data";
+import { gaugeCompute } from "@/lib/gauge";
+import { breadcrumbLd, truncate, type FaqItem, faqLd } from "@/lib/seo";
+
+// A representative, scannable spread (the full 95×39 grid lives across the
+// per-pair pages). Rows: ~10 text models evenly across the size range. Columns:
+// ~8 devices evenly across the memory range — both derived, no hardcoded ids.
+function spread<T>(arr: T[], n: number): T[] {
+  if (arr.length <= n) return arr;
+  const step = (arr.length - 1) / (n - 1);
+  return Array.from({ length: n }, (_, i) => arr[Math.round(i * step)]);
+}
+const modelRows = spread(modelsBySize, 10);
+const deviceCols = spread(devicesByMemory, 8);
+
+const VSYM = { yes: "Y", tight: "≈", no: "N" } as const;
+const VCLS = { yes: "y", tight: "t", no: "n" } as const;
+const matrix = modelRows.map((m) => ({
+  model: m,
+  cells: deviceCols.map((d) => {
+    const r = gaugeCompute(m, d);
+    return { device: d, verdict: r.verdict };
+  }),
+}));
+
+const path = "/compare";
+const title = "Local LLM hardware comparison matrix · localmodel.run";
+const description = truncate(
+  `A side-by-side matrix of which local LLMs run on which hardware: ${modelRows.length} representative models across ${deviceCols.length} devices from 8 GB laptops to 64 GB Macs and 24 GB GPUs. Yes, tight, or no for each pairing, computed from validated memory math.`,
+);
+const faqs: FaqItem[] = [
+  {
+    q: "How do I compare local AI models across different hardware?",
+    a: `Match each model's memory need at Q4_K_M to the device's usable memory. This matrix does it for ${modelRows.length} representative models across ${deviceCols.length} devices; Y means it runs comfortably, ≈ means a tight fit, N means not enough memory. For any exact pairing across all ${models.length} models and ${devices.length} devices, open its can-i-run page.`,
+  },
+];
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Compare", url: path }], Astro.site!.href),
+  faqLd(faqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-5xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Compare", url: path }]} />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Hardware matrix</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Compare models <span class="accent">across hardware</span>
+    </h1>
+    <p class="mt-3 max-w-2xl text-muted-foreground">
+      Which local models run on which machines. <strong class="text-foreground">Y</strong> runs comfortably,
+      <strong class="text-foreground">≈</strong> is a tight fit, <strong class="text-foreground">N</strong> needs more memory.
+      Computed from the same validated memory math as every can-i-run page.
+    </p>
+
+    <div class="panel mt-6 overflow-x-auto">
+      <div class="panel-head">
+        <span class="panel-label">{modelRows.length} models × {deviceCols.length} devices</span>
+        <span class="panel-label">Q4_K_M</span>
+      </div>
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="row" scope="col">Model</th>
+            {deviceCols.map((d) => (
+              <th scope="col">
+                <span class="block">{d.name.replace(/\s*\(.*\)/, "")}</span>
+                <span class="block text-muted-foreground">{d.memory_gb} GB</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {matrix.map((mrow) => (
+            <tr>
+              <th class="row" scope="row">
+                <a href={`/model/${mrow.model.id}`} class="inline-flex items-center gap-2 hover:text-[var(--brand-ink)]">
+                  <EntityIcon maker={mrow.model.family} size={16} class="text-muted-foreground" />
+                  <span>{mrow.model.name}</span>
+                </a>
+              </th>
+              {mrow.cells.map((c) => (
+                <td>
+                  <a
+                    href={`/can-i-run/${mrow.model.id}/${c.device.id}`}
+                    class={`cell ${VCLS[c.verdict]}`}
+                    aria-label={`${mrow.model.name} on ${c.device.name}: ${c.verdict}`}
+                  >
+                    {VSYM[c.verdict]}
+                  </a>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-5 text-sm text-muted-foreground">
+      This is a representative slice. For any exact pairing across all {models.length} models and {devices.length} devices,
+      open its <a href="/can-i-run" class="text-[var(--brand-ink)] underline underline-offset-2">can-i-run page</a> or
+      <a href="/" class="text-[var(--brand-ink)] underline underline-offset-2">use the detector</a>.
+    </p>
+
+    <section class="mt-10">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <!-- Expose the LmGauge adapter for live recompute (the one interactive-capable
+       surface; SSG pages stay lean and use build-time gaugeCompute instead). -->
+  <script>
+    import { buildGauge } from "@/lib/gauge";
+    import { models, devices } from "@/lib/data";
+    (window as unknown as { LmGauge: unknown }).LmGauge = buildGauge(models, devices);
+  </script>
+</Base>

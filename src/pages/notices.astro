@@ -1,0 +1,123 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { breadcrumbLd } from "@/lib/seo";
+
+const path = "/notices";
+const title = "Third-party notices · localmodel.run";
+const description =
+  "Open-source licenses and attributions for the fonts, icons, libraries and data localmodel.run is built on.";
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Notices", url: path },
+    ],
+    Astro.site!.href,
+  ),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Notices", url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-2">
+      <span class="dot" aria-hidden="true"></span>
+      Open-source attributions
+    </p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Third-party notices</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      localmodel.run is MIT-licensed. It builds on the following third-party works, each under its
+      own license. The same notices ship in the repository as <code class="code">THIRD-PARTY-NOTICES.md</code>.
+    </p>
+
+    <div class="wire mt-6" aria-hidden="true"></div>
+
+    <section class="mt-8">
+      <p class="stat-label mb-3">Fonts</p>
+      <div class="panel p-5">
+        <p class="text-sm text-muted-foreground">
+          <strong class="text-foreground">Fjalla One</strong> (Copyright Sorkin Type Co,
+          <a href="https://github.com/SorkinType/Fjalla" rel="noopener nofollow" class="underline hover:text-foreground">github.com/SorkinType/Fjalla</a>),
+          <strong class="text-foreground">Public Sans</strong> (Copyright U.S. General Services Administration,
+          <a href="https://github.com/uswds/public-sans" rel="noopener nofollow" class="underline hover:text-foreground">github.com/uswds/public-sans</a>)
+          and <strong class="text-foreground">JetBrains Mono</strong> (Copyright JetBrains s.r.o.,
+          <a href="https://github.com/JetBrains/JetBrainsMono" rel="noopener nofollow" class="underline hover:text-foreground">github.com/JetBrains/JetBrainsMono</a>):
+          all SIL Open Font License 1.1. Bundled via <code class="code">@fontsource/fjalla-one</code>,
+          <code class="code">@fontsource/public-sans</code> and
+          <code class="code">@fontsource-variable/jetbrains-mono</code>; each package ships the full OFL text.
+        </p>
+      </div>
+    </section>
+
+    <section class="mt-6">
+      <p class="stat-label mb-3">Icons</p>
+      <div class="panel p-5">
+        <p class="text-sm text-muted-foreground">
+          <strong class="text-foreground">Simple Icons</strong> (via <code class="code">@iconify-json/simple-icons</code>):
+          icon SVG data is CC0-1.0 (public domain). The brand logos themselves (Meta, Google, NVIDIA,
+          Apple, and others) are trademarks of their respective owners and are used here only to
+          identify the model maker, device vendor or operating system. No affiliation or endorsement
+          is implied.
+        </p>
+        <p class="mt-3 text-sm text-muted-foreground">
+          <strong class="text-foreground">Lucide</strong> (via <code class="code">@iconify-json/lucide</code>):
+          ISC License. Copyright the Lucide contributors
+          (<a href="https://github.com/lucide-icons/lucide" rel="noopener nofollow" class="underline hover:text-foreground">github.com/lucide-icons/lucide</a>).
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-lg border border-border bg-[var(--muted)] p-4 text-xs leading-relaxed text-muted-foreground"><code>Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</code></pre>
+      </div>
+    </section>
+
+    <section class="mt-6">
+      <p class="stat-label mb-3">Build-time libraries</p>
+      <div class="panel p-5">
+        <p class="text-sm text-muted-foreground">
+          <strong class="text-foreground">satori</strong> and <strong class="text-foreground">@resvg/resvg-js</strong>:
+          Mozilla Public License 2.0. Used unmodified at build time to render the social/OG card images.
+        </p>
+        <p class="mt-3 text-sm text-muted-foreground">
+          <strong class="text-foreground">lightningcss</strong> (via Tailwind CSS): Mozilla Public
+          License 2.0. Used unmodified at build time.
+        </p>
+        <p class="mt-3 text-sm text-muted-foreground">
+          <strong class="text-foreground">Astro</strong>, <strong class="text-foreground">@astrojs/*</strong>,
+          <strong class="text-foreground">React</strong>, <strong class="text-foreground">Tailwind CSS</strong>,
+          <strong class="text-foreground">astro-icon</strong> and the remaining dependencies: MIT (or
+          compatible permissive licenses); see each package in <code class="code">node_modules</code> for its exact terms.
+        </p>
+      </div>
+    </section>
+
+    <section class="mt-6">
+      <p class="stat-label mb-3">Data</p>
+      <div class="panel p-5">
+        <p class="text-sm text-muted-foreground">
+          The model and device dataset under <code class="code">src/data/</code> is compiled from
+          the primary sources cited in each row's <code class="code">sources[]</code> array
+          (Ollama, HuggingFace model cards and GGUF repos, and vendor model cards / spec pages).
+          Factual measurements are not copyrightable; the compiled dataset is offered under CC BY 4.0
+          with attribution to localmodel.run. Figures are estimates; see
+          <a href="/methodology" class="underline hover:text-foreground">/methodology</a>.
+        </p>
+      </div>
+    </section>
+  </div>
+</Base>

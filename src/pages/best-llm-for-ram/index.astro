@@ -1,0 +1,88 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { modelsBySize, meta } from "@/lib/data";
+import { canRun } from "@/lib/compute";
+import { BUDGETS, interpretationsFor, TYPE_SHORT } from "@/lib/budgets";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const tiers = BUDGETS.map((gb) => {
+  const interps = interpretationsFor(gb);
+  const most = interps.reduce((a, b) => (b.usable > a.usable ? b : a), interps[0]);
+  const fits = modelsBySize.filter((m) => interps.some((i) => canRun(m, i.device).verdict !== "no"));
+  let ceiling = null as null | (typeof modelsBySize)[number];
+  for (const m of modelsBySize) if (canRun(m, most.device).verdict === "yes") ceiling = m;
+  return { gb, interps, fits: fits.length, ceiling };
+});
+
+const path = "/best-llm-for-ram";
+const title = "Best local LLM by memory: 8, 16, 24, 32 GB · localmodel.run";
+const description = truncate(
+  `Pick your memory budget. The same 16GB gives ~10.5GB on a Mac, ~15GB on a GPU and ~12GB on a laptop, so the model that fits changes. Ranked LLMs per memory tier.`,
+);
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "By memory", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  itemListLd({
+    name: "Local LLMs by memory budget",
+    items: BUDGETS.map((gb) => ({ name: `${gb}GB`, url: `/best-llm-for-ram/${gb}gb` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <section class="hub-intro relative overflow-hidden border-b border-border/60">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "By memory", url: path }]} />
+
+      <p class="eyebrow mt-5 sm:mt-6">
+        <span class="dot" aria-hidden="true"></span>
+        Memory index &middot; {BUDGETS.length} budgets
+      </p>
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+        Best local LLM by <span class="accent">memory</span>
+      </h1>
+      <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
+        Start from how much memory you have. The catch: the same number means different things on a
+        Mac, a GPU and a CPU laptop, so each budget below is anchored to real, sourced devices.
+        Validated {meta.updated}.
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-5xl px-4 py-10">
+    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {tiers.map((t) => (
+        <li>
+          <a
+            href={`/best-llm-for-ram/${t.gb}gb`}
+            class="panel card-seam group block px-4 py-4 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-2xl font-bold tracking-tight">{t.gb}GB</span>
+              <span class="text-[var(--brand-ink)] opacity-60 group-hover:opacity-100 transition-opacity" aria-hidden="true">→</span>
+            </div>
+            <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              {t.interps.map((i) => (
+                <span class="stat-label">{TYPE_SHORT[i.type]} ~{i.usable} GB</span>
+              ))}
+            </div>
+            <p class="mt-2 text-sm text-muted-foreground">
+              {t.fits} models fit{t.ceiling ? <>, up to <strong class="text-foreground">{t.ceiling.params_b}B</strong> comfortably</> : null}.
+            </p>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="mt-6 text-sm text-muted-foreground">
+      Know your exact hardware instead? <a href="/best-llm-for" class="text-[var(--brand-ink)] hover:underline">Browse by device →</a>
+    </p>
+  </div>
+</Base>

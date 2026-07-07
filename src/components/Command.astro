@@ -1,0 +1,23 @@
+---
+interface Props {
+  code: string;
+  label?: string;
+}
+const { code, label } = Astro.props;
+---
+
+<div class="group relative">
+  {label && <div class="mb-1.5 text-xs font-medium text-muted-foreground">{label}</div>}
+  <div class="relative flex items-start gap-3 rounded-[4px] border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] px-4 py-3 font-mono text-sm shadow-[inset_0_1px_0_0_var(--lite-specular)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-[1px] before:bg-[var(--color-brand)] before:content-['']">
+    <span class="select-none text-[var(--brand-ink)]">$</span>
+    <code class="min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-words" data-copy-text={code}>{code}</code>
+    <button
+      type="button"
+      class="copy-btn shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground opacity-0 transition hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      data-copy={code}
+      aria-label="Copy command"
+    >
+      Copy
+    </button>
+  </div>
+</div>

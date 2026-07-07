@@ -1,0 +1,102 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Command from "@/components/Command.astro";
+import { allModels, devices, meta } from "@/lib/data";
+import { breadcrumbLd, techArticleLd, truncate } from "@/lib/seo";
+
+const path = "/developers";
+const title = "Developers & AI agents: free API and data · localmodel.run";
+const description = truncate(
+  "A free, no-auth JSON API and agent-ready endpoints for local AI model hardware compatibility (text, image, video, audio). Query whether any device can run any model, plus llms.txt, markdown, and an agent card.",
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Developers", url: path }], Astro.site!.href),
+  techArticleLd({ headline: "Free JSON API for local AI model hardware compatibility", description, url: path, origin: Astro.site!.href, dateModified: meta.updated }),
+];
+
+const endpoints = [
+  { m: "GET", url: "/api/index.json", d: "API catalog and discovery links" },
+  { m: "GET", url: "/api/models.json", d: `All ${allModels.length} models with quant sizes` },
+  { m: "GET", url: "/api/devices.json", d: `All ${devices.length} devices with usable memory` },
+  { m: "GET", url: "/api/can-i-run/{model}/{device}.json", d: "Verdict, quant, memory, command for a pair" },
+];
+const agentFiles = [
+  { url: "/llms.txt", d: "Concise site map for LLMs" },
+  { url: "/llms-full.txt", d: "Full dataset as plain text" },
+  { url: "/.well-known/agent.json", d: "Agent card (capabilities + discovery)" },
+  { url: "/sitemap-index.xml", d: "Sitemap" },
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Developers", url: path }]} />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>API &middot; Agent files &middot; Data</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Developers &amp; AI agents</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      No key, no auth, CORS wide open. Fetch it from a script, hit it from an agent, or just curl it. Data validated {meta.updated}.
+    </p>
+
+    <div class="wire mt-6" aria-hidden="true"></div>
+
+    <section class="mt-6">
+      <p class="stat-label mb-3">JSON API</p>
+      <div class="panel overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Endpoints</span>
+          <span class="panel-sub">No auth &middot; CORS open</span>
+        </div>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-border">
+            {endpoints.map((e) => (
+              <tr>
+                <td class="px-4 py-2.5 font-mono text-xs text-[var(--brand-ink)]">{e.m}</td>
+                <td class="px-4 py-2.5 font-mono text-xs">{e.url}</td>
+                <td class="px-4 py-2.5 text-muted-foreground">{e.d}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3">
+        <Command code="curl https://localmodel.run/api/can-i-run/llama-3.1-8b/apple-m4-16gb.json" label="Example" />
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <p class="stat-label mb-3">Agent-ready endpoints</p>
+      <div class="panel overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Discovery files</span>
+          <span class="panel-sub">GPTBot &middot; ClaudeBot &middot; PerplexityBot allowed</span>
+        </div>
+        <div class="p-4">
+          <p class="text-sm text-muted-foreground">
+            Every model, device, and compatibility page also serves clean Markdown at its URL plus <span class="code">.md</span>, and exposes these discovery files:
+          </p>
+          <ul class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {agentFiles.map((a) => (
+              <li>
+                <a href={a.url} class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                  <span class="font-mono text-xs text-[var(--brand-ink)]">{a.url}</span>
+                  <span class="text-xs text-muted-foreground">{a.d}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-4 text-sm text-muted-foreground">
+            Example markdown: <a href="/model/llama-3.1-8b.md" class="code hover:underline">/model/llama-3.1-8b.md</a>. AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended) are explicitly allowed in <a href="/robots.txt" class="underline">robots.txt</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="wire mt-8" aria-hidden="true"></div>
+
+    <p class="mt-6 text-sm text-muted-foreground">
+      Data is free to use under CC BY 4.0 with attribution to localmodel.run. Figures are estimates; see <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

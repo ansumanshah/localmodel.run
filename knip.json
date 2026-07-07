@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreExportsUsedInFile": true,
+  "ignore": ["src/scripts/interactions.ts"],
+  "ignoreDependencies": ["@iconify-json/lucide", "@iconify-json/simple-icons"]
+}

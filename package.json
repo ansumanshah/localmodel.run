@@ -1,0 +1,56 @@
+{
+  "name": "localmodel-run",
+  "type": "module",
+  "version": "0.1.4",
+  "description": "Can I run this AI model locally? Per-platform compatibility checker for local AI models (text, image, video, audio) on Mac, Windows, Linux, iOS and Android.",
+  "license": "MIT",
+  "author": "Ansuman Shah (https://github.com/ansumanshah)",
+  "homepage": "https://localmodel.run",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ansumanshah/localmodel.run.git"
+  },
+  "keywords": ["local-llm", "local-ai", "vram-calculator", "ollama", "gguf", "astro"],
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "test": "bun test",
+    "update-data": "node scripts/update-data.mjs",
+    "validate-data": "node scripts/validate-data.mjs",
+    "audit:links": "bun scripts/audit-links.ts",
+    "audit:mobile": "bun scripts/mobile-audit.mjs",
+    "check:freshness": "bun scripts/check-freshness.ts",
+    "check:public": "node scripts/pre-public-checklist.mjs",
+    "indexnow": "node scripts/indexnow.mjs",
+    "sync:hf-space": "node scripts/sync-hf-space.mjs"
+  },
+  "dependencies": {
+    "@astrojs/react": "^6.0.0",
+    "@astrojs/rss": "4.0.18",
+    "@astrojs/sitemap": "3.7.3",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource/fjalla-one": "^5.2.7",
+    "@fontsource/public-sans": "^5.2.7",
+    "@iconify-json/lucide": "^1.2.114",
+    "@iconify-json/simple-icons": "^1.2.87",
+    "@resvg/resvg-js": "^2.6.2",
+    "astro": "^7.0.3",
+    "astro-icon": "^1.1.5",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "satori": "^0.26.0",
+    "satori-html": "^0.3.2",
+    "tailwindcss": "4.3.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "playwright": "^1.61.1",
+    "typescript": "^6.0.3"
+  }
+}

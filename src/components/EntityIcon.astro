@@ -1,0 +1,48 @@
+---
+import { Icon } from "astro-icon/components";
+import type { DeviceCategory, Platform } from "@/data/types";
+import { makerForFamily, deviceIconSpec, osIconSpec, type IconSpec } from "@/lib/icons";
+
+// One icon for a maker (pass `maker={model.family}`), a device (`device={category}`)
+// or an OS (`os={platform}`). Brand marks render monochrome via currentColor, so
+// they inherit the surrounding text color, set one with `class` (e.g.
+// "text-muted-foreground"). Makers with no logo fall back to a lettered chip.
+interface Props {
+  maker?: string;
+  device?: DeviceCategory;
+  os?: Platform;
+  size?: number;
+  class?: string;
+}
+const { maker, device, os, size = 16, class: cls } = Astro.props;
+
+let spec: IconSpec;
+if (maker !== undefined) spec = makerForFamily(maker);
+else if (device !== undefined) spec = deviceIconSpec(device);
+else if (os !== undefined) spec = osIconSpec(os);
+else spec = { icon: null, label: "", initials: "?" };
+---
+
+{
+  spec.icon ? (
+    <Icon
+      name={spec.icon}
+      aria-hidden="true"
+      width={size}
+      height={size}
+      class:list={["inline-block shrink-0 align-[-0.125em]", cls]}
+    />
+  ) : (
+    <span
+      aria-label={spec.label}
+      title={spec.label}
+      class:list={[
+        "inline-grid shrink-0 place-items-center rounded-[4px] bg-muted font-medium leading-none text-muted-foreground",
+        cls,
+      ]}
+      style={`width:${size}px;height:${size}px;font-size:${Math.round(size * 0.46)}px`}
+    >
+      {spec.initials}
+    </span>
+  )
+}

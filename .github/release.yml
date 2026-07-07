@@ -1,0 +1,20 @@
+# Groups auto-generated release notes by PR label. (Applies to PR-based notes;
+# direct commits are listed under their conventional-commit prefix.)
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+      - data-bot
+  categories:
+    - title: Features
+      labels: ["feature", "feat", "enhancement"]
+    - title: Fixes
+      labels: ["fix", "bug"]
+    - title: SEO & content
+      labels: ["seo", "content", "data"]
+    - title: Design & UI
+      labels: ["design", "ui"]
+    - title: Other changes
+      labels: ["*"]

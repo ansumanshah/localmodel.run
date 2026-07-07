@@ -1,0 +1,212 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Sources from "@/components/Sources.astro";
+import { getModel, meta } from "@/lib/data";
+import { quantLadderSizes } from "@/lib/compute";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+// Definitional GEO guide. Every number comes from the same constants and sources
+// the calculator uses (llama.cpp BPW table); no new unsourced figure is introduced.
+const example = getModel("llama-3.1-8b")!;
+const ladder = quantLadderSizes(example);
+
+const path = "/guides/quantization";
+const title = "Quantization explained: Q4_K_M vs Q8_0 vs FP16 · localmodel.run";
+const description = truncate(
+  "What Q4_K_M, Q8_0 and FP16 actually mean for a local LLM, why Q4_K_M is the sane default, and how each one changes the memory a model needs. With a worked example.",
+);
+
+const SOURCES = [
+  "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
+  "https://huggingface.co/docs/hub/gguf",
+  "https://developer.apple.com/forums/thread/732035",
+];
+
+const faqs: FaqItem[] = [
+  {
+    q: "What does Q4_K_M mean?",
+    a: "Q means quantized. The 4 is the rough number of bits used per weight (down from 16 in the original model). K means a k-quant, a smarter scheme that spends more bits on the layers that matter. M is the medium-size mix of that scheme. So Q4_K_M is a 4-bit k-quant, medium mix: the community default for local use.",
+  },
+  {
+    q: "Is Q4_K_M good enough, or should I use Q8_0?",
+    a: "Q4_K_M keeps almost all of the model's quality at roughly a third of the FP16 size, so it is the right default. Q8_0 is near-lossless but about 1.7x the size of Q4_K_M, worth it only if you have memory to spare. Below Q4 (Q3, Q2) quality drops off faster and is a last resort for models that otherwise will not fit.",
+  },
+  {
+    q: "Does a lower quant make the model faster?",
+    a: "Somewhat. Local inference is mostly limited by memory bandwidth, so a smaller quant moves fewer bytes per token and can run a little faster, on top of fitting in less memory. The main reason to drop to Q4 is fit, not speed.",
+  },
+  {
+    q: "What is FP16 and do I need it locally?",
+    a: "FP16 is the near-original 16-bit precision. It is roughly 3.3x the size of Q4_K_M (16 bits versus an effective ~4.9 per weight) for almost no quality gain you would notice in chat, so locally it is rarely worth the memory. It matters more for fine-tuning than for running.",
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Guides", url: "/guides" },
+      { name: "Quantization", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "Quantization explained: Q4_K_M vs Q8_0 vs FP16",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources: SOURCES,
+    speakableSelector: [".guide-tldr"],
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle="Quantization explained"
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt="Quantization for local LLMs: Q4_K_M, Q8_0 and FP16"
+>
+  <article class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Guides", url: "/guides" },
+        { name: "Quantization", url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Guide &middot; Quantization</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Quantization, in plain words
+    </h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Every local model lists cryptic tags like Q4_K_M or Q8_0. They describe how much the model has
+      been compressed to fit in memory. Here is what they mean and which one to pick.
+    </p>
+
+    <div class="panel guide-tldr mt-6">
+      <div class="panel-head"><span class="panel-label">The short version</span></div>
+      <p class="p-4 text-sm text-muted-foreground">
+        Use <strong class="text-foreground">Q4_K_M</strong>. It keeps almost all of the quality at
+        about a third of the original size, so it fits where the full model never would. Step up to
+        Q8_0 only if you have memory to spare; drop below Q4 only when nothing else fits.
+      </p>
+    </div>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">What the letters and numbers mean</h2>
+      <p class="mt-2 text-muted-foreground">
+        A raw model stores each weight in 16 bits (FP16). Quantization stores each weight in fewer
+        bits, which shrinks the file and the memory it needs. The tag breaks down like this:
+      </p>
+      <ul class="mt-3 space-y-2 text-muted-foreground">
+        <li><strong class="text-foreground">Q</strong> means quantized.</li>
+        <li><strong class="text-foreground">The number</strong> (2, 3, 4, 5, 6, 8) is roughly the bits kept per weight. Fewer bits means a smaller file and lower quality.</li>
+        <li><strong class="text-foreground">K</strong> means a k-quant: a smarter method that spends more bits on the weights that matter most and fewer elsewhere.</li>
+        <li><strong class="text-foreground">S / M / L</strong> is the small, medium or large mix of that method. Medium (M) is the usual choice.</li>
+      </ul>
+      <p class="mt-3 text-muted-foreground">
+        So <strong class="text-foreground">Q4_K_M</strong> reads as: 4-bit k-quant, medium mix. The
+        bits-per-weight figures come from the llama.cpp quantize table.
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">A worked example: {example.name}</h2>
+      <p class="mt-2 text-muted-foreground">
+        Here is the same {example.params_b}B model at each quant. Sizes marked measured are read from
+        real GGUF files; the rest are computed from bits-per-weight.
+      </p>
+      <div class="panel mt-3 overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">{example.name}</span>
+          <span class="panel-label">on-disk size</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {ladder.map((q) => (
+            <li class="flex items-center justify-between px-4 py-2.5">
+              <span class="font-mono text-sm">{q.label}</span>
+              <span class="flex items-center gap-2">
+                <span class="text-sm text-muted-foreground">~{q.gb} GB</span>
+                {q.measured ? (
+                  <span class="stat-label" style="color:var(--color-verdict-yes)">measured</span>
+                ) : (
+                  <span class="stat-label">estimated</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p class="mt-3 text-muted-foreground">
+        The jump from Q4_K_M to Q8_0 nearly doubles the size for quality most people will not notice
+        in chat. That is why Q4_K_M is the default almost everywhere.
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">Which quant should you pick?</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        <div class="p-4">
+          <p class="font-medium">Q4_K_M, the default</p>
+          <p class="mt-1 text-sm text-muted-foreground">Best balance of size and quality. Start here for any model that fits.</p>
+        </div>
+        <div class="p-4">
+          <p class="font-medium">Q5_K_M or Q6_K, a small step up</p>
+          <p class="mt-1 text-sm text-muted-foreground">A little more quality if you have the memory and want it. Diminishing returns.</p>
+        </div>
+        <div class="p-4">
+          <p class="font-medium">Q8_0, near-lossless</p>
+          <p class="mt-1 text-sm text-muted-foreground">About 1.7x the size of Q4_K_M. Worth it only when memory is not the constraint.</p>
+        </div>
+        <div class="p-4">
+          <p class="font-medium">Q3_K_M or Q2_K, last resort</p>
+          <p class="mt-1 text-sm text-muted-foreground">Use only to squeeze a model that otherwise will not fit. Quality drops noticeably, especially at Q2.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">How this changes what you can run</h2>
+      <p class="mt-2 text-muted-foreground">
+        Quant choice is the single biggest lever on whether a model fits your hardware. The same
+        model at Q4_K_M might fit a 16 GB machine where its FP16 version needs more than three times the memory.
+        To see what fits yours, start from your
+        <a href="/best-llm-for-ram" class="text-[var(--brand-ink)] hover:underline">memory budget</a>
+        or your <a href="/best-llm-for" class="text-[var(--brand-ink)] hover:underline">exact device</a>.
+        For the full memory math, see the <a href="/methodology" class="text-[var(--brand-ink)] hover:underline">methodology</a>.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">FAQ</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="More guides">
+      <h2 class="section-label mb-3">More guides</h2>
+      <div class="flex flex-wrap gap-2">
+        <a href="/guides/vram-vs-ram" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">VRAM vs RAM vs unified memory</a>
+        <a href="/guides/mixture-of-experts" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Mixture of experts</a>
+      </div>
+    </nav>
+
+    <Sources urls={SOURCES} />
+  </article>
+</Base>

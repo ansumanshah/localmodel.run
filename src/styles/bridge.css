@@ -1,0 +1,195 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   THE CALIBRATED INSTRUMENT — site-wide bridge
+   Loads AFTER the skin. Maps the component classes (used by all page templates)
+   onto the matte plate material, so every page reskins centrally with ZERO
+   per-template edits. Purely presentational (pSEO-safe).
+   With surface retired there is no tier budget left to enforce: nothing here
+   (or anywhere) uses backdrop-filter.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* a11y: the .field native <select> is opacity:0, so its own :focus-visible
+   outline is invisible. Put the keyboard focus ring on the visible wrapper. */
+.field:has(:focus-visible) {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* ── .panel → matte plate ───────────────────────────────────────────── */
+  .panel {
+    background-color: var(--card);
+    background-image: none;
+    border-color: var(--border);
+    box-shadow: var(--elev-1);
+  }
+  /* The machined top-edge highlight reads bright; plates get plain hairlines. */
+  .panel::before,
+  .panel-hero::before {
+    content: none;
+  }
+
+  /* ── .panel-hero → the engraved hero plate (one per page) ───────────── */
+  .panel-hero {
+    background-color: var(--card);
+    background-image: none;
+    border-color: color-mix(in oklch, var(--foreground) 32%, var(--border));
+    box-shadow: var(--elev-1);
+  }
+  /* Its ::after used to carry the chromatic rim; now it carries the ruler:
+     this plate displays the fit reading, so it earns a graduated top edge. */
+  .panel-hero::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    padding: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--foreground) 30%, transparent) 0 1px,
+      transparent 1px 8px
+    );
+    -webkit-mask: none;
+    mask: none;
+    opacity: 1;
+    border-radius: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .panel-hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Seam cards: the seam brightens; the card does not levitate ─────────── */
+  .card-seam:hover {
+    transform: none;
+    box-shadow: var(--elev-1);
+    border-color: var(--color-brand);
+  }
+
+  /* ── Stat readouts ──────────────────────────────────────────────────────── */
+  .stat-yes {
+    color: var(--brand-ink);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DETECTOR ISLAND LAYOUT (unchanged duty)
+   ══════════════════════════════════════════════════════════════════════════ */
+.det-selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.det-result {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.read {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.read b {
+  color: var(--foreground);
+  font-weight: 500;
+}
+.det-cta {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.det-cta .btn--primary {
+  text-decoration: none;
+}
+.det-cta .cmd-chip {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HERO H1 model-name rotator (zero-CLS crossfade, unchanged mechanics)
+   ══════════════════════════════════════════════════════════════════════════ */
+.hero-rot {
+  position: relative;
+  display: inline-block;
+  vertical-align: bottom;
+  /* The rotator is presentation only (aria-hidden): keep it out of text
+     selection so copying the headline yields the sr-only sentence, not the
+     sizer + current name mashed together. */
+  -webkit-user-select: none;
+  user-select: none;
+}
+.hero-rot-sizer {
+  visibility: hidden;
+}
+.hero-rot-word {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  transition:
+    opacity 0.3s var(--spring),
+    transform 0.3s var(--spring);
+}
+.hero-rot-word.hr-out {
+  opacity: 0;
+  transform: translateY(-0.14em);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-rot-word {
+    transition: none;
+  }
+}
+
+/* ── Footer chrome: a flat closing plate with a ruler contact edge on top ── */
+.site-footer {
+  background-color: var(--card);
+  background-image: none;
+  border-top: 1px solid color-mix(in oklch, var(--foreground) 45%, transparent);
+  position: relative;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.site-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1px;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 22%, transparent) 0 1px,
+    transparent 1px 8px
+  );
+  pointer-events: none;
+}
+
+/* ── Breadcrumb: a small stamped legend ───────────────────────────────────── */
+.gbreadcrumb {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 2px;
+  padding: 4px 11px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+/* ── prefers-contrast: firmer rules on the bridged plates ─────────────────── */
+@media (prefers-contrast: more) {
+  .panel,
+  .panel-hero,
+  .site-footer,
+  .gbreadcrumb {
+    border-color: color-mix(in oklch, var(--foreground) 45%, var(--border));
+  }
+}

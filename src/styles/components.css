@@ -1,0 +1,1564 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   THE CALIBRATED INSTRUMENT — skin layer for localmodel.run
+   (File keeps its historical name so imports stay stable; the surface material
+   it used to define is retired wholesale: no backdrop-filter, no iridescence,
+   no ambient motion anywhere in this file.)
+
+   MATERIAL   matte panel plates, 1px hairlines, machined 3-6px corners,
+              ruler-tick edges at ONE structural level (header bezel + section
+              rules only), graticule only where a reading is displayed.
+   MOTION     a needle moves once, settles, and stops. One-shot reveals only;
+              hovers are immediate border/underline changes. Nothing tilts or
+              follows the cursor. ONE sanctioned ambient exception: the runtime
+              ticker (.marquee, user-pinned) loops continuously, pauses on
+              hover, and collapses to a static wrapped list under reduced motion.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Plate material (light: powder-coat panel) */
+  --plate: var(--card);
+  --plate-rim: var(--border);
+  --plate-rim-firm: color-mix(in oklch, var(--foreground) 28%, var(--border));
+  --well: color-mix(in oklch, var(--foreground) 4%, var(--card));
+
+  /* Elevation: flat. One contact shadow, no levitation tiers. */
+  --elev-1: 0 1px 2px rgba(20, 18, 12, 0.06);
+  --elev-2: 0 1px 2px rgba(20, 18, 12, 0.06);
+  --elev-3: 0 2px 6px rgba(20, 18, 12, 0.1);
+
+  /* Motion */
+  --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --settle: cubic-bezier(0.22, 1.24, 0.36, 1); /* slight needle overshoot */
+  --t-fast: 0.12s;
+  --t-mid: 0.2s;
+  --t-slow: 0.3s;
+
+  /* Ruler-tick edge (structural level only: header bezel + section rules) */
+  --tick-edge: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 26%, transparent) 0 1px,
+    transparent 1px 8px
+  );
+
+  /* Legacy variable aliases (markup/JS may still reference them). The --lite-*
+     pair is load-bearing: Command.astro and Sources.astro use them in Tailwind
+     arbitrary values, and an undefined var() silently invalidates the whole
+     declaration (border falls to currentColor, box-shadow drops). */
+  --radius-panel: 6px;
+  --rig-radius: 6px;
+  --rig-rim: var(--plate-rim-firm);
+  --lite-rim: var(--border);
+  --lite-specular: transparent;
+}
+
+.dark {
+  --well: color-mix(in oklch, white 3%, var(--card));
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --elev-3: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BACKDROP — the bare panel. The aurora markup stays; its blooms do not.
+   ══════════════════════════════════════════════════════════════════════════ */
+.aurora {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--background);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.aurora > .aurora-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Matte faceplate: no gradients, no grain, no vignette. The surface is the
+   design. (::before/::after neutralized; the wrapper stays for layout.) */
+.aurora > .aurora-bg::before,
+.aurora > .aurora-bg::after {
+  content: none;
+}
+.aurora > *:not(.aurora-bg) {
+  position: relative;
+  z-index: 1;
+}
+/* The skip link must stay OUT of flow while visually hidden: the blanket rule
+   above outspecifies .sr-only's position:absolute and would re-insert it as a
+   ~16px flow box above the header, making the sticky bar travel ~14px before
+   pinning to the top. Focused, it is absolute anyway (focus:absolute). */
+.aurora > .sr-only {
+  position: absolute;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PLATE SURFACES  (the .surface hooks keep their names; the material is matte)
+   ══════════════════════════════════════════════════════════════════════════ */
+.surface {
+  position: relative;
+  border-radius: var(--radius-panel);
+  background: var(--plate);
+  border: 1px solid var(--plate-rim);
+  box-shadow: var(--elev-1);
+}
+.surface::before,
+.surface::after {
+  content: none;
+}
+.surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.surface-lite {
+  position: relative;
+  border-radius: 4px;
+  background: var(--plate);
+  border: 1px solid var(--plate-rim);
+  box-shadow: var(--elev-1);
+}
+.surface-lite::before {
+  content: none;
+}
+.surface-lite > * {
+  position: relative;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HEADER — a fixed control-panel bezel, flush with the top edge
+   ══════════════════════════════════════════════════════════════════════════ */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  /* The bezel bar spans the full viewport (a control panel edge-to-edge), but
+     its CONTENTS align to the site shell: side padding grows to center a
+     --shell-wide row once the viewport exceeds it, so brand + nav line up
+     with the content column instead of hugging the screen edges. */
+  padding: 14px max(clamp(16px, 4vw, 32px), calc((100% - var(--shell, 72rem)) / 2));
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  border-radius: 0;
+}
+.aurora > .site-header {
+  position: sticky;
+  z-index: 50;
+}
+/* The bezel: opaque panel, ink baseline, ruler-tick contact edge beneath. */
+.site-header.surface {
+  background: var(--background);
+  border: 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 55%, transparent);
+  box-shadow: none;
+}
+.site-header.surface::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 4px;
+  background: var(--tick-edge);
+  -webkit-mask: none;
+  mask: none;
+  padding: 0;
+  opacity: 1;
+  border-radius: 0;
+  pointer-events: none;
+}
+.dark .site-header.surface {
+  background: var(--background);
+}
+.site-header .icon-btn {
+  border-radius: 4px;
+}
+#mobile-nav {
+  position: absolute;
+}
+.site-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--foreground);
+  text-decoration: none;
+}
+/* The mark sits bare on the bezel: no gradient tile, no glow. */
+.site-brand .sq {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 0;
+  background: none;
+  color: var(--foreground);
+  box-shadow: none;
+}
+.site-brand .run {
+  color: var(--muted-foreground);
+}
+.site-status {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted-foreground);
+}
+/* Status: a square indicator lamp, steady. Instruments do not blink at rest. */
+.site-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--color-verdict-yes);
+  box-shadow: none;
+}
+.site-nav {
+  margin-left: auto;
+  align-items: center;
+  gap: 2px;
+}
+.site-nav a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  padding: 7px 10px;
+  border-radius: 0;
+  /* Underline sweep: a needle-colored tick grows in from the left. */
+  background-image: linear-gradient(var(--color-brand), var(--color-brand));
+  background-repeat: no-repeat;
+  background-position: 10px calc(100% - 3px);
+  background-size: 0 2px;
+  transition:
+    color var(--t-fast),
+    background-size var(--t-fast) ease-out;
+}
+.site-nav a:hover {
+  color: var(--foreground);
+  background-size: calc(100% - 20px) 2px;
+}
+.site-nav a.on {
+  color: var(--foreground);
+  background-size: calc(100% - 20px) 2px;
+}
+@media (min-width: 760px) {
+  .site-status {
+    display: flex;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FIELDS / SELECTS — recessed instrument wells
+   ══════════════════════════════════════════════════════════════════════════ */
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin-bottom: 6px;
+}
+.field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border-radius: 3px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--foreground);
+  background: var(--well);
+  border: 1px solid color-mix(in oklch, var(--foreground) 22%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color var(--t-fast);
+}
+.dark .field {
+  background: var(--well);
+  border-color: color-mix(in oklch, white 20%, transparent);
+}
+.field:focus-within,
+.field:hover {
+  border-color: var(--color-brand);
+}
+.field select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.field .chev {
+  color: var(--muted-foreground);
+  flex: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BUTTONS — machined, they press down, they never levitate
+   ══════════════════════════════════════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border: 1px solid var(--plate-rim-firm);
+  border-radius: 3px;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  background: var(--plate);
+  box-shadow: var(--elev-1);
+  transition:
+    border-color var(--t-fast),
+    transform var(--t-fast);
+}
+.btn:hover {
+  border-color: var(--color-brand);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* Primary: solid calibration-blue ink. White on #2D5FA8 measures 6.3:1,
+   comfortably past the normal-text 4.5:1 bar; if the brand hex ever lightens,
+   re-check this pairing first. */
+.btn--primary {
+  color: #fff;
+  border: 1px solid color-mix(in oklch, black 22%, var(--color-brand));
+  background: var(--color-brand);
+  box-shadow: var(--elev-1);
+  will-change: transform;
+}
+.btn--primary:hover {
+  background: color-mix(in oklch, black 8%, var(--color-brand));
+  border-color: color-mix(in oklch, black 30%, var(--color-brand));
+}
+
+/* command chip: a stamped legend row */
+.cmd-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 3px;
+  padding: 10px 13px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--foreground);
+  background: var(--well);
+  border: 1px solid var(--plate-rim);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.dark .cmd-chip {
+  background: var(--well);
+}
+.cmd-chip .d {
+  color: var(--brand-ink);
+}
+.cmd-chip .cmd-text {
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.cmd-chip .cmd-text::-webkit-scrollbar {
+  display: none;
+}
+.cmd-chip .copy {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.cmd-chip .copy:hover {
+  color: var(--brand-ink);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   GAUGE — the reading. Graduated track (see global.css); fill settles once.
+   ══════════════════════════════════════════════════════════════════════════ */
+.gauge.lens {
+  height: 0.7rem;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
+    inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.gauge.lens .gauge-fill {
+  box-shadow: none;
+}
+.gauge.lens .gauge-mark {
+  box-shadow: none;
+}
+
+/* The static pair-page stamp (server-rendered twin of .verdict-hero). */
+.verdict-stamp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  /* Optical centering for all-caps display type: slightly more top padding
+     (caps ride high in the line box; no descenders below), and text-indent
+     rebalances the trailing letter-space after the last glyph. */
+  padding: 7px 14px 5px;
+  text-indent: 0.05em;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+.verdict-stamp::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Daily quiz (/play): the answer stamps are buttons. Same ink as the verdict
+   stamps; the press is the same one-shot scale the rest of the instrument uses. */
+.play-choice {
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.15rem;
+  padding: 11px 20px 9px;
+}
+.play-choice:hover {
+  background: color-mix(in oklch, currentColor 8%, transparent);
+}
+.play-choice:active {
+  transform: scale(0.97);
+}
+.play-choice:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+/* Round progress: 8 ruler ticks in the panel header, inked as you answer. */
+.play-ticks {
+  display: inline-flex;
+  gap: 4px;
+}
+.play-ticks i {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--border);
+  border-radius: 1px;
+}
+.play-ticks i.ok,
+.play-ticks i.miss {
+  animation: stamp-press 0.18s var(--settle) both;
+}
+.play-ticks i.ok {
+  background: var(--color-verdict-yes);
+  border-color: var(--color-verdict-yes);
+}
+.play-ticks i.miss {
+  background: var(--color-verdict-no);
+  border-color: var(--color-verdict-no);
+}
+/* Result board: the day's calls as inked cells, pressed in one by one. */
+.play-cell {
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+  animation: stamp-press 0.18s var(--settle) both;
+}
+.play-cell.ok {
+  background: var(--color-verdict-yes);
+}
+.play-cell.miss {
+  background: var(--color-verdict-no);
+}
+
+/* The verdict line: an inked inspection stamp. Straight, double-ruled, done. */
+.verdict-hero {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  /* Same optical trim as .verdict-stamp: caps-high line box + trailing
+     letter-space compensation. */
+  padding: 9px 16px 7px;
+  text-indent: 0.05em;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: clamp(18px, 3vw, 23px);
+  animation: stamp-press 0.18s var(--settle) both;
+}
+/* inner rule of the stamp */
+.verdict-hero::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.verdict-hero .tok {
+  color: var(--muted-foreground);
+  font-weight: 400;
+  font-size: 0.55em;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+@keyframes stamp-press {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+.verdict-hero[data-v="yes"] {
+  color: var(--verdict-yes-fg);
+}
+.verdict-hero[data-v="tight"] {
+  color: var(--verdict-tight-fg);
+}
+.verdict-hero[data-v="no"] {
+  color: var(--verdict-no-fg);
+}
+.verdict-hero[data-v="yes"]::after {
+  content: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   VERDICT TAGS — silkscreen legends, not pills
+   ══════════════════════════════════════════════════════════════════════════ */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 2px;
+  border: 1px solid;
+  padding: 3px 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--plate);
+}
+.gv--y {
+  color: var(--verdict-yes-fg);
+  border-color: color-mix(in oklch, var(--color-verdict-yes) 55%, transparent);
+}
+.gv--t {
+  color: var(--verdict-tight-fg);
+  border-color: color-mix(in oklch, var(--color-verdict-tight) 55%, transparent);
+}
+.gv--n {
+  color: var(--verdict-no-fg);
+  border-color: color-mix(in oklch, var(--color-verdict-no) 55%, transparent);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STAT READOUT — multimeter figures on recessed tiles
+   ══════════════════════════════════════════════════════════════════════════ */
+.readout-grid {
+  display: grid;
+  gap: 12px;
+}
+.readout {
+  padding: 13px 15px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.readout .k {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  order: 2;
+}
+.readout .v {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0;
+  order: 1;
+}
+.readout .v.yes {
+  color: var(--brand-ink);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LEADERBOARD — a datasheet table
+   ══════════════════════════════════════════════════════════════════════════ */
+.lb {
+  border-radius: 4px;
+  overflow: hidden;
+}
+.lb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 45%, transparent);
+}
+.lb-lbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.lb table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.lb thead th {
+  padding: 9px 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.lb th.l {
+  text-align: left;
+}
+.lb th.r,
+.lb td.r {
+  text-align: right;
+}
+.lb tbody tr {
+  border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+.lb tbody tr:hover {
+  background: color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+.lb td {
+  padding: 11px 16px;
+  color: var(--muted-foreground);
+}
+.lb td.model {
+  color: var(--foreground);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+/* the recommended row: a needle edge-stripe, no wash */
+.lb tr.rec {
+  background: color-mix(in oklch, var(--color-brand) 5%, transparent);
+  position: relative;
+}
+.lb tr.rec td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-brand);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BENTO GRID — rating-plate tiles; borders brighten, nothing lifts
+   ══════════════════════════════════════════════════════════════════════════ */
+.bento {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+}
+.bento-card {
+  border-radius: 4px;
+  padding: 18px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color var(--t-fast);
+}
+.bento-card:hover {
+  border-color: var(--color-brand);
+}
+.bento-card .bento-k {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-ink);
+}
+.bento-card .bento-t {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+.bento-card .bento-d {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+.bento-card .bento-go {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--brand-ink);
+}
+.bento-card.col-2 {
+  grid-column: span 2;
+}
+@media (max-width: 760px) {
+  .bento {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bento-card.col-2 {
+    grid-column: span 2;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RIG CARD — the engraved gunmetal rating plate (iridescence retired)
+   ══════════════════════════════════════════════════════════════════════════ */
+.rig-stage {
+  perspective: none;
+}
+.rig-card {
+  position: relative;
+  border-radius: var(--rig-radius);
+  padding: 22px;
+  overflow: hidden;
+  color: #edeff2;
+  background: #15171a;
+  border: 1px solid #2c2f34;
+  box-shadow: var(--elev-3);
+}
+/* graduated top edge: this plate displays a reading, so it earns a ruler */
+.rig-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(237, 239, 242, 0.35) 0 1px,
+    transparent 1px 8px
+  );
+  mix-blend-mode: normal;
+  opacity: 1;
+  -webkit-mask: none;
+  mask: none;
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.rig-card::after {
+  content: none;
+}
+.rig-card > * {
+  position: relative;
+  z-index: 3;
+}
+.rig-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rig-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ba0a8;
+}
+.rig-grade {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #edeff2;
+  border: 1px solid rgba(237, 239, 242, 0.45);
+  border-radius: 2px;
+  padding: 3px 11px;
+}
+.rig-score {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-size: clamp(48px, 9vw, 68px);
+  margin: 16px 0 4px;
+  color: #edeff2;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: currentColor;
+}
+.rig-dev {
+  font-size: 15px;
+  font-weight: 600;
+  color: #edeff2;
+}
+.rig-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #9ba0a8;
+  margin-top: 3px;
+}
+.rig-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(237, 239, 242, 0.16);
+}
+.rig-foot span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #9ba0a8;
+}
+
+/* ── page-enter stagger (one-shot, transform/opacity only) ──────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .enter > * {
+    animation: enter-rise 0.45s var(--spring) both;
+  }
+  .enter > *:nth-child(2) {
+    animation-delay: 0.05s;
+  }
+  .enter > *:nth-child(3) {
+    animation-delay: 0.1s;
+  }
+  .enter > *:nth-child(4) {
+    animation-delay: 0.15s;
+  }
+  .enter > *:nth-child(5) {
+    animation-delay: 0.2s;
+  }
+}
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .surface,
+  .surface-lite,
+  .btn,
+  .field,
+  .cmd-chip {
+    background: var(--card);
+  }
+}
+/* Motion off */
+@media (prefers-reduced-motion: reduce) {
+  .rig-card,
+  .btn,
+  .btn--primary,
+  .bento-card,
+  .verdict-hero,
+  .play-ticks i,
+  .play-cell {
+    transition: none;
+    animation: none;
+  }
+  .enter > * {
+    animation: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODAL — an opaque instruction card over a dimmed bench. No blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: color-mix(in oklch, var(--background) 82%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--t-mid) ease,
+    visibility var(--t-mid);
+}
+.scrim[data-open] {
+  opacity: 1;
+  visibility: visible;
+}
+.modal {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 6px;
+  padding: 24px;
+  border: 1px solid var(--plate-rim-firm);
+  transform: translateY(8px);
+  transition: transform var(--t-mid) var(--spring);
+}
+.scrim[data-open] .modal {
+  transform: none;
+}
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  margin: 0;
+}
+.modal-sub {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+.modal-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  border: 1px solid var(--plate-rim);
+  background: var(--well);
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.modal-body {
+  margin-top: 18px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.modal-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .modal {
+    transition: none;
+  }
+  .modal {
+    transform: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STICKY ACTION BAR — a flat readout strip
+   ══════════════════════════════════════════════════════════════════════════ */
+.sticky-bar {
+  position: sticky;
+  bottom: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 11px 11px 17px;
+  border-radius: 4px;
+  margin: 22px auto 0;
+  border: 1px solid var(--plate-rim-firm);
+}
+.sticky-bar .sticky-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  flex: none;
+}
+.sticky-bar .sticky-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+.sticky-bar .sticky-k {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sticky-bar .sticky-v {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+}
+.sticky-bar .sticky-spacer {
+  flex: 1;
+}
+.sticky-bar .cmd-chip {
+  display: none;
+  flex: none;
+}
+.sticky-bar .btn {
+  flex: none;
+}
+@media (min-width: 760px) {
+  .sticky-bar .cmd-chip {
+    display: flex;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE LAYOUTS  (≤ 640px)
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .site-header {
+    gap: 6px;
+    padding: 8px 14px;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+    border-radius: 0;
+    width: 100%;
+    margin: 0;
+    top: 0;
+  }
+  .site-brand {
+    font-size: 14px;
+  }
+  .site-header > #mobile-menu-btn {
+    margin-left: auto;
+  }
+
+  .btn,
+  .btn--primary {
+    padding: 13px 18px;
+    min-height: 44px;
+  }
+  .field {
+    padding: 13px 14px;
+    min-height: 46px;
+  }
+  .tag {
+    padding: 5px 10px;
+  }
+
+  .det-selects,
+  .det-cta {
+    grid-template-columns: 1fr !important;
+  }
+  .det-cta {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .det-cta .btn--primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .readout-grid,
+  .stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .bento {
+    grid-template-columns: 1fr !important;
+  }
+  .bento-card.col-2 {
+    grid-column: span 1 !important;
+  }
+  .g3,
+  .g4 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .lb thead th:nth-child(4),
+  .lb tbody td:nth-child(4) {
+    display: none;
+  }
+  .lb td,
+  .lb thead th {
+    padding: 11px 12px;
+  }
+
+  .sticky-bar {
+    bottom: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    margin-top: 14px;
+    padding: 10px 12px;
+  }
+  .sticky-bar .btn {
+    padding: 12px 14px;
+  }
+
+  .rig-card {
+    padding: 20px;
+  }
+
+  .demo {
+    right: 10px;
+    bottom: 10px;
+    padding: 6px;
+    gap: 4px;
+  }
+  .demo .lbl {
+    display: none;
+  }
+  .demo button {
+    padding: 9px 10px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 880px) {
+  .g4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* The floating-header fade is retired with the capsule; keep the hook inert. */
+.scroll-edge {
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHIC NORMALIZATION (unchanged layout duty)
+   ══════════════════════════════════════════════════════════════════════════ */
+.site-brand,
+.site-nav a,
+.site-status,
+.lb-lbl,
+.lb thead th,
+.field-label,
+.field,
+.tag,
+.btn,
+.btn--primary,
+.cmd-chip,
+.readout .k,
+.rig-eyebrow,
+.rig-grade,
+.rig-dev,
+.rig-meta,
+.rig-foot span,
+.sticky-k,
+.sticky-v,
+.bento-card .bento-k,
+.bento-card .bento-t,
+.bento-card .bento-go,
+.tier,
+.modal-title,
+.modal-x {
+  line-height: 1.15;
+}
+.readout .v,
+.rig-score,
+.verdict-hero,
+.lb .stat-val {
+  line-height: 1;
+}
+.tag,
+.btn,
+.btn--primary,
+.cmd-chip,
+.verdict-hero,
+.site-brand,
+.sticky-info,
+.sticky-bar,
+.lb td.model,
+.modal-head,
+.modal-actions .btn,
+.eyebrow,
+.bento-card .bento-go {
+  display: inline-flex;
+  align-items: center;
+}
+.sticky-bar,
+.lb td.model,
+.modal-head {
+  display: flex;
+}
+.tag svg,
+.btn svg,
+.verdict-hero svg,
+.cmd-chip svg,
+.bento-card .bento-go svg {
+  flex: none;
+}
+.lb td,
+.lb th {
+  vertical-align: middle;
+}
+.read,
+.det-cta,
+.card-actions {
+  align-items: center;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BRAND MARK — still. An instrument that shimmers at rest is not trustworthy.
+   The old charge-pulse is deleted, not slowed down.
+   ══════════════════════════════════════════════════════════════════════════ */
+.site-brand { view-transition-name: lm-brand; }
+
+/* ── Skeleton / optimistic states (functional loading, neutral sweep) ─────── */
+.is-loading .skel {
+  position: relative;
+  color: transparent !important;
+}
+.skeleton {
+  border-radius: 3px;
+  background: linear-gradient(
+    100deg,
+    color-mix(in oklch, var(--muted) 80%, transparent) 30%,
+    color-mix(in oklch, var(--foreground) 8%, var(--muted)) 50%,
+    color-mix(in oklch, var(--muted) 80%, transparent) 70%
+  );
+  background-size: 200% 100%;
+  animation: skel-shimmer 1.1s linear infinite;
+}
+@keyframes skel-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.det-result.is-loading .gauge-fill {
+  opacity: 0.35;
+}
+.det-result.is-loading #det-verdict,
+.det-result.is-loading .verdict-hero {
+  opacity: 0.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ── Gauge threshold line-draw (one-shot needle tick) ─────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  [data-deck-active] .gauge-mark,
+  .gauge .gauge-mark.draw,
+  .det-result .gauge-mark {
+    transform-origin: bottom;
+    animation: mark-draw 0.45s var(--settle) both;
+    animation-delay: 0.25s;
+  }
+}
+@keyframes mark-draw {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
+/* ── Context-length slider — a fader with a square cap ────────────────────── */
+.ctx-control {
+  margin-top: 16px;
+}
+.ctx-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ctx-head label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.ctx-head .ctx-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--brand-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ctx-control input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--gauge-track);
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 16%, transparent) 0 1px,
+    transparent 1px 10%
+  );
+  outline: none;
+}
+.ctx-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--color-brand);
+  border: 1px solid color-mix(in oklch, black 25%, var(--color-brand));
+  cursor: pointer;
+}
+.ctx-control input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--color-brand);
+  border: 1px solid color-mix(in oklch, black 25%, var(--color-brand));
+  cursor: pointer;
+}
+
+/* ── Runtime ticker — the ONE sanctioned ambient motion (user-pinned). The
+   track content is duplicated for a seamless loop, so it must always animate:
+   frozen, the duplicate items read as a rendering bug. Pauses on hover;
+   collapses to a wrapped static list under reduced motion. ─────────────────── */
+.marquee {
+  overflow: hidden;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee-track {
+  display: flex;
+  gap: 38px;
+  width: max-content;
+  animation: marquee 26s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    -webkit-mask: none;
+    mask: none;
+  }
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+  }
+}
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.marquee-item .mq-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: color-mix(in oklch, var(--color-brand) 65%, transparent);
+}
+
+/* ── Device/compare helpers ───────────────────────────────────────────────── */
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.matrix th,
+.matrix td {
+  padding: 9px 12px;
+  text-align: center;
+  border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+.matrix thead th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  border-top: 0;
+}
+.matrix th.row {
+  text-align: left;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.matrix .cell {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+.matrix .cell.y {
+  color: var(--verdict-yes-fg);
+  background: color-mix(in oklch, var(--color-verdict-yes) 14%, transparent);
+}
+.matrix .cell.t {
+  color: var(--verdict-tight-fg);
+  background: color-mix(in oklch, var(--color-verdict-tight) 14%, transparent);
+}
+.matrix .cell.n {
+  color: var(--verdict-no-fg);
+  background: color-mix(in oklch, var(--color-verdict-no) 12%, transparent);
+}
+
+/* ── Leaderboard hub grid (datasheet duty unchanged) ──────────────────────── */
+.lb-grid {
+  width: 100%;
+  min-width: 660px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.lb-grid thead th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+.lb-grid thead .lb-group {
+  text-align: center;
+  color: color-mix(in oklch, var(--brand-ink) 70%, var(--muted-foreground));
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  padding-bottom: 4px;
+}
+.lb-grid thead tr:last-child th {
+  padding-top: 4px;
+}
+.lb-grid tbody th,
+.lb-grid tbody td {
+  padding: 9px 12px;
+  vertical-align: middle;
+  border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+}
+.lb-grid tbody tr:hover {
+  background: color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+.lb-grid .lb-model {
+  text-align: left;
+  font-weight: 500;
+}
+.lb-grid .lb-model a {
+  min-width: 0;
+}
+.lb-grid .lb-sc {
+  width: 72px;
+  text-align: right;
+}
+.lb-grid .lb-sc-lead {
+  border-left: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+}
+.lb-grid .lb-runs {
+  text-align: right;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  border-left: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+}
+.lb-grid .lb-runs a:hover {
+  color: var(--foreground);
+}
+.lb-grid .lb-val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+.lb-grid .lb-none {
+  color: color-mix(in oklch, var(--muted-foreground) 28%, transparent);
+}
+
+/* ── How-it-works diagram (one-shot line-draw: draws once, settles) ───────── */
+.hiw-diagram path.draw {
+  stroke-dasharray: var(--len, 200);
+  stroke-dashoffset: var(--len, 200);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hiw-diagram.in path.draw {
+    animation: line-draw 1.1s var(--spring) forwards;
+  }
+  .hiw-diagram.in path.draw:nth-of-type(2) {
+    animation-delay: 0.25s;
+  }
+  .hiw-diagram.in path.draw:nth-of-type(3) {
+    animation-delay: 0.5s;
+  }
+}
+@keyframes line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── prefers-contrast: firmer rules ───────────────────────────────────────── */
+@media (prefers-contrast: more) {
+  .surface,
+  .surface-lite,
+  .field,
+  .btn,
+  .tag,
+  .cmd-chip,
+  .bento-card {
+    border-color: color-mix(in oklch, var(--foreground) 45%, var(--border));
+  }
+  .tag {
+    border-width: 1.5px;
+  }
+}
+
+/* Verdict line baseline alignment */
+.verdict-hero {
+  align-items: baseline;
+}
+.verdict-hero > svg {
+  align-self: center;
+}
+.verdict-hero .tok {
+  align-self: baseline;
+}

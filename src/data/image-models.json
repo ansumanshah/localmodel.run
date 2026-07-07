@@ -1,0 +1,296 @@
+[
+  {
+    "id": "stable-diffusion-1-5",
+    "name": "Stable Diffusion 1.5",
+    "family": "stable-diffusion",
+    "params_b": 0.86,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2022-10",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "image",
+    "license": "CreativeML OpenRAIL-M",
+    "commercial_use": "yes",
+    "license_note": "Use-based restrictions (no illegal or harmful content); no revenue cap.",
+    "image": {
+      "arch": "unet",
+      "backbone_params_b": 0.86,
+      "backbone_gb": { "fp16": 1.7 },
+      "components": [{ "name": "CLIP-L text encoder", "fp16_gb": 0.25, "offloaded": false }],
+      "vae_gb": 0.17,
+      "native_resolution": "512×512",
+      "steps": "20-50",
+      "recommended": {
+        "gb": 3.7,
+        "quant": "fp16",
+        "source": "https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Optimizations",
+        "synthesis": true
+      },
+      "no_offload_gb": 4,
+      "offload_floor_gb": 2,
+      "device_classes": ["mac", "nvidia", "amd", "iphone"],
+      "tools": ["AUTOMATIC1111", "ComfyUI", "Draw Things", "diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Optimizations",
+      "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/blob/main/v1-5-pruned-emaonly-fp16.safetensors"
+    ],
+    "notes": "UNet 0.86B (~0.98B with the CLIP-L text encoder; no T5). The single CLIP-L encoder is ~0.25GB so all components stay resident and peak VRAM is the sum: UNet ~1.7GB + CLIP-L ~0.25GB + VAE ~0.17GB plus activations is ~3.7GB at 512x512, the widely-cited 4GB minimum. Runs on 2GB with AUTOMATIC1111 --lowvram, slowly. Sources: HF model card, AUTOMATIC1111 Optimizations wiki, fp16 checkpoint size."
+  },
+  {
+    "id": "sdxl-1-0",
+    "name": "Stable Diffusion XL 1.0",
+    "family": "stable-diffusion",
+    "params_b": 2.6,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2023-07",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "image",
+    "license": "CreativeML OpenRAIL++-M",
+    "commercial_use": "yes",
+    "license_note": "Use-based restrictions; no revenue cap.",
+    "image": {
+      "arch": "unet",
+      "backbone_params_b": 2.6,
+      "backbone_gb": { "fp16": 5.1 },
+      "components": [
+        { "name": "CLIP-L text encoder", "fp16_gb": 0.25, "offloaded": false },
+        { "name": "OpenCLIP-G text encoder", "fp16_gb": 1.39, "offloaded": false }
+      ],
+      "vae_gb": 0.34,
+      "native_resolution": "1024×1024",
+      "steps": "25-40",
+      "recommended": {
+        "gb": 7.5,
+        "quant": "fp16",
+        "source": "https://github.com/Comfy-Org/ComfyUI/issues/2855"
+      },
+      "no_offload_gb": 8.5,
+      "offload_floor_gb": 4,
+      "device_classes": ["mac", "nvidia", "amd", "iphone"],
+      "tools": ["ComfyUI", "AUTOMATIC1111 / Forge", "Draw Things", "diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0",
+      "https://stability.ai/news-updates/sdxl-09-stable-diffusion",
+      "https://github.com/Comfy-Org/ComfyUI/issues/2855",
+      "https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Optimum-SDXL-Usage"
+    ],
+    "notes": "UNet 2.6B (3.5B with CLIP-L + OpenCLIP-G; no T5). The two CLIP encoders total ~1.6GB and stay resident, so peak VRAM is the sum: ~7.5GB measured at 1024x1024 on an 8GB card, matching Stability's stated 8GB minimum. Runs on 4GB with AUTOMATIC1111 --lowvram, slowly. An optional refiner adds a second ~6GB UNet. Sources: Stability SDXL announcement, ComfyUI 8GB measurement, AUTOMATIC1111 Optimum SDXL wiki."
+  },
+  {
+    "id": "stable-diffusion-3-5-large",
+    "name": "Stable Diffusion 3.5 Large",
+    "family": "stable-diffusion",
+    "params_b": 8.1,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-10",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "image",
+    "license": "Stability Community License",
+    "commercial_use": "conditional",
+    "license_note": "Free for commercial use under $1M annual revenue; an enterprise license is required above that.",
+    "image": {
+      "arch": "mmdit",
+      "backbone_params_b": 8.1,
+      "backbone_gb": { "fp16": 16.5, "fp8": 14.9, "q8": 8.78, "q4": 4.77 },
+      "components": [
+        { "name": "CLIP-L text encoder", "fp16_gb": 0.25, "offloaded": false },
+        { "name": "OpenCLIP-G text encoder", "fp16_gb": 1.39, "offloaded": false },
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.79, "fp8_gb": 4.89, "q4_gb": 2.9, "offloaded": true }
+      ],
+      "vae_gb": 0.17,
+      "native_resolution": "1024×1024",
+      "steps": "28-40",
+      "recommended": {
+        "gb": 7,
+        "quant": "Q4 GGUF",
+        "source": "https://huggingface.co/city96/stable-diffusion-3.5-large-gguf",
+        "synthesis": true
+      },
+      "no_offload_gb": 19,
+      "offload_floor_gb": 5,
+      "device_classes": ["mac", "nvidia", "amd", "iphone"],
+      "tools": ["ComfyUI", "Draw Things", "diffusers"]
+    },
+    "sources": [
+      "https://stability.ai/news-updates/introducing-stable-diffusion-3-5",
+      "https://huggingface.co/city96/stable-diffusion-3.5-large-gguf",
+      "https://stability.ai/news-updates/stable-diffusion-35-models-optimized-with-tensorrt-deliver-2x-faster-performance-and-40-less-memory-on-nvidia-rtx-gpus",
+      "https://huggingface.co/docs/diffusers/en/api/pipelines/stable_diffusion/stable_diffusion_3"
+    ],
+    "notes": "8.1B MMDiT with three text encoders (CLIP-L, OpenCLIP-G, T5-XXL). The 9.8GB T5-XXL is offloaded to CPU after prompt-encoding, so peak VRAM tracks the backbone, not the sum. At Q4 GGUF (4.77GB backbone) with T5 offloaded, peak is ~7GB (synthesis from city96 component sizes plus the diffusers offload behavior, not a single measurement). Stability's full-fp16 baseline is 19GB (11GB with TensorRT fp8). Sources: Stability SD3.5 announcement, city96 SD3.5 GGUF repo, Stability TensorRT note, diffusers SD3 docs."
+  },
+  {
+    "id": "flux-1-dev",
+    "name": "FLUX.1 dev",
+    "family": "flux",
+    "params_b": 12,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-08",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "image",
+    "license": "FLUX.1-dev Non-Commercial License",
+    "commercial_use": "no",
+    "license_note": "Weights are non-commercial. Generated images may be used commercially, but using the model inside a product needs a separate Black Forest Labs license.",
+    "image": {
+      "arch": "dit",
+      "backbone_params_b": 12,
+      "backbone_gb": { "fp16": 23.8, "fp8": 11.9, "q8": 12.7, "q4": 6.81, "q2": 4.03 },
+      "components": [
+        { "name": "CLIP-L text encoder", "fp16_gb": 0.25, "offloaded": false },
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.79, "fp8_gb": 4.89, "q4_gb": 2.9, "offloaded": true }
+      ],
+      "vae_gb": 0.34,
+      "native_resolution": "1024×1024",
+      "steps": "20-50",
+      "recommended": {
+        "gb": 6.5,
+        "quant": "Q4 GGUF",
+        "source": "https://huggingface.co/city96/FLUX.1-dev-gguf/discussions/9"
+      },
+      "no_offload_gb": 33,
+      "offload_floor_gb": 3,
+      "device_classes": ["mac", "nvidia", "amd", "iphone"],
+      "tools": ["ComfyUI", "Draw Things", "diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/black-forest-labs/FLUX.1-dev",
+      "https://huggingface.co/city96/FLUX.1-dev-gguf",
+      "https://huggingface.co/city96/FLUX.1-dev-gguf/discussions/9",
+      "https://huggingface.co/docs/diffusers/optimization/memory",
+      "https://huggingface.co/black-forest-labs/FLUX.1-dev/blob/main/LICENSE.md"
+    ],
+    "notes": "12B DiT with CLIP-L and a 9.8GB T5-XXL text encoder. T5 is offloaded to CPU after prompt-encoding, so the Q4 GGUF backbone (6.8GB) drives a denoising peak of ~6.5GB, measured at 6.4GB on an RTX 2080 8GB in Forge. All-components-resident at bf16 is ~33GB. Sequential CPU offload runs on ~3GB, very slowly. Non-commercial license. Sources: BFL model card, city96 FLUX.1-dev GGUF repo and 8GB discussion, diffusers memory docs."
+  },
+  {
+    "id": "flux-1-schnell",
+    "name": "FLUX.1 schnell",
+    "family": "flux",
+    "params_b": 12,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-08",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "image",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": "Apache-2.0; the only FLUX.1 variant licensed for commercial products.",
+    "image": {
+      "arch": "dit",
+      "backbone_params_b": 12,
+      "backbone_gb": { "fp16": 23.8, "fp8": 11.9, "q8": 12.7, "q4": 6.78, "q2": 4.01 },
+      "components": [
+        { "name": "CLIP-L text encoder", "fp16_gb": 0.25, "offloaded": false },
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.79, "fp8_gb": 4.89, "q4_gb": 2.9, "offloaded": true }
+      ],
+      "vae_gb": 0.34,
+      "native_resolution": "1024×1024",
+      "steps": "1-4",
+      "recommended": {
+        "gb": 6.5,
+        "quant": "Q4 GGUF",
+        "source": "https://huggingface.co/city96/FLUX.1-schnell-gguf",
+        "synthesis": true
+      },
+      "no_offload_gb": 33,
+      "offload_floor_gb": 3,
+      "device_classes": ["mac", "nvidia", "amd", "iphone"],
+      "tools": ["ComfyUI", "Draw Things", "diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/black-forest-labs/FLUX.1-schnell",
+      "https://huggingface.co/city96/FLUX.1-schnell-gguf",
+      "https://huggingface.co/docs/diffusers/optimization/memory"
+    ],
+    "notes": "The same 12B DiT as FLUX.1 dev, distilled to 1-4 step generation and licensed Apache-2.0 (the only commercially-usable FLUX.1 variant). T5-XXL is offloaded after prompt-encoding, so the Q4 GGUF backbone peaks at ~6.5GB during denoising. All-resident bf16 is ~33GB. Sources: BFL schnell model card, city96 FLUX.1-schnell GGUF repo, diffusers memory docs."
+  },
+  {
+    "id": "qwen-image",
+    "name": "Qwen-Image",
+    "family": "qwen",
+    "params_b": 20,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2025-08",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "image",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": null,
+    "image": {
+      "arch": "mmdit",
+      "backbone_params_b": 20,
+      "backbone_gb": { "fp16": 40.9, "fp8": 20.4, "q8": 21.8, "q4": 13.1, "q2": 7.06 },
+      "components": [
+        { "name": "Qwen2.5-VL 7B text encoder", "fp16_gb": 16.6, "fp8_gb": 9.38, "offloaded": true }
+      ],
+      "vae_gb": 0.25,
+      "native_resolution": "1328×1328",
+      "steps": "20-50",
+      "recommended": {
+        "gb": 14,
+        "quant": "Q4_K_M GGUF",
+        "source": "https://sandner.art/qwen-image-and-edit-local-gguf-generations-with-lightning/"
+      },
+      "no_offload_gb": 57,
+      "offload_floor_gb": 3,
+      "device_classes": ["mac", "nvidia", "amd"],
+      "tools": ["ComfyUI", "Nunchaku (SVDQuant 4-bit)"]
+    },
+    "sources": [
+      "https://huggingface.co/Qwen/Qwen-Image",
+      "https://huggingface.co/city96/Qwen-Image-gguf",
+      "https://docs.comfy.org/tutorials/image/qwen/qwen-image",
+      "https://sandner.art/qwen-image-and-edit-local-gguf-generations-with-lightning/",
+      "https://github.com/QwenLM/Qwen-Image"
+    ],
+    "notes": "20B MMDiT with a 7B Qwen2.5-VL text encoder. The encoder is offloaded after prompt-encoding, so the Q4_K_M GGUF backbone (13.1GB) sustains ~14GB during denoising, validated on a 16GB RTX A4000. Full bf16 with the encoder resident is ~57GB (multi-GPU). Nunchaku SVDQuant 4-bit can offload to ~3GB VRAM, slowly. Apache-2.0. Sources: Qwen-Image HF card, city96 Qwen-Image GGUF, ComfyUI Qwen-Image tutorial, sandner.art GGUF benchmark."
+  }
+]

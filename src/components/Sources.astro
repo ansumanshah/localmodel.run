@@ -1,0 +1,79 @@
+---
+interface Props {
+  urls: string[];
+  title?: string;
+  compact?: boolean;
+}
+const { urls, title = "Sources", compact = false } = Astro.props;
+// Dedupe exact URLs, then label each source by host. When a host appears more
+// than once on the page (several github.com / huggingface.co / ollama.com links),
+// disambiguate with the shortest path prefix that tells them apart
+// (github.com/ggml-org vs github.com/ollama; ollama.com/library/llama3.1 vs
+// .../llama3.1/tags) so each source reads as its own thing instead of a wall of
+// identical "github.com" chips. We never collapse links: on a site where every
+// number is sourced, each source stays its own clickable, verifiable chip.
+// Sorting by label clusters same-host sources together.
+const seen = new Set<string>();
+const parsed = urls
+  .filter((u) => (seen.has(u) ? false : (seen.add(u), true)))
+  .map((u) => {
+    try {
+      const url = new URL(u);
+      return { url: u, host: url.hostname.replace(/^www\./, ""), segs: url.pathname.split("/").filter(Boolean) };
+    } catch (_e: unknown) {
+      return { url: u, host: u, segs: [] as string[] };
+    }
+  });
+
+const byHost = new Map<string, number[]>();
+parsed.forEach((p, i) => {
+  const g = byHost.get(p.host);
+  if (g) g.push(i);
+  else byHost.set(p.host, [i]);
+});
+
+const labels = parsed.map((p) => p.host);
+for (const [host, idxs] of byHost) {
+  if (idxs.length < 2) continue; // host is unique on the page -> keep the bare host
+  for (const i of idxs) {
+    const mine = parsed[i].segs;
+    let depth = 1;
+    while (depth <= mine.length) {
+      const pref = mine.slice(0, depth).join("/");
+      if (!idxs.some((j) => j !== i && parsed[j].segs.slice(0, depth).join("/") === pref)) break;
+      depth++;
+    }
+    const shown = mine.slice(0, Math.min(depth, mine.length)).join("/");
+    labels[i] = shown ? `${host}/${shown}` : host;
+  }
+}
+
+const items = parsed
+  .map((p, i) => ({ url: p.url, host: labels[i] }))
+  .sort((a, b) => a.host.localeCompare(b.host));
+---
+
+{items.length > 0 && (
+  <section class={compact ? "" : "mt-8"} aria-label={title}>
+    {!compact && <h2 id="sources" class="scroll-mt-20 font-mono text-[11px] uppercase tracking-widest text-[var(--brand-ink)]">{title}</h2>}
+    <ul class={`flex flex-wrap gap-2 ${compact ? "" : "mt-3"}`}>
+      {items.map((it) => (
+        <li class="min-w-0 max-w-full">
+          <a
+            href={it.url}
+            rel="noopener nofollow"
+            title={it.url}
+            aria-label={`Source: ${it.host}`}
+            class="inline-flex max-w-full items-center gap-1.5 rounded-md border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 opacity-70">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"></path>
+            </svg>
+            <span class="min-w-0 truncate">{it.host}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

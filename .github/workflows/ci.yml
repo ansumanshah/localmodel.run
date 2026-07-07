@@ -1,0 +1,105 @@
+name: CI
+
+# Typechecks, validates the dataset, and builds the whole site on every PR and
+# every push to main. Cloudflare deploys straight off main, so this is the gate
+# that catches a broken build or bad data before it ships.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".claude/**"
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+# A newer push to the same ref cancels the in-flight run — no stale builds queueing up.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Cache the resolved package store so installs are near-instant after the first run.
+      - name: Cache bun install
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Unit tests (compute/rig math)
+        run: bun test
+
+      - name: Validate dataset
+        run: bun run validate-data
+
+      - name: Typecheck
+        run: bun run check
+
+      - name: Build
+        run: bun run build
+
+      # Parse the built dist/ and fail on any broken internal link
+      # (orphan pages are reported but don't fail). The OSS Screaming-Frog stand-in.
+      - name: Audit internal links
+        run: bun scripts/audit-links.ts
+
+      # Headless phone-viewport render check on the built dist/. Runs at 360px,
+      # the mainstream Android floor (stricter than iPhone's 390px), and fails on
+      # horizontal overflow, a leaked desktop nav, console/page errors, non-200,
+      # or a blank page. Catches both the header `display` regression and the
+      # grid/flex `min-w-0` overflow class (a table pinning a grid item wider
+      # than its column on narrow screens).
+      - name: Cache Playwright browser
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          # Keyed on the playwright version (in package.json), not bun.lock, so an
+          # unrelated dep change does not bust the browser cache.
+          key: playwright-${{ runner.os }}-${{ hashFiles('package.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      # No --with-deps: ubuntu-latest already ships the OS libs Chromium needs,
+      # and --with-deps re-runs apt-get every build regardless of the binary cache.
+      - name: Install Playwright Chromium
+        run: bunx playwright install chromium
+
+      - name: Mobile render audit
+        env:
+          CONCURRENCY: 4
+          VIEWPORT: 360x800
+        run: |
+          bun run preview &
+          for i in $(seq 1 30); do curl -sf http://localhost:4321/ >/dev/null && break; sleep 1; done
+          bun run audit:mobile
+
+      - name: Upload mobile-audit failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-audit-failures
+          path: playwright-failures/
+          if-no-files-found: ignore
+
+      # Submit the freshly-built sitemap URLs to IndexNow (Bing/Yandex/Naver + the
+      # AI engines on the Bing index). Reads dist/ from disk: a datacenter IP
+      # fetching the public sitemap is blocked by CF Bot Fight Mode. Main pushes
+      # only, so PRs don't ping it. node has global fetch.
+      - name: Submit URLs to IndexNow
+        if: "github.ref == 'refs/heads/main' && github.event_name == 'push'"
+        run: node scripts/indexnow.mjs

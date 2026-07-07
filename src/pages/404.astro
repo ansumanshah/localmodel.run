@@ -1,0 +1,78 @@
+---
+import Base from "@/layouts/Base.astro";
+import { featuredModels, featuredDevices } from "@/lib/data";
+---
+
+<Base title="Not found · localmodel.run" description="That page does not exist. Pick a model or device to check local AI compatibility." path="/404" noindex={true}>
+  <section class="nf-shell" aria-label="Page not found">
+    <div class="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
+      <!-- Eyebrow -->
+      <p class="eyebrow justify-center stagger" style="--delay:0ms">
+        <span class="dot" aria-hidden="true"></span>
+        404 &middot; signal lost
+      </p>
+
+      <!-- Heading -->
+      <h1 class="mt-4 font-mono text-7xl font-bold tracking-tight text-foreground stagger" style="--delay:60ms">
+        4<span class="accent">0</span>4
+      </h1>
+
+      <p class="mt-4 text-base text-muted-foreground stagger" style="--delay:120ms">
+        That page does not exist. Try one of these instead.
+      </p>
+
+      <div class="wire mt-6 mb-6 stagger" style="--delay:160ms"></div>
+
+      <!-- Link panels -->
+      <div class="mt-6 grid gap-3 text-left sm:grid-cols-2 stagger" style="--delay:200ms">
+        <div class="panel p-4">
+          <div class="panel-head -mx-4 -mt-4 mb-3 rounded-t-[11px]">
+            <span class="panel-label">Models</span>
+          </div>
+          <ul class="space-y-1.5">
+            {featuredModels.slice(0, 4).map((m) => (
+              <li>
+                <a href={`/model/${m.id}`} class="text-sm text-[var(--brand-ink)] hover:underline">
+                  {m.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div class="panel p-4">
+          <div class="panel-head -mx-4 -mt-4 mb-3 rounded-t-[11px]">
+            <span class="panel-label">Devices</span>
+          </div>
+          <ul class="space-y-1.5">
+            {featuredDevices.slice(0, 4).map((d) => (
+              <li>
+                <a href={`/best-llm-for/${d.id}`} class="text-sm text-[var(--brand-ink)] hover:underline">
+                  {d.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <a
+        href="/"
+        class="mt-8 inline-block rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-[oklch(0.18_0.01_270)] stagger"
+        style="--delay:260ms"
+      >
+        Back home
+      </a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf-shell {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+  }
+</style>

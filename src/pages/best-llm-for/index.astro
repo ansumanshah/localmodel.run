@@ -1,0 +1,93 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { devices, categoryDevices, CATEGORY_LABEL, meta } from "@/lib/data";
+import { usableGb } from "@/lib/compute";
+import { breadcrumbLd, itemListLd, truncate } from "@/lib/seo";
+
+const groups = categoryDevices();
+const path = "/best-llm-for";
+const title = "Best local LLM for your device · localmodel.run";
+const description = truncate(
+  `Find the best local LLM for your exact hardware: ${devices.length} devices from 8 GB Macs to RTX 4090s to iPhones, each with a ranked model list, usable memory and the right tool.`,
+);
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Devices", url: path }], Astro.site!.href),
+  itemListLd({ name: "Devices", items: devices.map((d) => ({ name: d.name, url: `/best-llm-for/${d.id}` })), origin: Astro.site!.href }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <!-- Intro band: themed but no grid-lines/scanline (not a landing hero) -->
+  <section class="hub-intro relative overflow-hidden border-b border-border/60">
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Devices", url: path }]} />
+
+      <p class="eyebrow mt-5 sm:mt-6">
+        <span class="dot" aria-hidden="true"></span>
+        Hardware index &middot; {devices.length} devices
+      </p>
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+        Best local LLM for your <span class="accent">device</span>
+      </h1>
+      <p class="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
+        Pick your hardware to get a ranked list of models it can actually run, with the right tool per platform. Validated {meta.updated}.
+      </p>
+
+      <div class="wire mt-6 max-w-xs" aria-hidden="true"></div>
+
+      <dl class="stat-grid mt-4">
+        <div class="stat">
+          <dt class="stat-label">Devices</dt>
+          <dd class="stat-val">{devices.length}</dd>
+        </div>
+        <div class="stat">
+          <dt class="stat-label">Categories</dt>
+          <dd class="stat-val">{Object.keys(groups).length}</dd>
+        </div>
+        <div class="stat">
+          <dt class="stat-label">Cost</dt>
+          <dd class="stat-val stat-yes">Free</dd>
+        </div>
+      </dl>
+
+      <p class="mt-5 text-sm text-muted-foreground">
+        Or browse by <a href="/best-llm-for-ram" class="text-[var(--brand-ink)] hover:underline">memory budget</a>
+        or <a href="/family" class="text-[var(--brand-ink)] hover:underline">model family</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Device category groups -->
+  <div class="mx-auto max-w-5xl px-4 py-10 space-y-10">
+    {Object.entries(groups).map(([cat, list]) => (
+      <section>
+        <h2 class="section-label mb-4">{CATEGORY_LABEL[cat] ?? cat}</h2>
+        <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {list.map((d) => (
+            <li>
+              <a
+                href={`/best-llm-for/${d.id}`}
+                class="panel card-seam group flex items-center justify-between px-4 py-3 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+              >
+                <div class="flex min-w-0 items-center gap-3">
+                  <EntityIcon device={d.category} size={18} class="text-muted-foreground shrink-0" />
+                  <div class="min-w-0">
+                    <div class="truncate text-sm font-medium">{d.name}</div>
+                    <div class="mt-0.5 flex items-center gap-2">
+                      <span class="stat-label">{d.memory_gb} GB {d.memory_type}</span>
+                      <span class="stat-label" aria-hidden="true">&middot;</span>
+                      <span class="stat-label">~{usableGb(d)} GB usable</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="text-[var(--brand-ink)] opacity-60 group-hover:opacity-100 transition-opacity" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</Base>

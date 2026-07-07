@@ -1,0 +1,212 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Sources from "@/components/Sources.astro";
+import { allModels, devices, meta, dedupeSources } from "@/lib/data";
+import { BPW, DEFAULT_KWH_USD, DEFAULT_CLOUD_USD_PER_MTOK } from "@/lib/compute";
+import { breadcrumbLd, datasetLd, faqLd, truncate, type FaqItem } from "@/lib/seo";
+
+const path = "/methodology";
+const title = "Methodology: how we estimate local model memory · localmodel.run";
+const description = truncate(
+  "How localmodel.run calculates whether a model fits: bits-per-weight from llama.cpp, KV cache with GQA, runtime overhead, and realistic usable memory per device. Image, video, and audio models use sourced peak-VRAM anchors with a runtime gate. Every number is sourced.",
+);
+
+// Aggregate all primary sources used across the dataset.
+const allSources = dedupeSources(
+  meta.sources,
+  ...allModels.map((m) => m.sources),
+  ...devices.map((d) => d.sources),
+).slice(0, 60);
+
+const faqs: FaqItem[] = [
+  { q: "Are these numbers exact?", a: "They are validated estimates. Quant sizes are read from real GGUF files on Ollama and HuggingFace, so weights are accurate. KV cache and overhead are estimated, so total memory can vary ±15% with context length and runtime." },
+  { q: "Why does usable memory differ from total memory?", a: "macOS reserves part of unified memory for the OS (the Metal working-set limit is ~66% under 64 GB, ~75% at or above). GPUs lose ~1 GB of VRAM to the driver and display. CPU-only machines need headroom for the OS and apps." },
+  { q: "How often is the data updated?", a: "The dataset is reviewed and updated periodically. Last validated " + meta.updated + "." },
+];
+
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Methodology", url: path }], Astro.site!.href),
+  datasetLd({ origin: Astro.site!.href, dateModified: meta.updated, sources: allSources }),
+  faqLd(faqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <article class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Methodology", url: path }]} />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Formula v{meta.formula_version} &middot; validated {meta.updated}</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Methodology</h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Here is exactly how the math works, with sources. Check our numbers against the GGUF repos yourself if you want.
+    </p>
+
+    <div class="wire mt-6" aria-hidden="true"></div>
+
+    <section class="mt-8 space-y-8">
+
+      <div>
+        <p class="stat-label">Step 01</p>
+        <h2 class="mt-1 text-xl font-semibold">Weights memory</h2>
+        <p class="mt-2 text-muted-foreground">
+          We prefer the <strong class="text-foreground">measured on-disk size</strong> of each GGUF file from Ollama and HuggingFace repos (bartowski, unsloth). When a quant is not published, we estimate it from effective bits-per-weight:
+        </p>
+        <div class="panel mt-3 overflow-hidden">
+          <div class="panel-head"><span class="panel-label">Formula</span><span class="panel-label">weights</span></div>
+          <pre class="overflow-x-auto p-4 font-mono text-sm">weights_GB = params_B &times; bpw / 8</pre>
+        </div>
+        <p class="mt-3 text-muted-foreground">Effective bits-per-weight (from the llama.cpp quantize benchmark table):</p>
+        <ul class="mt-2 grid grid-cols-3 gap-2 text-sm">
+          <li class="panel p-3">
+            <div class="stat-label">Q4_K_M</div>
+            <div class="stat-val mt-1.5 text-base">{BPW.q4_k_m} <span class="text-xs font-normal text-muted-foreground">bpw</span></div>
+          </li>
+          <li class="panel p-3">
+            <div class="stat-label">Q8_0</div>
+            <div class="stat-val mt-1.5 text-base">{BPW.q8_0} <span class="text-xs font-normal text-muted-foreground">bpw</span></div>
+          </li>
+          <li class="panel p-3">
+            <div class="stat-label">FP16</div>
+            <div class="stat-val mt-1.5 text-base">{BPW.fp16} <span class="text-xs font-normal text-muted-foreground">bpw</span></div>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="stat-label">Step 02</p>
+        <h2 class="mt-1 text-xl font-semibold">KV cache</h2>
+        <p class="mt-2 text-muted-foreground">
+          Context adds memory on top of weights. The full cost is
+          <code class="code">2 &times; n_layers &times; n_kv_heads &times; head_dim &times; context &times; bytes</code>.
+          Most modern models use Grouped Query Attention. Llama 3.1 8B has 8 KV heads instead of 32 query heads, so the KV cost is about 4x smaller than a naive calculation. We approximate this with a sqrt(params) scaling calibrated to real GQA models, rather than per-model head counts, so it is an estimate; exact cost needs layer details not stored in the dataset.
+        </p>
+      </div>
+
+      <div>
+        <p class="stat-label">Step 03</p>
+        <h2 class="mt-1 text-xl font-semibold">Mixture-of-Experts</h2>
+        <p class="mt-2 text-muted-foreground">
+          MoE models (like Qwen3 30B-A3B) activate only a few billion parameters per token, so they run <em>fast</em>. But all experts must be held in memory, so memory tracks <strong class="text-foreground">total</strong> parameters, not active ones. We size MoE models by total params, a point many calculators get wrong.
+        </p>
+      </div>
+
+      <div>
+        <p class="stat-label">Step 04</p>
+        <h2 class="mt-1 text-xl font-semibold">Usable memory</h2>
+        <p class="mt-2 text-muted-foreground">
+          We compare the model's need to the memory you can actually give it:
+        </p>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+          <li><strong class="text-foreground">Apple Silicon:</strong> unified memory, ~66% usable under 64 GB and ~75% at or above (Metal recommendedMaxWorkingSetSize).</li>
+          <li><strong class="text-foreground">Discrete GPU:</strong> VRAM minus ~1 GB for driver and display.</li>
+          <li><strong class="text-foreground">CPU-only:</strong> ~60% of RAM, leaving room for the OS and apps.</li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="stat-label">Step 05</p>
+        <h2 class="mt-1 text-xl font-semibold">The verdict</h2>
+        <p class="mt-2 text-muted-foreground">
+          We pick the highest-quality quant that fits in usable memory. <span style="color:var(--color-verdict-yes)">Yes</span> means it fits with headroom, <span style="color:var(--color-verdict-tight)">tight</span> means it fits but barely, <span style="color:var(--color-verdict-no)">no</span> means it does not fit even at Q4_K_M. These are estimates, always verify before a large download.
+        </p>
+      </div>
+
+      <div>
+        <p class="stat-label">Step 06</p>
+        <h2 class="mt-1 text-xl font-semibold">Speed estimate (tokens/sec)</h2>
+        <p class="mt-2 text-muted-foreground">
+          Local generation is memory-bandwidth-bound: each token reads the model's weights once. So for
+          dense models we estimate <span class="font-mono text-sm">tok/s &asymp; efficiency &times; bandwidth &divide; weights-GB</span>,
+          with a device-class efficiency factor (Apple unified ~0.8, discrete GPU ~0.65, CPU and phones ~0.5)
+          sanity-checked against published llama.cpp and MLX benchmarks. Memory bandwidth is sourced per
+          device from Apple, NVIDIA and AMD spec sheets. It is an estimate, marked "est." wherever it appears.
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+          We do not put a tok/s number on Mixture-of-Experts models: only the active experts are read per
+          token, so this bound overestimates them. Their pages show the active-parameter count instead (a
+          30B-A3B activates ~3.3B params per token, so it generates faster than its total size suggests).
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+          Speed also drops with context. Every token re-reads the KV cache, so the per-token traffic is
+          weights plus KV. At a long context the KV can dwarf the weights, which is why a model page shows
+          generation falling to a fraction of its short-context speed at 128k. The retention ratio,
+          weights &divide; (weights + KV), is the same on any device, so we show it without one.
+        </p>
+      </div>
+
+      <div>
+        <p class="stat-label">Step 07</p>
+        <h2 class="mt-1 text-xl font-semibold">Running cost, power and offload</h2>
+        <p class="mt-2 text-muted-foreground">
+          Each device carries a sourced TDP (peak watts) and street price. From the estimated tok/s we work
+          out the electricity to generate a million tokens:
+          <span class="font-mono text-sm">cost = (TDP &divide; 1000) &times; hours &times; $/kWh</span>, at an
+          assumed <strong class="text-foreground">${DEFAULT_KWH_USD}/kWh</strong> (near the US average). TDP is
+          the peak draw, so this is an upper bound. The breakeven figure divides the device price by the
+          per-million-token saving versus a hosted API assumed at
+          <strong class="text-foreground">${DEFAULT_CLOUD_USD_PER_MTOK}/million tokens</strong>; both
+          assumptions are stated so you can rescale them. The takeaway is usually that local hardware is a
+          fixed cost, not a per-token one.
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+          When a model is too big for a discrete GPU's VRAM, llama.cpp can keep some layers on the card and
+          stream the rest from system RAM. We estimate that offloaded speed by splitting the per-token read:
+          the resident fraction at VRAM bandwidth, the spilled fraction at a conservative
+          <strong class="text-foreground">~60 GB/s</strong> system-RAM bandwidth (deliberately low so we never
+          overstate it). It is shown only on discrete GPUs, where there is a faster tier to fall back from;
+          Apple unified memory has none, so an oversize model there simply does not fit.
+        </p>
+      </div>
+
+      <div>
+        <p class="stat-label">Step 08</p>
+        <h2 class="mt-1 text-xl font-semibold">Leaderboard scores</h2>
+        <p class="mt-2 text-muted-foreground">
+          The <a href="/leaderboard" class="underline">leaderboard</a> ranks models on three sourced,
+          third-party benchmarks, never our own numbers:
+        </p>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+          <li><strong class="text-foreground">Coding</strong> is the Aider polyglot benchmark (share of 225 Exercism exercises solved across six languages), read from the Aider repo's published leaderboard data.</li>
+          <li><strong class="text-foreground">Tool use</strong> is the Berkeley Function-Calling Leaderboard (BFCL) Overall Acc, the share of tasks where the model picks the right tool with the right arguments. Where a model has a native function-calling (FC) result we use that, otherwise its prompted result. It is the open, sourced proxy for how agent-ready a model is.</li>
+          <li><strong class="text-foreground">Chat</strong> is LMArena (Chatbot Arena) Elo from blind human votes.</li>
+        </ul>
+        <p class="mt-2 text-sm text-muted-foreground">
+          We list a model on a board only after verifying its score against the canonical leaderboard for that
+          exact model (same family, size, variant and version), so coverage is partial by design and a number is
+          never estimated. Scores are for the full-precision model, not a specific quant, and they drift, so we
+          re-check them. Whole-task agent leaderboards such as Agent Arena are still led by frontier cloud
+          models with open-weight models well behind; we cite them for context but rank on the open, sourced
+          boards above.
+        </p>
+      </div>
+
+    </section>
+
+    <div class="wire mt-10" aria-hidden="true"></div>
+
+    <section class="mt-8">
+      <p class="stat-label">Dataset</p>
+      <h2 id="sources" class="mt-1 scroll-mt-20 text-xl font-semibold">Data sources</h2>
+      <p class="mt-2 text-sm text-muted-foreground">
+        {allModels.length} models and {devices.length} devices, validated against {allSources.length}+ primary sources: Ollama library pages, HuggingFace model cards and GGUF repositories, vendor documentation (Stability AI, Coqui, OpenAI Whisper), the llama.cpp documentation, and Apple / NVIDIA / AMD spec pages.
+      </p>
+      <Sources urls={allSources} title="All primary sources" />
+    </section>
+
+    <div class="wire mt-10" aria-hidden="true"></div>
+
+    <section class="mt-8">
+      <p class="stat-label">FAQ</p>
+      <h2 class="mt-1 text-xl font-semibold">Common questions</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </article>
+</Base>

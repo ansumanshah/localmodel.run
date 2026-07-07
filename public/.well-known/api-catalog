@@ -1,0 +1,20 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://localmodel.run/",
+      "service-desc": [
+        { "href": "https://localmodel.run/api/index.json", "type": "application/json", "title": "localmodel.run data API catalog" }
+      ],
+      "service-doc": [
+        { "href": "https://localmodel.run/developers", "type": "text/html", "title": "API and agents documentation" }
+      ],
+      "status": [
+        { "href": "https://localmodel.run/version.json", "type": "application/json", "title": "Build and data version" }
+      ],
+      "describedby": [
+        { "href": "https://localmodel.run/llms.txt", "type": "text/plain", "title": "llms.txt" },
+        { "href": "https://localmodel.run/.well-known/agent.json", "type": "application/json", "title": "Agent card" }
+      ]
+    }
+  ]
+}

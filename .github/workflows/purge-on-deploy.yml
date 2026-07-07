@@ -1,0 +1,54 @@
+name: Purge CF cache after deploy
+
+# Cloudflare Pages reports a "Cloudflare Pages" GitHub Check Run when it finishes
+# deploying a commit. We trigger on that check completing successfully for main,
+# then purge the whole edge cache so the new build is live immediately — instead
+# of waiting for the short s-maxage to expire. Purges are free + unlimited on CF.
+#
+# Why purge_everything (not selective): on this site one model/device change
+# recomputes rankings across thousands of pages, so "changed pages" is rarely a
+# small set. Everything-purge is simpler, correct, and the edge re-warms in
+# seconds. workflow_dispatch is kept for manual purges / testing.
+
+on:
+  check_run:
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: purge-cf
+  cancel-in-progress: false
+
+jobs:
+  purge:
+    # Only on a successful PRODUCTION (main) Cloudflare Pages deploy, or a manual run.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.check_run.name == 'Cloudflare Pages' &&
+       github.event.check_run.conclusion == 'success' &&
+       github.event.check_run.check_suite.head_branch == 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge everything (retry up to 3x)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          api="https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache"
+          for a in 1 2 3; do
+            r=$(curl -s -X POST "$api" \
+                  -H "Authorization: Bearer $CF_TOKEN" \
+                  -H "Content-Type: application/json" \
+                  --data '{"purge_everything":true}')
+            if echo "$r" | jq -e '.success' >/dev/null; then
+              echo "✓ Cache purged."
+              exit 0
+            fi
+            echo "purge attempt $a failed: $(echo "$r" | jq -c '.errors')"
+            sleep 5
+          done
+          echo "Purge failed after 3 attempts." >&2
+          exit 1

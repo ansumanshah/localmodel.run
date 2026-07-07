@@ -1,0 +1,25 @@
+---
+interface Props {
+  neededGb: number;
+  usableGb: number;
+  fits: boolean;
+}
+const { neededGb, usableGb, fits } = Astro.props;
+const max = Math.max(neededGb, usableGb) * 1.08;
+const needPct = Math.min(100, (neededGb / max) * 100);
+const usablePct = Math.min(100, (usableGb / max) * 100);
+// Anchor the floating label inward near the edges so it never clips.
+const edge = usablePct < 15 ? "start" : usablePct > 85 ? "end" : undefined;
+const fill = fits ? "var(--color-verdict-yes)" : "var(--color-verdict-no)";
+---
+
+<div class="space-y-2.5">
+  <div class="gauge mt-5" role="img" aria-label={`Memory: needs ~${neededGb} GB, device usable ~${usableGb} GB`}>
+    <div class="gauge-fill bar-fill" style={`transform:scaleX(${needPct / 100});background:color-mix(in oklch, ${fill} 88%, transparent)`}></div>
+    <div class="gauge-mark" data-label={`usable ~${usableGb} GB`} data-edge={edge} style={`--at:${usablePct}%`} aria-hidden="true"></div>
+  </div>
+  <div class="flex justify-between text-xs text-muted-foreground">
+    <span>Needs <span class="font-medium text-foreground">~<span class="num">{neededGb}</span>&nbsp;GB</span></span>
+    <span>Device usable <span class="font-medium text-foreground">~<span class="num">{usableGb}</span>&nbsp;GB</span></span>
+  </div>
+</div>

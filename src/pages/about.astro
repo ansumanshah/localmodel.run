@@ -1,0 +1,79 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { meta } from "@/lib/data";
+import { breadcrumbLd, techArticleLd, truncate, type JsonLd } from "@/lib/seo";
+
+const path = "/about";
+const title = "About localmodel.run: methodology, accuracy and data sources";
+const description = truncate(
+  "localmodel.run is built by Ansuman Shah, an indie dev who kept Googling whether a model would fit in RAM. Text model figures are validated against GGUF repos and vendor specs; image, video, and audio figures are sourced from vendor specs and benchmarks.",
+);
+
+const personLd: JsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Ansuman Shah",
+  url: "https://github.com/ansumanshah",
+  jobTitle: "Software engineer",
+  description:
+    "Indie developer who has spent over a decade building web and mobile apps at scale, now building local-AI and developer tools under the NoodleApps name.",
+  sameAs: ["https://github.com/ansumanshah", "https://x.com/AnsumanShah"],
+};
+
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "About", url: path }], Astro.site!.href),
+  personLd,
+  techArticleLd({
+    headline: "About localmodel.run",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <article class="mx-auto max-w-2xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "About", url: path }]} />
+
+    <p class="eyebrow mb-3">
+      <span class="dot" aria-hidden="true"></span>
+      localmodel.run
+    </p>
+    <h1 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">About localmodel.run</h1>
+
+    <div class="mt-6 space-y-4 text-muted-foreground">
+      <p>
+        I kept Googling "can I run Llama 3 70B on a 16 GB Mac" and getting Reddit threads with conflicting answers and no math shown. So I built a calculator that does the actual memory math, cites its sources, and gives a straight yes or no.
+      </p>
+      <p>
+        The site covers Mac, Windows, Linux, iOS, and Android. It recommends the right tool per platform because the wrong one cuts your throughput in half.
+      </p>
+    </div>
+
+    <hr class="wire my-6" />
+
+    <p class="stat-label mb-3">Data sources</p>
+    <div class="space-y-4 text-muted-foreground">
+      <p>
+        Text model figures are validated against real GGUF files on the <a href="https://ollama.com/library" rel="noopener nofollow" class="underline">Ollama library</a> and HuggingFace repos. Image, video, and audio figures are sourced from vendor specs and benchmarks. The formula is public. You can check it on the <a href="/methodology" class="underline">methodology page</a>.
+      </p>
+    </div>
+
+    <hr class="wire my-6" />
+
+    <p class="stat-label mb-3">Builder</p>
+    <div class="panel p-5">
+      <p class="text-muted-foreground">
+        Built by <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline text-foreground font-medium">Ansuman Shah</a>, an indie dev in Bengaluru. A decade of building web and mobile apps at scale, and I was still Googling whether a model would fit in my RAM. So I built the tool that answers that and shows every source. I make small, focused tools under the NoodleApps name. Find me on <a href="https://x.com/AnsumanShah" rel="noopener nofollow" class="underline">X</a> or <a href="https://github.com/ansumanshah" rel="noopener nofollow" class="underline">GitHub</a>.
+      </p>
+    </div>
+
+    <p class="mt-6 text-sm text-muted-foreground">
+      Data last validated {meta.updated}. Figures are estimates, not guarantees. Always verify before a large download.
+    </p>
+  </article>
+</Base>

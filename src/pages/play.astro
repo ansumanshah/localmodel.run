@@ -1,0 +1,694 @@
+---
+import Base from "@/layouts/Base.astro";
+import { buildGamePool } from "@/lib/game";
+import { allModels, devices } from "@/lib/data";
+import { faqLd, type FaqItem } from "@/lib/seo";
+
+// "Can it run?" — the daily fit quiz. Eight real model x device pairs from the
+// catalog; the player calls each one, the engine reveals the real verdict and
+// numbers. Fully static: the pool is compiled here, the client only picks the
+// day's 8 (UTC-seeded, same set for everyone) and keeps score in localStorage.
+const pool = buildGamePool();
+const poolJson = JSON.stringify(pool).replace(/</g, "\\u003c");
+
+const path = "/play";
+const title = "Can it run? The daily local AI quiz · localmodel.run";
+const description = `Eight real model and device pairs a day. Call whether each model fits, then see the real memory math. Same puzzle for everyone, new set at midnight UTC. Drawn from ${allModels.length} models and ${devices.length} devices, every number sourced.`;
+
+const faqs: FaqItem[] = [
+  {
+    q: "How does the Can it run? quiz work?",
+    a: "Each day you get the same 8 real model and device pairs as everyone else. For each pair you call whether the model fits in the device's memory, assuming the standard 4-bit download (Q4_K_M). The reveal shows the engine's actual verdict and numbers, with a link to the full breakdown.",
+  },
+  {
+    q: "Where do the answers come from?",
+    a: "From the same memory engine as the rest of the site: measured download sizes plus computed overhead, against realistic usable memory per device. Nothing in the quiz is invented; every round links to its sourced pair page.",
+  },
+];
+const jsonLd = [faqLd(faqs)];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+  <section class="mx-auto max-w-3xl px-4 py-10">
+    <p class="eyebrow">
+      <span class="dot" aria-hidden="true"></span>
+      Daily game &middot; <span id="play-num" class="num">#</span>
+    </p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Can it run?</h1>
+    <p class="mt-3 text-pretty text-muted-foreground">
+      Eight real pairs a day, the same for everyone. Does the model fit?
+    </p>
+
+    <!-- The game instrument -->
+    <div class="panel mt-6" id="play-panel" data-pool-size={pool.length}>
+      <div class="panel-head">
+        <span class="panel-label inline-flex items-center gap-2.5">
+          <span id="play-progress">Round 1 / 8</span>
+          <span class="play-ticks" id="play-ticks" aria-hidden="true"></span>
+        </span>
+        <span class="panel-label" id="play-score">Score 0</span>
+      </div>
+
+      <noscript>
+        <p class="p-5 text-sm text-muted-foreground">
+          The quiz needs JavaScript. <a href="/can-i-run" class="underline">Browse all models</a> instead.
+        </p>
+      </noscript>
+
+      <!-- Question view -->
+      <div class="p-5 sm:p-6" id="play-q">
+        {/* tabindex=-1: focused per round so AT announces it; outline-none since
+            it's a read target, not a control (the ring reads as a stray highlight) */}
+        <h2 class="text-2xl outline-none sm:text-3xl" id="play-model" tabindex="-1">&nbsp;</h2>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span class="tag" id="play-params">&nbsp;</span>
+        </div>
+        <p class="mt-4 text-sm text-muted-foreground">on</p>
+        <h3 class="mt-1 text-xl sm:text-2xl" id="play-device" style="font-family:var(--font-display);font-weight:400;font-synthesis:none">&nbsp;</h3>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span class="tag" id="play-mem">&nbsp;</span>
+        </div>
+
+        {/* Equal-width pair: the two calls carry equal weight, so they get equal ink */}
+        <div class="mt-7 grid max-w-md grid-cols-2 gap-3" id="play-fit">
+          <button type="button" class="verdict-stamp play-choice justify-center" id="play-yes" style="color:var(--verdict-yes-fg)">
+            Runs
+          </button>
+          <button type="button" class="verdict-stamp play-choice justify-center" id="play-no" style="color:var(--verdict-no-fg)">
+            Doesn't run
+          </button>
+        </div>
+        <div class="mt-7 hidden max-w-md grid-cols-2 gap-2.5 sm:grid-cols-4" id="play-gb"></div>
+        <p class="mt-3 hidden font-mono text-[11px] uppercase tracking-wider text-muted-foreground sm:block" id="play-hint">Y / N</p>
+      </div>
+
+      <!-- Reveal view -->
+      <div class="hidden p-5 sm:p-6" id="play-reveal" aria-live="polite">
+        <span class="verdict-stamp" id="reveal-stamp"></span>
+        <span class="ml-2 font-mono text-sm" id="reveal-mark"></span>
+        <p class="mt-4 text-base"><span class="num font-semibold" id="reveal-needed"></span><span class="text-muted-foreground"> needed &middot; </span><span class="num" id="reveal-usable"></span><span class="text-muted-foreground"> usable</span></p>
+        <p class="mt-2 text-sm text-muted-foreground" id="reveal-note"></p>
+        <div class="mt-5 flex flex-wrap items-center gap-3">
+          <button type="button" class="btn btn--primary" id="play-next">Next</button>
+          <a href="/" target="_blank" rel="noopener" class="text-sm text-[var(--brand-ink)] hover:underline" id="reveal-link">The full math &rarr;</a>
+        </div>
+      </div>
+
+      <!-- End view -->
+      <div class="hidden p-5 sm:p-6" id="play-end" aria-live="polite">
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Result</p>
+        <p class="mt-3 text-4xl outline-none" id="end-score-line" tabindex="-1" style="font-family:var(--font-display);font-weight:400;font-synthesis:none"><span class="num" id="end-score"></span><span class="text-muted-foreground text-2xl" id="end-total">/8</span></p>
+        <p class="mt-1 text-sm text-muted-foreground" id="end-grade"></p>
+        <div class="mt-4 flex gap-1.5" id="end-grid" aria-hidden="true"></div>
+        <p class="mt-3 font-mono text-xs uppercase tracking-wider text-muted-foreground" id="end-streak"></p>
+        <p class="mt-1.5 font-mono text-xs uppercase tracking-wider text-muted-foreground" id="end-stats"></p>
+        <div class="mt-5 flex flex-wrap gap-2.5">
+          <button type="button" class="btn btn--primary" id="end-copy">Copy result</button>
+          <button type="button" class="btn hidden" id="end-share">Share</button>
+          <a href="#" rel="noopener noreferrer" target="_blank" class="btn" id="end-x">Post on X</a>
+          <button type="button" class="btn" id="end-card">PNG card</button>
+          <button type="button" class="btn" id="end-practice">Practice</button>
+          <button type="button" class="btn" id="end-gb">Guess the GB</button>
+        </div>
+        <p class="mt-5 text-sm text-muted-foreground">
+          Next set in <span class="num" id="end-count">--:--:--</span> &middot;
+          <a href="/can-i-run" class="text-[var(--brand-ink)] hover:underline">check your machine &rarr;</a>
+        </p>
+      </div>
+    </div>
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Standard 4-bit download (Q4_K_M) plus overhead, against realistic usable memory.
+      Estimates, not guarantees: <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </section>
+</Base>
+
+<script type="application/json" id="play-pool" set:html={poolJson} />
+
+<script>
+  interface Round {
+    m: string;
+    p: string;
+    d: string;
+    mem: number;
+    g: number;
+    u: number;
+    r: 0 | 1;
+    v: "yes" | "tight" | "no";
+    url: string;
+    t: "e" | "m" | "h";
+    n?: string;
+    moe?: 1;
+  }
+  interface SavedState {
+    lastDone: number;
+    score: number;
+    grid: string;
+    streak: number;
+    best: number;
+  }
+  // Lifetime fit-call stats ([correct, total] per dimension). GB-guess rounds
+  // are a different skill and stay out of these numbers.
+  interface Stats {
+    calls: number;
+    correct: number;
+    e: [number, number];
+    m: [number, number];
+    h: [number, number];
+    moe: [number, number];
+    games: number;
+  }
+
+  const STORE = "lmr-play-v1";
+  const STATS = "lmr-play-stats-v1";
+  // Puzzle #1 = 2026-07-07 UTC (launch day).
+  const START_DAY = Math.floor(Date.UTC(2026, 6, 7) / 864e5);
+
+  const STAMP: Record<string, { label: string; color: string }> = {
+    yes: { label: "Yes, it runs", color: "var(--verdict-yes-fg)" },
+    tight: { label: "Yes, but tight", color: "var(--verdict-tight-fg)" },
+    no: { label: "No, not enough memory", color: "var(--verdict-no-fg)" },
+  };
+
+  function mulberry32(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a |= 0;
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function seededShuffle<T>(arr: T[], rand: () => number): T[] {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // The day's 8: 2 easy / 3 medium / 3 hard, no repeated model or device,
+  // neither answer more than 5 times. Deterministic per UTC day.
+  function dailySet(pool: Round[], day: number): Round[] {
+    const rand = mulberry32(day);
+    const shuffled = seededShuffle(pool, rand);
+    const need: Record<string, number> = { e: 2, m: 3, h: 3 };
+    const usedM = new Set<string>();
+    const usedD = new Set<string>();
+    let yes = 0;
+    let no = 0;
+    const picked: Round[] = [];
+    const take = (r: Round) => {
+      picked.push(r);
+      usedM.add(r.m);
+      usedD.add(r.d);
+      r.r ? yes++ : no++;
+    };
+    for (const r of shuffled) {
+      if (picked.length === 8) break;
+      if (need[r.t] <= 0 || usedM.has(r.m) || usedD.has(r.d)) continue;
+      if ((r.r && yes >= 5) || (!r.r && no >= 5)) continue;
+      need[r.t]--;
+      take(r);
+    }
+    // Safety fill (tiny pools only): relax the tier constraint.
+    for (const r of shuffled) {
+      if (picked.length === 8) break;
+      if (usedM.has(r.m) || usedD.has(r.d)) continue;
+      if ((r.r && yes >= 5) || (!r.r && no >= 5)) continue;
+      take(r);
+    }
+    return seededShuffle(picked, rand);
+  }
+
+  function loadStats(): Stats {
+    try {
+      const s = JSON.parse(localStorage.getItem(STATS) || "") as Stats;
+      if (typeof s.calls === "number" && Array.isArray(s.e) && Array.isArray(s.moe)) return s;
+    } catch {
+      /* fresh or corrupt: start over */
+    }
+    return { calls: 0, correct: 0, e: [0, 0], m: [0, 0], h: [0, 0], moe: [0, 0], games: 0 };
+  }
+  function saveStats(s: Stats): void {
+    try {
+      localStorage.setItem(STATS, JSON.stringify(s));
+    } catch {
+      /* private mode */
+    }
+  }
+  function recordCall(r: Round, correct: boolean): void {
+    const s = loadStats();
+    s.calls++;
+    if (correct) s.correct++;
+    const tier = s[r.t];
+    tier[1]++;
+    if (correct) tier[0]++;
+    if (r.moe) {
+      s.moe[1]++;
+      if (correct) s.moe[0]++;
+    }
+    saveStats(s);
+  }
+
+  const gradeOf = (score: number) =>
+    score === 8
+      ? "Perfectly calibrated."
+      : score >= 6
+        ? "Well calibrated."
+        : score >= 4
+          ? "Drifting. Recalibrate tomorrow."
+          : "Out of calibration.";
+
+  function loadState(): SavedState | null {
+    try {
+      const raw = localStorage.getItem(STORE);
+      if (!raw) return null;
+      const s = JSON.parse(raw) as SavedState;
+      // Shape guard: a corrupt or future-schema value must fall back to a
+      // fresh game, not strand the player on a blank panel.
+      if (
+        typeof s.lastDone !== "number" ||
+        typeof s.score !== "number" ||
+        typeof s.grid !== "string" ||
+        typeof s.streak !== "number" ||
+        typeof s.best !== "number"
+      )
+        return null;
+      return s;
+    } catch {
+      return null;
+    }
+  }
+
+  function initPlay() {
+    const panel = document.getElementById("play-panel");
+    if (!panel || panel.dataset.bound) return;
+    panel.dataset.bound = "1";
+
+    const poolEl = document.getElementById("play-pool");
+    if (!poolEl?.textContent) return;
+    const pool = JSON.parse(poolEl.textContent) as Round[];
+
+    const day = Math.floor(Date.now() / 864e5);
+    const num = Math.max(1, day - START_DAY + 1);
+    const rounds = dailySet(pool, day);
+
+    const $ = (id: string) => document.getElementById(id) as HTMLElement;
+    $("play-num").textContent = `#${num}`;
+
+    let idx = 0;
+    let score = 0;
+    let marks = "";
+    let answered = false;
+
+    // Practice modes: endless random rounds after the daily is done. No streak,
+    // no daily storage, no grid; "fit" replays the yes/no call, "gb" asks for
+    // the actual memory figure from four options.
+    let mode: "daily" | "fit" | "gb" = "daily";
+    let pQueue: Round[] = [];
+    let pScore = 0;
+    let pTotal = 0;
+    const nextPracticeRound = (): Round => {
+      if (!pQueue.length) pQueue = pool.slice().sort(() => Math.random() - 0.5);
+      return pQueue.pop() as Round;
+    };
+    let current: Round;
+    let gbAnswer = "";
+    let lastState: SavedState | null = null;
+    const fmtGb = (v: number) => (v >= 10 ? String(Math.round(v)) : String(Math.round(v * 10) / 10));
+
+    // Shareable score card: the day's result on the instrument plate, drawn
+    // from the saved state (real numbers only), downloaded as a PNG.
+    const drawQuizCard = async (state: SavedState) => {
+      await document.fonts?.ready;
+      const DISPLAY = '"Fjalla One", "Avenir Next Condensed", "Arial Narrow", sans-serif';
+      const MONO = '"JetBrains Mono Variable", ui-monospace, Menlo, monospace';
+      const W = 1200;
+      const H = 630;
+      const scale = 2;
+      const c = document.createElement("canvas");
+      c.width = W * scale;
+      c.height = H * scale;
+      const x = c.getContext("2d");
+      if (!x) return;
+      x.scale(scale, scale);
+      const rr = (rx: number, ry: number, rw: number, rh: number, rad: number) => {
+        x.beginPath();
+        x.moveTo(rx + rad, ry);
+        x.arcTo(rx + rw, ry, rx + rw, ry + rh, rad);
+        x.arcTo(rx + rw, ry + rh, rx, ry + rh, rad);
+        x.arcTo(rx, ry + rh, rx, ry, rad);
+        x.arcTo(rx, ry, rx + rw, ry, rad);
+        x.closePath();
+      };
+      const g = x.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#1c1f24");
+      g.addColorStop(1, "#15171a");
+      rr(0, 0, W, H, 16);
+      x.fillStyle = g;
+      x.fill();
+      const sh = x.createLinearGradient(0, 0, 0, H * 0.3);
+      sh.addColorStop(0, "rgba(237,239,242,0.06)");
+      sh.addColorStop(1, "rgba(237,239,242,0)");
+      rr(0, 0, W, H, 16);
+      x.fillStyle = sh;
+      x.fill();
+      const pad = 72;
+      x.textBaseline = "alphabetic";
+      x.fillStyle = "rgba(255,255,255,0.72)";
+      x.font = "600 24px " + MONO;
+      x.fillText(`CAN IT RUN? · PUZZLE #${num}`, pad, pad + 10);
+      const brand = "localmodel.run";
+      x.fillText(brand, W - pad - x.measureText(brand).width, pad + 10);
+      // The score, big.
+      x.fillStyle = "#fff";
+      x.font = "400 170px " + DISPLAY;
+      const scoreStr = String(state.score);
+      x.fillText(scoreStr, pad, pad + 240);
+      const sw = x.measureText(scoreStr).width;
+      x.fillStyle = "rgba(255,255,255,0.55)";
+      x.font = "400 72px " + DISPLAY;
+      x.fillText(`/${state.grid.length}`, pad + sw + 14, pad + 240);
+      x.fillStyle = "rgba(255,255,255,0.8)";
+      x.font = "600 34px system-ui, sans-serif";
+      x.fillText(gradeOf(state.score), pad, pad + 310);
+      // The board.
+      const cell = 46;
+      const gap = 12;
+      state.grid.split("").forEach((ch, i) => {
+        x.fillStyle = ch === "1" ? "#8fbf88" : "#e08579";
+        rr(pad + i * (cell + gap), pad + 356, cell, cell, 4);
+        x.fill();
+      });
+      x.fillStyle = "rgba(255,255,255,0.7)";
+      x.font = "500 26px " + MONO;
+      x.fillText(
+        `STREAK ${state.streak} DAY${state.streak === 1 ? "" : "S"} · BEST ${state.best}/${state.grid.length}`,
+        pad,
+        pad + 356 + cell + 48,
+      );
+      x.strokeStyle = "rgba(255,255,255,0.2)";
+      x.lineWidth = 2;
+      x.beginPath();
+      x.moveTo(pad, H - 96);
+      x.lineTo(W - pad, H - 96);
+      x.stroke();
+      x.fillStyle = "rgba(255,255,255,0.7)";
+      x.font = "500 24px " + MONO;
+      x.fillText("localmodel.run/play · a new set every day", pad, H - 52);
+      c.toBlob((blob) => {
+        if (!blob) return;
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `can-it-run-${num}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }, "image/png");
+    };
+
+    // Progress ticks: one square per round, inked green/red as you answer.
+    const ticksEl = $("play-ticks");
+    ticksEl.innerHTML = rounds.map(() => "<i></i>").join("");
+
+    const show = (view: "q" | "reveal" | "end") => {
+      for (const [id, on] of [
+        ["play-q", view === "q"],
+        ["play-reveal", view === "reveal"],
+        ["play-end", view === "end"],
+      ] as const) {
+        const el = $(id);
+        el.classList.toggle("hidden", !on);
+        if (on) {
+          // retrigger the one-shot enter stagger for the incoming view
+          el.classList.remove("enter");
+          void el.offsetWidth;
+          el.classList.add("enter");
+        }
+      }
+    };
+
+    const renderRound = () => {
+      const practice = mode !== "daily";
+      current = practice ? nextPracticeRound() : rounds[idx];
+      $("play-progress").textContent =
+        mode === "daily"
+          ? `Round ${idx + 1} / ${rounds.length}`
+          : `${mode === "gb" ? "Guess the GB" : "Practice"} · round ${pTotal + 1}`;
+      $("play-score").textContent = practice ? `Correct ${pScore} / ${pTotal}` : `Score ${score}`;
+      ticksEl.classList.toggle("hidden", practice);
+      $("play-model").textContent = current.m;
+      $("play-params").textContent = `${current.p} params`;
+      $("play-device").textContent = current.d;
+      $("play-mem").textContent = `${current.mem} GB memory`;
+      // Fit call vs GB guess: swap the answer row.
+      $("play-fit").classList.toggle("hidden", mode === "gb");
+      $("play-gb").classList.toggle("hidden", mode !== "gb");
+      $("play-gb").classList.toggle("grid", mode === "gb");
+      $("play-hint").classList.toggle("hidden", mode === "gb");
+      if (mode === "gb") {
+        // One real figure, three decoys spread around it; re-nudge any decoy
+        // that rounds into a collision so all four read distinct.
+        gbAnswer = fmtGb(current.g);
+        const opts = new Set<string>([gbAnswer]);
+        for (const f of [0.55, 1.7, 2.9]) {
+          let v = current.g * f;
+          let s = fmtGb(v);
+          while (opts.has(s)) {
+            v *= 1.21;
+            s = fmtGb(v);
+          }
+          opts.add(s);
+        }
+        $("play-gb").innerHTML = [...opts]
+          .sort(() => Math.random() - 0.5)
+          .map((o) => `<button type="button" class="btn" data-gb="${o}">~${o} GB</button>`)
+          .join("");
+      }
+      answered = false;
+      show("q");
+      $("play-model").focus({ preventScroll: true });
+    };
+
+    const finish = (fromStore?: SavedState) => {
+      const prev = loadState();
+      let state: SavedState;
+      if (fromStore) {
+        state = fromStore;
+      } else {
+        // Keyed by the raw UTC day (not the display number) so a set played
+        // against one seed can never mask a different day's set.
+        const streak = prev && prev.lastDone === day - 1 ? prev.streak + 1 : 1;
+        state = {
+          lastDone: day,
+          score,
+          grid: marks,
+          streak,
+          best: Math.max(prev?.best ?? 0, score),
+        };
+        try {
+          localStorage.setItem(STORE, JSON.stringify(state));
+        } catch {
+          // private mode: play still works, streak just won't persist
+        }
+        const st = loadStats();
+        st.games++;
+        saveStats(st);
+      }
+      lastState = state;
+      const emoji = state.grid
+        .split("")
+        .map((c) => (c === "1" ? "\u{1F7E9}" : "\u{1F7E5}"))
+        .join("");
+      $("end-score").textContent = String(state.score);
+      $("end-grade").textContent = gradeOf(state.score);
+      // The result board: the day's calls as inked cells, pressed in one by one.
+      // Emoji lives only in the share text.
+      $("end-grid").innerHTML = state.grid
+        .split("")
+        .map(
+          (c, i) =>
+            `<span class="play-cell ${c === "1" ? "ok" : "miss"}" style="animation-delay:${i * 70}ms"></span>`,
+        )
+        .join("");
+      $("end-total").textContent = `/${rounds.length}`;
+      // Header ticks mirror the board (matters on same-day revisits, where
+      // finish() runs without any renderRound/reveal having filled them).
+      ticksEl.classList.remove("hidden");
+      state.grid.split("").forEach((c, i) => {
+        const t = ticksEl.children[i] as HTMLElement | undefined;
+        if (t) t.className = c === "1" ? "ok" : "miss";
+      });
+      // Countdown to the next UTC set (cleared and restarted per finish so
+      // view-transition swaps never stack intervals).
+      if (window.__playCountdown) clearInterval(window.__playCountdown);
+      const tickCountdown = () => {
+        const el = document.getElementById("end-count");
+        if (!el) {
+          if (window.__playCountdown) clearInterval(window.__playCountdown);
+          return;
+        }
+        const ms = (day + 1) * 864e5 - Date.now();
+        if (ms <= 0) {
+          el.textContent = "00:00:00";
+          return;
+        }
+        const h = Math.floor(ms / 36e5);
+        const m2 = Math.floor((ms % 36e5) / 6e4);
+        const s2 = Math.floor((ms % 6e4) / 1e3);
+        el.textContent = `${String(h).padStart(2, "0")}:${String(m2).padStart(2, "0")}:${String(s2).padStart(2, "0")}`;
+      };
+      tickCountdown();
+      window.__playCountdown = setInterval(tickCountdown, 1000);
+      $("end-streak").textContent = `Streak ${state.streak} · best ${state.best}/${rounds.length}`;
+      // Lifetime readout, with the weakest well-sampled dimension called out.
+      const st2 = loadStats();
+      if (st2.calls >= 8) {
+        const pct = Math.round((st2.correct / st2.calls) * 100);
+        const dims: [string, [number, number]][] = [
+          ["easy", st2.e],
+          ["medium", st2.m],
+          ["borderline", st2.h],
+          ["MoE", st2.moe],
+        ];
+        let blind = "";
+        let worst = 65;
+        for (const [label, [c, t]] of dims) {
+          if (t < 6) continue;
+          const a = Math.round((c / t) * 100);
+          if (a < worst) {
+            worst = a;
+            blind = ` · blind spot: ${label} ${a}%`;
+          }
+        }
+        $("end-stats").textContent = `Lifetime ${pct}% · ${st2.calls} calls${blind}`;
+      } else {
+        $("end-stats").textContent = "";
+      }
+      const shareText = `Can it run? #${num} · ${state.score}/${rounds.length}\n${emoji}\nlocalmodel.run/play`;
+      $("end-copy").setAttribute("data-copy", shareText);
+      ($("end-x") as HTMLAnchorElement).href =
+        `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+      const shareBtn = $("end-share");
+      if (typeof navigator.share === "function" && matchMedia("(pointer: coarse)").matches) {
+        shareBtn.classList.remove("hidden");
+        if (!shareBtn.dataset.bound) {
+          shareBtn.dataset.bound = "1";
+          shareBtn.addEventListener("click", async () => {
+            try {
+              await navigator.share({ text: shareText, url: "https://localmodel.run/play" });
+            } catch {
+              // user closed the sheet
+            }
+          });
+        }
+      }
+      $("play-progress").textContent = `Puzzle #${num}`;
+      $("play-score").textContent = `Score ${state.score}`;
+      show("end");
+      $("end-score-line").focus({ preventScroll: true });
+    };
+
+    const reveal = (guess: { runs?: boolean; gb?: string }) => {
+      if (answered) return;
+      answered = true;
+      const r = current;
+      const correct = mode === "gb" ? guess.gb === gbAnswer : guess.runs === (r.r === 1);
+      if (mode === "daily") {
+        if (correct) score++;
+        marks += correct ? "1" : "0";
+        const tick = ticksEl.children[idx] as HTMLElement | undefined;
+        if (tick) tick.className = correct ? "ok" : "miss";
+      } else {
+        pTotal++;
+        if (correct) pScore++;
+      }
+      // Lifetime fit-call stats (GB guesses are a different skill, not counted).
+      if (mode !== "gb") recordCall(r, correct);
+      // Haptics: a double tap for a right call, one firm buzz for a miss
+      // (Android only; iOS gets the visual stamp press instead).
+      window.lmrBuzz?.(correct ? [14, 45, 22] : 65);
+      const s = STAMP[r.v];
+      const stamp = $("reveal-stamp");
+      stamp.textContent = s.label;
+      stamp.style.color = s.color;
+      // retrigger the one-shot stamp press
+      stamp.style.animation = "none";
+      void stamp.offsetWidth;
+      stamp.style.animation = "stamp-press 0.18s var(--settle) both";
+      $("reveal-mark").textContent = correct ? "You called it" : "Missed";
+      ($("reveal-mark") as HTMLElement).style.color = correct
+        ? "var(--verdict-yes-fg)"
+        : "var(--verdict-no-fg)";
+      $("reveal-needed").textContent = `~${r.g} GB`;
+      $("reveal-usable").textContent = `~${r.u} GB`;
+      $("reveal-note").textContent = r.n ?? "";
+      ($("reveal-link") as HTMLAnchorElement).href = r.url;
+      $("play-score").textContent =
+        mode === "daily" ? `Score ${score}` : `Correct ${pScore} / ${pTotal}`;
+      show("reveal");
+      $("play-next").focus({ preventScroll: true });
+    };
+
+    $("play-yes").addEventListener("click", () => reveal({ runs: true }));
+    $("play-no").addEventListener("click", () => reveal({ runs: false }));
+    $("play-gb").addEventListener("click", (e) => {
+      const b = (e.target as Element).closest<HTMLElement>("[data-gb]");
+      if (b) reveal({ gb: b.dataset.gb });
+    });
+    $("play-next").addEventListener("click", () => {
+      if (mode !== "daily") {
+        renderRound();
+        return;
+      }
+      idx++;
+      if (idx < rounds.length) renderRound();
+      else finish();
+    });
+    const startPractice = (m: "fit" | "gb") => {
+      mode = m;
+      pScore = 0;
+      pTotal = 0;
+      renderRound();
+    };
+    $("end-practice").addEventListener("click", () => startPractice("fit"));
+    $("end-gb").addEventListener("click", () => startPractice("gb"));
+    $("end-card").addEventListener("click", () => {
+      if (lastState) drawQuizCard(lastState);
+    });
+    const saved = loadState();
+    if (saved && saved.lastDone === day) finish(saved);
+    else renderRound();
+  }
+
+  declare global {
+    interface Window {
+      __playBound?: boolean;
+      __playCountdown?: ReturnType<typeof setInterval>;
+      lmrBuzz?: (pattern: number | number[]) => void;
+    }
+  }
+  if (!window.__playBound) {
+    window.__playBound = true;
+    document.addEventListener("astro:page-load", initPlay);
+    // Keyboard: delegated once; resolves the live buttons at press time so it
+    // survives view-transition swaps without accumulating listeners.
+    document.addEventListener("keydown", (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const q = document.getElementById("play-q");
+      if (!q || q.classList.contains("hidden")) return;
+      // Y/N only answer the fit call, never the hidden buttons in GB mode.
+      if (document.getElementById("play-fit")?.classList.contains("hidden")) return;
+      const k = e.key.toLowerCase();
+      if (k === "y") document.getElementById("play-yes")?.click();
+      if (k === "n") document.getElementById("play-no")?.click();
+    });
+  }
+  initPlay();
+</script>

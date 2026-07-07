@@ -1,0 +1,275 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import { models, devices, meta, dedupeSources, installCommands } from "@/lib/data";
+import { canRun, estimateMemory, QUANT_LABEL, estTokPerSec } from "@/lib/compute";
+import {
+  breadcrumbLd,
+  faqLd,
+  howToLd,
+  itemListLd,
+  techArticleLd,
+  truncate,
+  type FaqItem,
+} from "@/lib/seo";
+
+// Reverse of best-llm-for: rank every device for ONE model. Text models only
+// (multi-modal uses a different verdict engine). Answers the pre-purchase query
+// "what hardware do I need to run X?" that the pair page doesn't.
+export function getStaticPaths() {
+  return models.map((model) => ({ params: { model: model.id }, props: { model } }));
+}
+
+const { model } = Astro.props;
+const path = `/rig-for/${model.id}`;
+const year = new Date(meta.updated).getFullYear();
+
+const q4 = estimateMemory(model, "q4_k_m");
+const q8 = estimateMemory(model, "q8_0");
+
+const results = devices.map((d) => ({ device: d, result: canRun(model, d) }));
+const fitting = results
+  .filter((r) => r.result.verdict !== "no")
+  .sort((a, b) => a.result.usableGb - b.result.usableGb); // lightest (cheapest) first
+const notFitting = results
+  .filter((r) => r.result.verdict === "no")
+  .sort((a, b) => b.result.usableGb - a.result.usableGb); // biggest-that-fails first = the floor
+
+const minDevice = fitting[0]?.device;
+// The lightest device that runs it comfortably (not just "tight"), preferring quick speed.
+const sweet =
+  fitting.find((r) => r.result.verdict === "yes" && (r.result.speed === "fast" || r.result.speed === "ok")) ??
+  fitting.find((r) => r.result.verdict === "yes") ??
+  fitting[0];
+
+const anyMac = fitting.some((r) => r.device.category === "mac");
+const anyPhone = fitting.some((r) => r.device.category === "iphone" || r.device.category === "android");
+const commands = installCommands(model, "linux");
+const sources = dedupeSources(model.sources);
+
+const title = `${model.name}: what hardware do you need to run it? (${year}) · localmodel.run`;
+const description = truncate(
+  `${model.name} needs ~${q4.totalGb} GB at Q4_K_M. The lightest hardware that runs it is ${minDevice ? minDevice.name : "a high-memory machine"}. ${fitting.length} of ${results.length} devices can run it, ranked, with the exact memory math.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `What is the minimum hardware to run ${model.name}?`,
+    a: minDevice
+      ? `${minDevice.name} is the lightest device that runs ${model.name}, using ~${q4.totalGb} GB at Q4_K_M of its ~${fitting[0].result.usableGb} GB usable. Anything with less usable memory cannot load it.`
+      : `${model.name} needs ~${q4.totalGb} GB at Q4_K_M, more than any device tested here has usable; you need a high-memory Mac or a multi-GPU rig.`,
+  },
+  {
+    q: `How much memory does ${model.name} need?`,
+    a: `At Q4_K_M it needs about ${q4.totalGb} GB (weights ~${model.q4_k_m_gb ?? q4.weightsGb} GB + KV cache + overhead at 4k context). At Q8_0 budget ~${q8.totalGb} GB.`,
+  },
+  {
+    q: `Can I run ${model.name} on a Mac?`,
+    a: anyMac
+      ? `Yes. ${model.name} runs on Apple Silicon with enough unified memory; the ranked list below shows the lightest Mac that fits.`
+      : `Not on the Macs tested here. ${model.name} needs ~${q4.totalGb} GB at Q4_K_M, which exceeds the usable unified memory on the Mac configs listed.`,
+  },
+  {
+    q: `Can I run ${model.name} on a phone?`,
+    a: anyPhone
+      ? `Yes, on higher-memory phones. ${model.name} fits on the phones marked "runs" below, though expect slower speeds than a desktop GPU.`
+      : `No. ${model.name} is too large for current phone memory at Q4_K_M; stick to a laptop, desktop GPU, or Mac.`,
+  },
+];
+
+const runtimeCmd = commands[0]?.cmd;
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Models", url: "/can-i-run" },
+      { name: model.name, url: `/model/${model.id}` },
+      { name: "Hardware", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `What hardware runs ${model.name}`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    speakableSelector: [".verdict-text"],
+    sources,
+  }),
+  itemListLd({
+    name: `Devices that run ${model.name}`,
+    items: fitting.map((r) => ({ name: r.device.name, url: `/can-i-run/${model.id}/${r.device.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+  ...(runtimeCmd
+    ? [
+        howToLd({
+          name: `How to run ${model.name} locally`,
+          description: `Pick hardware with at least ~${q4.totalGb} GB free, install a runtime, and run ${model.name} at Q4_K_M.`,
+          url: path,
+          origin: Astro.site!.href,
+          steps: [
+            {
+              name: "Get hardware with enough memory",
+              text: `${model.name} needs about ${q4.totalGb} GB free at Q4_K_M. The lightest option that runs it is ${minDevice ? minDevice.name : "a high-memory machine"}.`,
+            },
+            {
+              name: "Install a local runtime",
+              text: `Install Ollama (ollama.com) or llama.cpp. Both download the GGUF weights and run ${model.name} from one command.`,
+            },
+            {
+              name: `Run ${model.name}`,
+              text: `Run "${runtimeCmd}" in a terminal. The weights download once (~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M), then a local chat session starts.`,
+            },
+          ],
+        }),
+      ]
+    : []),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogImage={`/og/model/${model.id}.png`}
+  mdPath={`/rig-for/${model.id}.md`}
+  ogTitle={`Hardware to run ${model.name}`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt={`What hardware runs ${model.name}`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Models", url: "/can-i-run" },
+        { name: model.name, url: `/model/${model.id}` },
+        { name: "Hardware", url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4">
+      <span class="dot" aria-hidden="true"></span>
+      Hardware guide &middot; {model.family}
+    </p>
+    <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
+      <span>What hardware do you need to run {model.name}?</span>
+    </h1>
+    <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+      <strong>{model.name} needs about {q4.totalGb} GB to run at Q4_K_M</strong>, so the lightest hardware that runs it is
+      <strong>{minDevice ? minDevice.name : "a high-memory machine"}</strong>. {fitting.length} of {results.length} devices tested can run it.
+    </p>
+
+    <div class="wire mt-5" aria-hidden="true"></div>
+
+    <dl class="stat-grid mt-4">
+      <div class="stat">
+        <dt class="stat-label">Needs (Q4_K_M)</dt>
+        <dd class="stat-val">~{q4.totalGb} GB</dd>
+      </div>
+      <div class="stat">
+        <dt class="stat-label">Devices that run it</dt>
+        <dd class="stat-val">{fitting.length}</dd>
+      </div>
+      <div class="stat">
+        <dt class="stat-label">Too small</dt>
+        <dd class="stat-val">{notFitting.length}</dd>
+      </div>
+      {minDevice && (
+        <div class="stat">
+          <dt class="stat-label">Lightest that runs it</dt>
+          <dd class="stat-val stat-yes">~{fitting[0].result.usableGb} GB</dd>
+        </div>
+      )}
+    </dl>
+
+    {sweet && (
+      <div class="panel mt-6">
+        <div class="panel-head">
+          <span class="panel-label">Recommended</span>
+          <span class="panel-label">{sweet.result.quant ? QUANT_LABEL[sweet.result.quant] : "Q4_K_M"}</span>
+        </div>
+        <div class="p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <a href={`/can-i-run/${model.id}/${sweet.device.id}`} class="text-xl font-bold hover:underline">{sweet.device.name}</a>
+            <VerdictBadge verdict={sweet.result.verdict} />
+          </div>
+          <p class="mt-1 text-sm text-muted-foreground">{sweet.result.reason}</p>
+        </div>
+      </div>
+    )}
+
+    {fitting.length > 0 && (
+      <section class="mt-8">
+        <h2 class="mb-3 text-lg font-semibold">Hardware that runs {model.name}</h2>
+        <p class="mb-3 text-sm text-muted-foreground">Ranked by usable memory, lightest first. Prices are approximate street prices for the device itself (a GPU is the card alone; a Mac is the whole machine). Tok/s is a bandwidth estimate; see <a href="/methodology" class="underline">methodology</a>.</p>
+        <div class="panel overflow-hidden">
+          <div class="panel-head">
+            <span class="panel-label">Compatible devices</span>
+            <span class="panel-label">{fitting.length} total</span>
+          </div>
+          <ul class="divide-y divide-border">
+            {fitting.map((r) => (
+              <li>
+                <a
+                  href={`/can-i-run/${model.id}/${r.device.id}`}
+                  class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]"
+                >
+                  <EntityIcon device={r.device.category} size={18} class="text-muted-foreground shrink-0" />
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-sm font-medium">
+                      {r.device.name}
+                      {r.device.msrp_usd && <span class="ml-1.5 text-xs font-normal text-muted-foreground">from ${r.device.msrp_usd.toLocaleString()}</span>}
+                    </div>
+                    <div class="stat-label mt-0.5">
+                      ~{r.result.usableGb} GB usable &middot; uses ~{r.result.estimate?.totalGb} GB
+                      {estTokPerSec(model, r.device) != null && <> &middot; ~{estTokPerSec(model, r.device)} tok/s est.</>}
+                    </div>
+                  </div>
+                  <VerdictBadge verdict={r.result.verdict} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )}
+
+    {notFitting.length > 0 && (
+      <section class="mt-8">
+        <h2 class="section-label mb-3">Too small for {model.name}</h2>
+        <div class="flex flex-wrap gap-2">
+          {notFitting.map((r) => (
+            <a
+              href={`/can-i-run/${model.id}/${r.device.id}`}
+              class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+            >
+              {r.device.name}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <p class="mt-8 text-sm text-muted-foreground">
+      See the full <a href={`/model/${model.id}`} class="underline">{model.name} memory breakdown</a>, or
+      <a href="/compare" class="underline">compare it against other models</a>.
+    </p>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Memory at Q4_K_M ({q4.totalGb} GB = {model.q4_k_m_gb ? model.q4_k_m_gb : `~${q4.weightsGb}`} GB weights + KV cache + overhead),
+      validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

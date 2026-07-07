@@ -1,0 +1,50 @@
+name: Refresh model data
+
+# Pulls fresh GGUF sizes from Ollama + HuggingFace on a schedule and commits
+# any changes. The push triggers the deploy workflow, so the site rebuilds with
+# current numbers without manual work.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Cache bun install
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - name: Refresh data from primary sources
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: bun run update-data
+      - name: Validate dataset
+        run: bun run validate-data
+      - name: Commit changes if any
+        run: |
+          if [[ -n "$(git status --porcelain src/data)" ]]; then
+            git config user.name "data-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add src/data
+            git commit -m "chore: refresh model data ($(date -u +%Y-%m-%d))"
+            git push || echo "push failed — check branch protection on main"
+          else
+            echo "No data changes."
+          fi

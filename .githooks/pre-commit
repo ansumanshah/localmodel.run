@@ -1,0 +1,6 @@
+#!/bin/sh
+# localmodel.run policy: every commit bumps the patch version. The footer and
+# /version.json read package.json, so the live version tracks each shipped change.
+# Enable locally with:  git config core.hooksPath .githooks
+node scripts/bump-version.mjs || exit 1
+git add package.json

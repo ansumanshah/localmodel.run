@@ -1,0 +1,22 @@
+---
+import type { BreadcrumbItem } from "@/lib/seo";
+interface Props {
+  items: BreadcrumbItem[];
+}
+const { items } = Astro.props;
+---
+
+<nav aria-label="Breadcrumb" class="mb-5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+  <ol class="gbreadcrumb flex flex-wrap items-center gap-1.5">
+    {items.map((it, i) => (
+      <li class="flex items-center gap-1.5">
+        {i > 0 && <span aria-hidden="true" class="text-[var(--brand-ink)] opacity-60">/</span>}
+        {i < items.length - 1 ? (
+          <a href={it.url} class="rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]">{it.name}</a>
+        ) : (
+          <span class="text-foreground" aria-current="page">{it.name}</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>

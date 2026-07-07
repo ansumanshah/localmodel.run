@@ -1,0 +1,61 @@
+# localmodel.run, we WANT to be cited by AI answer engines, so AI crawlers are
+# explicitly allowed (most sites block these; being citable is the strategy).
+
+# Content Signals (contentsignals.org): allow search indexing and use as AI
+# answer input. We want our data surfaced and cited.
+Content-Signal: search=yes, ai-input=yes
+
+User-agent: *
+Allow: /
+Disallow: /og/
+Disallow: /api/
+
+# Search + AI answer engines (allowed on purpose)
+User-agent: Googlebot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Bingbot
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-Web
+Allow: /
+User-agent: anthropic-ai
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Perplexity-User
+Allow: /
+User-agent: Applebot
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+User-agent: CCBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: Meta-ExternalAgent
+Allow: /
+User-agent: Meta-ExternalFetcher
+Allow: /
+User-agent: Amazonbot
+Allow: /
+User-agent: Bytespider
+Allow: /
+User-agent: DuckAssistBot
+Allow: /
+User-agent: cohere-ai
+Allow: /
+User-agent: PetalBot
+Allow: /
+User-agent: YouBot
+Allow: /
+
+Sitemap: https://localmodel.run/sitemap-index.xml

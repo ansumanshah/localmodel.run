@@ -1,0 +1,250 @@
+---
+// The Calibrated Instrument type trio: engraved display + datasheet body + the
+// data face that carries every numeral on the site. All self-hosted, no CDN.
+import "@fontsource/fjalla-one";
+import "@fontsource/public-sans";
+import "@fontsource/public-sans/500.css";
+import "@fontsource/public-sans/600.css";
+import "@fontsource-variable/jetbrains-mono";
+import "@/styles/global.css";
+// Instrument skin layer — loads AFTER global.css so it inherits the tokens
+// (matte plates, bezel, stamp, tags; the file keeps its historical name).
+import "@/styles/components.css";
+// Site-wide bridge — maps the component classes onto the plate material so every
+// template reskins centrally. Loads AFTER the skin so its overrides win.
+import "@/styles/bridge.css";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import { getLangFromUrl, localizedPath, stripLocale } from "@/i18n/utils";
+import type { Lang } from "@/i18n/ui";
+import { organizationLd, websiteLd, safeJsonLd, type JsonLd } from "@/lib/seo";
+import { ClientRouter } from "astro:transitions";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Path only, e.g. "/can-i-run/llama-3.1-8b/apple-m4-16gb". */
+  path: string;
+  jsonLd?: JsonLd[];
+  noindex?: boolean;
+  ogTitle?: string;
+  /** Path to a per-page OG PNG; defaults to the home card. */
+  ogImage?: string;
+  /** Alt text for the OG/Twitter image (accessibility + OG debuggers). */
+  ogImageAlt?: string;
+  /** "article" on content pages, "website" on hubs/landing. */
+  ogType?: "website" | "article";
+  /** ISO date for article:modified_time when ogType is "article". */
+  articleModified?: string;
+  /** Path to a Markdown alternate of this page (agent-ready). */
+  mdPath?: string;
+  /** Locales this page is translated into (emits hreflang). Omit for English-only pages. */
+  altLocales?: Lang[];
+  /** Active locale. Pass explicitly on localized pages; shared components must
+   *  receive it as a prop rather than re-derive it from Astro.url, which does not
+   *  carry the locale prefix at SSG build time (build.format "file"). */
+  lang?: Lang;
+}
+
+const {
+  title,
+  description,
+  path,
+  jsonLd = [],
+  noindex = false,
+  ogTitle,
+  ogImage: ogImagePath = "/og/home.png",
+  ogImageAlt = "localmodel.run, check whether you can run an AI model locally",
+  ogType = "website",
+  articleModified,
+  mdPath,
+  altLocales,
+  lang: langProp,
+} = Astro.props;
+const site = Astro.site ?? new URL("https://localmodel.run");
+// Absolute URL with the root as the bare origin (no trailing slash) to match
+// trailingSlash:"never" and the sitemap (which strips the slash from every URL
+// including root). new URL("/", site) would force "<origin>/" and split the
+// crawl signal. Used for canonical, og:url and every hreflang so all root
+// references agree on one slash-free URL.
+const abs = (p: string) => (p === "/" ? site.origin : new URL(p, site).href);
+const canonical = abs(path);
+const ogImage = new URL(ogImagePath, site).href;
+const year = new Date().getFullYear();
+const lang = langProp ?? getLangFromUrl(Astro.url);
+const enPath = stripLocale(path);
+const hreflangs = (altLocales ?? []).map((l) => ({ lang: l, href: abs(localizedPath(enPath, l)) }));
+// Optional GSC verification (set GSC_VERIFICATION at build time). Backup to the
+// DNS TXT domain-property method.
+const gscVerification = import.meta.env.GSC_VERIFICATION;
+// Optional Cloudflare Web Analytics. Cookieless, no consent banner needed. Set
+// CF_BEACON_TOKEN at build time (Cloudflare Pages env) to the Web Analytics site
+// token. Unset = no script emitted. See /privacy.
+const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
+---
+
+<!doctype html>
+<html lang={lang} class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {hreflangs.map((h) => <link rel="alternate" hreflang={h.lang} href={h.href} />)}
+    {hreflangs.length > 0 && <link rel="alternate" hreflang="x-default" href={abs(enPath)} />}
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    {gscVerification && <meta name="google-site-verification" content={gscVerification} />}
+    {/* theme-color drives the iOS Safari status-bar / toolbar tint so the safe areas
+        blend with the page (env(safe-area-inset-top) is 0 in a Safari tab, so this is
+        the actual lever). Kept in sync with the manual light/dark toggle by the script
+        below; initial value matches the default dark theme. */}
+    <meta name="theme-color" content="#0c0e14" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content={ogType} />
+    {ogType === "article" && articleModified && <meta property="article:modified_time" content={articleModified} />}
+    <meta property="og:site_name" content="localmodel.run" />
+    <meta property="og:title" content={ogTitle ?? title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@AnsumanShah" />
+    <meta name="twitter:creator" content="@AnsumanShah" />
+    <meta name="twitter:title" content={ogTitle ?? title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Newly added models" href="/rss.xml" />
+
+    <!-- LLM / agent-friendly discovery -->
+    <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
+    <link rel="alternate" type="application/json" title="Agent card" href="/.well-known/agent.json" />
+    {mdPath && <link rel="alternate" type="text/markdown" title="Markdown" href={mdPath} />}
+
+    <!-- Fonts are self-hosted via @fontsource-variable (imported in the frontmatter
+         and bundled at build); no third-party font CDN, no visitor-IP leak. -->
+
+    <script is:inline>
+      // Set theme before paint to avoid flash. An explicit choice (the header
+      // toggle) wins; otherwise follow the OS prefers-color-scheme, defaulting
+      // to dark when the OS has no preference. Re-applied on every view-transition
+      // swap: Astro replaces <html> on navigation, dropping the client-set theme
+      // class, so without this the theme reverts when you move between pages.
+      (function () {
+        // Status-bar / toolbar tint to match the page (Safari reads theme-color).
+        // Exposed so the header toggle keeps it in sync immediately.
+        window.__setThemeColor = function (isDark) {
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute("content", isDark ? "#0c0e14" : "#f9f7f1");
+        };
+        function applyTheme() {
+          var root = document.documentElement;
+          try {
+            var t = localStorage.getItem("theme");
+            var prefersLight =
+              t !== "dark" &&
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: light)").matches;
+            var dark = !(t === "light" || prefersLight);
+            root.classList.remove("dark", "light");
+            root.classList.add(dark ? "dark" : "light");
+            window.__setThemeColor(dark);
+          } catch (_e) {
+            /* matchMedia/localStorage unavailable; keep the default dark theme */
+            root.classList.add("dark");
+            window.__setThemeColor(true);
+          }
+        }
+        applyTheme();
+        document.addEventListener("astro:after-swap", applyTheme);
+      })();
+    </script>
+
+    {jsonLd.map((obj) => (
+      <script type="application/ld+json" set:html={safeJsonLd(obj)} />
+    ))}
+    <script type="application/ld+json" set:html={safeJsonLd(organizationLd(site.href))} />
+    <script type="application/ld+json" set:html={safeJsonLd(websiteLd(site.href))} />
+
+    <!-- SPA-style cross-document view transitions (shared-element morphs). Astro
+         disables these automatically under prefers-reduced-motion. -->
+    <ClientRouter />
+  </head>
+  <body class="aurora min-h-screen flex flex-col">
+    <!-- Page backdrop wrapper: since the instrument reskin this is the bare
+         matte panel (no blooms, no gradients). The .aurora hooks stay for
+         layout/stacking; pointer-events:none, z-0, behind all. -->
+    <div class="aurora-bg" aria-hidden="true"></div>
+    <a
+      href="#main-content"
+      class="sr-only z-50 rounded-md bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-[oklch(0.18_0.01_270)] focus:not-sr-only focus:absolute focus:left-4 focus:top-3"
+    >
+      Skip to content
+    </a>
+    <Header lang={lang} />
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+    <Footer year={year} lang={lang} />
+    <script is:inline>
+      // Delegated copy-to-clipboard for [data-copy] buttons. Guarded so the
+      // single document listener is not re-bound across view-transition swaps.
+      if (!window.__lmrCopyBound) {
+        window.__lmrCopyBound = true;
+        document.addEventListener("click", function (e) {
+          var t = e.target;
+          if (!(t instanceof Element)) return;
+          var btn = t.closest("[data-copy]");
+          if (!btn) return;
+          var text = btn.getAttribute("data-copy") || "";
+          navigator.clipboard?.writeText(text).then(function () {
+            var prev = btn.textContent;
+            btn.textContent = "Copied";
+            setTimeout(function () {
+              btn.textContent = prev;
+            }, 1400);
+          });
+        });
+      }
+    </script>
+
+    <script is:inline>
+      // The View Transitions API emits a benign "Transition was aborted"
+      // rejection when one navigation supersedes an in-flight transition.
+      // Swallow only that exact message so it never surfaces as an uncaught error.
+      if (!window.__lmrVtGuard) {
+        window.__lmrVtGuard = true;
+        window.addEventListener("unhandledrejection", function (e) {
+          var msg = e.reason && (e.reason.message || e.reason);
+          if (typeof msg === "string" && msg.indexOf("Transition was aborted") !== -1) {
+            e.preventDefault();
+          }
+        });
+      }
+    </script>
+
+    <!-- Instrument micro-interactions: one-shot count-ups, line-draw, copy, modals
+         (bundled module; re-inits on astro:page-load; historical filename) -->
+    <script>
+      import "@/scripts/interactions";
+    </script>
+
+    {cfBeaconToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+      ></script>
+    )}
+  </body>
+</html>

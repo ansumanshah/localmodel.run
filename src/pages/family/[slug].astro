@@ -1,0 +1,282 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import { dedupeSources, meta } from "@/lib/data";
+import { canRun } from "@/lib/compute";
+import { families } from "@/lib/families";
+import type { Family } from "@/lib/families";
+import { BUDGETS, mostGenerousFor } from "@/lib/budgets";
+import {
+  breadcrumbLd,
+  faqLd,
+  itemListLd,
+  techArticleLd,
+  truncate,
+  type FaqItem,
+} from "@/lib/seo";
+
+export function getStaticPaths() {
+  return families().map((f) => ({ params: { slug: f.slug }, props: { family: f } }));
+}
+
+const { family } = Astro.props as { family: Family };
+const members = family.members;
+const smallest = members[0];
+const largest = members[members.length - 1];
+
+// Hardware gating: per memory budget, the largest family size that FITS (yes or
+// tight) on the most capable real device at that size, plus the largest that
+// runs COMFORTABLY (yes). Honest, sourced, and distinct per family and tier.
+const gating = BUDGETS.map((gb) => {
+  const anchor = mostGenerousFor(gb)!;
+  let fit: (typeof members)[number] | null = null;
+  let comfy: (typeof members)[number] | null = null;
+  for (const m of members) {
+    const v = canRun(m, anchor.device).verdict;
+    if (v !== "no") fit = m;
+    if (v === "yes") comfy = m;
+  }
+  const fitVerdict = fit ? canRun(fit, anchor.device).verdict : "no";
+  return { gb, anchor, fit, comfy, fitVerdict };
+});
+const entry = gating.find((g) => g.fit); // smallest budget that runs anything
+
+const sizeRange =
+  smallest.params_b === largest.params_b
+    ? `${largest.params_b}B`
+    : `${smallest.params_b}B to ${largest.params_b}B`;
+
+// One distinguishing sentence derived from THIS family's real data, so the lede is
+// not the same "bigger is more capable" line on every family page. Falls back in order.
+const eloMembers = members.filter((m) => m.arena_elo);
+const topElo = eloMembers.length
+  ? eloMembers.reduce((a, b) => ((b.arena_elo ?? 0) > (a.arena_elo ?? 0) ? b : a))
+  : null;
+const familyHighlight = topElo
+  ? `Its strongest tracked here, ${topElo.name}, scores an LMArena Elo of ${topElo.arena_elo}.`
+  : smallest.params_b <= 2
+    ? `The ${smallest.name} is small enough for a phone, while the ${largest.name} wants a workstation.`
+    : members.some((m) => m.is_moe)
+      ? `Some sizes are Mixture-of-Experts, so they run faster than their memory footprint suggests.`
+      : `Bigger sizes are more capable but need proportionally more memory.`;
+
+const path = `/family/${family.slug}`;
+const year = new Date(meta.updated).getFullYear();
+const title = `${family.name} models: which size runs locally? (${year}) · localmodel.run`;
+const description = truncate(
+  `${family.name} ships in ${members.length} sizes (${sizeRange}). See each one's Q4_K_M size, minimum memory and which fits 8, 16, 24 or 32 GB, with the right device per size.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `Which ${family.name} size should I run locally?`,
+    a: `Pick the largest size your memory allows. ${gating
+      .filter((g) => g.fit)
+      .map((g) => `On ${g.gb}GB (best case) up to ${g.fit!.name}`)
+      .join("; ")}. Smaller sizes run faster and leave headroom for context.`,
+  },
+  {
+    q: `What is the smallest ${family.name} model?`,
+    a: `${smallest.name} at ${smallest.params_b}B parameters${
+      smallest.q4_k_m_gb != null
+        ? `, about ${smallest.q4_k_m_gb} GB on disk at Q4_K_M${smallest.min_ram_q4_gb != null ? ` and roughly ${smallest.min_ram_q4_gb} GB of memory to run` : ""}`
+        : ""
+    }. It is the one to use on phones and 8 GB machines.`,
+  },
+  {
+    q: `What is the largest ${family.name} model and what does it need?`,
+    a: `${largest.name} at ${largest.params_b}B${largest.is_moe ? " (mixture of experts)" : ""}${largest.q4_k_m_gb != null ? `, about ${largest.q4_k_m_gb} GB at Q4_K_M${largest.min_ram_q4_gb != null ? ` and roughly ${largest.min_ram_q4_gb} GB of memory` : ""}` : ""}. ${
+      gating[gating.length - 1].fit?.id === largest.id
+        ? "It fits a high-memory desktop GPU or Mac."
+        : "It needs more than a typical 32 GB desktop; a high-memory Mac or multi-GPU rig."
+    }`,
+  },
+];
+
+const sources = dedupeSources(...members.map((m) => m.sources)).slice(0, 16);
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Families", url: "/family" },
+      { name: family.name, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `${family.name} models ranked by size and memory`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources,
+    speakableSelector: [".family-lede"],
+  }),
+  itemListLd({
+    name: `${family.name} model sizes`,
+    items: members.map((m) => ({ name: m.name, url: `/model/${m.id}` })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle={`${family.name} models by size`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt={`${family.name} model sizes ranked by memory requirement`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Families", url: "/family" },
+        { name: family.name, url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4">
+      <span class="dot" aria-hidden="true"></span>
+      Model family &middot; {members.length} sizes
+    </p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      {family.name}: which size runs locally?
+    </h1>
+    <p class="family-lede mt-4 text-pretty text-lg text-muted-foreground">
+      {family.name} comes in <strong class="text-foreground">{members.length} sizes</strong>, from
+      {sizeRange}. {familyHighlight} Here is each size with its
+      Q4_K_M weight, the memory it needs, and the hardware that runs it.
+    </p>
+
+    <div class="wire mt-5" aria-hidden="true"></div>
+
+    <dl class="stat-grid mt-4">
+      <div class="stat">
+        <dt class="stat-label">Sizes</dt>
+        <dd class="stat-val">{members.length}</dd>
+      </div>
+      <div class="stat">
+        <dt class="stat-label">Smallest</dt>
+        <dd class="stat-val">{smallest.params_b}B</dd>
+      </div>
+      <div class="stat">
+        <dt class="stat-label">Largest</dt>
+        <dd class="stat-val">{largest.params_b}B</dd>
+      </div>
+      {entry && (
+        <div class="stat">
+          <dt class="stat-label">Runs from</dt>
+          <dd class="stat-val stat-yes">{entry.gb}GB</dd>
+        </div>
+      )}
+    </dl>
+
+    <!-- The lineup: every size with its sourced memory numbers -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">The {family.name} lineup</h2>
+      <div class="panel overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Smallest first</span>
+          <span class="panel-label">Q4_K_M &middot; min memory</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {members.map((m) => (
+            <li>
+              <a
+                href={`/model/${m.id}`}
+                class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]"
+              >
+                <EntityIcon maker={m.family} size={18} class="text-muted-foreground shrink-0" />
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm font-medium">{m.name}</div>
+                  <div class="stat-label mt-0.5">
+                    {m.params_b}B{m.is_moe ? " MoE" : ""}
+                    {m.q4_k_m_gb ? <> &middot; ~{m.q4_k_m_gb} GB Q4_K_M</> : null}
+                    {m.min_ram_q4_gb ? <> &middot; needs ~{m.min_ram_q4_gb} GB</> : null}
+                    {m.arena_elo ? <> &middot; Elo {m.arena_elo}</> : null}
+                  </div>
+                </div>
+                <span class="text-[var(--brand-ink)] opacity-50" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">
+        "Needs" is the sourced minimum memory for Q4_K_M with a small context. Larger context needs
+        more.
+      </p>
+    </section>
+
+    <!-- Hardware gating: largest size per memory budget -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Which {family.name} fits your memory</h2>
+      <div class="panel divide-y divide-border">
+        {gating.map((g) => (
+          <div class="flex items-center justify-between gap-3 p-4">
+            <div class="min-w-0">
+              <a href={`/best-llm-for-ram/${g.gb}gb`} class="font-medium hover:underline">{g.gb}GB</a>
+              <p class="mt-0.5 text-sm text-muted-foreground">
+                {g.fit ? (
+                  <>Largest that fits: <a href={`/can-i-run/${g.fit.id}/${g.anchor.device.id}`} class="underline">{g.fit.name}</a> ({g.fit.params_b}B), best case on {g.anchor.device.name}.{g.comfy && g.comfy.id !== g.fit.id ? <> Comfortable up to {g.comfy.name} ({g.comfy.params_b}B).</> : null}</>
+                ) : (
+                  <>No {family.name} size fits {g.gb}GB; even {smallest.name} needs more.</>
+                )}
+              </p>
+            </div>
+            <VerdictBadge verdict={g.fitVerdict} />
+          </div>
+        ))}
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">
+        Best case means the most capable device at that size (usually a discrete GPU). A Mac at the
+        same size sits roughly one rung lower; see the per-size breakdown on each
+        <a href="/best-llm-for-ram" class="underline">memory budget</a> page.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="Other families">
+      <h2 class="section-label mb-3">Other model families</h2>
+      <div class="flex flex-wrap gap-2">
+        {families()
+          .filter((f) => f.slug !== family.slug)
+          .map((f) => (
+            <a
+              href={`/family/${f.slug}`}
+              class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+            >
+              {f.name} <span class="stat-label">{f.members.length}</span>
+            </a>
+          ))}
+      </div>
+    </nav>
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Memory figures are estimates at Q4_K_M. See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

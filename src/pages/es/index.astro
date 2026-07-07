@@ -1,0 +1,138 @@
+---
+import Base from "@/layouts/Base.astro";
+import Detector from "@/components/Detector.tsx";
+import { allModels, devices, meta } from "@/lib/data";
+import { useTranslations } from "@/i18n/utils";
+import { faqLd, softwareAppLd, datasetLd, truncate, type FaqItem } from "@/lib/seo";
+
+const t = useTranslations("es");
+const path = "/es";
+const title = "¿Puedo ejecutar este modelo de IA en local? Comprueba tu Mac, PC o móvil · localmodel.run";
+const description = truncate(
+  `Comprueba al instante si tu ordenador o móvil puede ejecutar un modelo de IA local como Llama, DeepSeek, Qwen o Gemma, y qué herramienta usar en Mac, Windows, Linux, iOS o Android. Gratis, sin registro. ${allModels.length} modelos entre texto, imagen, video y audio, ${devices.length} dispositivos, datos validados.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: "¿Cómo sé si mi ordenador puede ejecutar un modelo de IA en local?",
+    a: `Compara la memoria que necesita el modelo con tu memoria utilizable. Un modelo de texto de 7-8B en Q4_K_M necesita unos 6-7 GB, así que funciona en un Mac de 16 GB o una GPU de 12 GB. Los modelos de imagen (como Stable Diffusion o FLUX) requieren ~4-8 GB según la variante. localmodel.run hace ese cálculo para ${allModels.length} modelos en ${devices.length} dispositivos.`,
+  },
+  {
+    q: "¿Puedo ejecutar modelos de IA en local en un Mac?",
+    a: "Sí. Apple Silicon comparte memoria unificada, así que un Mac de 16 GB ejecuta modelos de 7-8B y uno de 64 GB+ ejecuta 70B. Usa LM Studio (que incluye MLX) o mlx-lm para máxima velocidad. vLLM no es para Mac, es un motor de servidor para Linux/CUDA.",
+  },
+  {
+    q: "¿Puedo ejecutar un LLM en el móvil?",
+    a: "Sí, con límites. Los iPhone y los Android tope de gama ejecutan de forma realista modelos de 1B-4B. En iOS 26 usa los Foundation Models de Apple o PocketPal AI; en Android, PocketPal AI o Google AI Edge.",
+  },
+];
+
+const jsonLd = [
+  softwareAppLd(Astro.site!.href),
+  datasetLd({ origin: Astro.site!.href, dateModified: meta.updated, sources: meta.sources }),
+  faqLd(faqs),
+];
+
+const steps = [
+  { n: "1", t: "Tamaños reales", d: "Los tamaños por cuantización vienen de Ollama y HuggingFace, no de suposiciones. Cada número tiene su fuente." },
+  { n: "2", t: "Cálculo de memoria honesto", d: "Sumamos la caché KV y el overhead, y usamos memoria utilizable realista (Apple unificada ~66-75% (según el chip), VRAM menos el driver)." },
+  { n: "3", t: "La herramienta adecuada", d: "Por plataforma: MLX/Ollama en Mac, CUDA en Windows, vLLM en Linux, PocketPal en el móvil." },
+];
+---
+
+<Base lang="es" title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]} ogTitle="¿Puedo ejecutar este modelo de IA en local? · localmodel.run" ogImageAlt="localmodel.run, comprueba si puedes ejecutar un modelo de IA en local">
+  <!-- Hero: "Gauge" (Spanish). Same clean framing as the English homepage,
+       with all Spanish copy preserved unchanged. -->
+  <section class="hero">
+    <div class="hero-inner">
+      <!-- Copy column -->
+      <div class="hero-copy">
+        <p class="eyebrow stagger" style="--delay:0ms">
+          <span class="dot" aria-hidden="true"></span>
+          {t("hero.badge", { models: allModels.length, devices: devices.length, date: meta.updated })}
+        </p>
+        <h1 class="hero-title stagger" style="--delay:80ms">
+          {t("hero.title1")} {t("hero.title2")} <span class="accent">{t("hero.locally")}</span>
+        </h1>
+        <p class="hero-sub stagger" style="--delay:180ms">
+          {t("hero.sub")}
+        </p>
+        <div class="stats stagger" style="--delay:280ms">
+          <div class="wire" aria-hidden="true"></div>
+          <dl class="stat-grid">
+            <div class="stat"><dt class="stat-label">Modelos</dt><dd class="stat-val">{allModels.length}</dd></div>
+            <div class="stat"><dt class="stat-label">Dispositivos</dt><dd class="stat-val">{devices.length}</dd></div>
+            <div class="stat"><dt class="stat-label">Modalidades</dt><dd class="stat-val">4</dd></div>
+            <div class="stat"><dt class="stat-label">Precio</dt><dd class="stat-val stat-yes">Gratis</dd></div>
+          </dl>
+          <div class="cta">
+            <a href="/can-i-run" class="cta-link">Ver todos los modelos →</a>
+            <a href="/methodology" class="cta-link cta-link--muted">Cómo calculamos →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instrument panel -->
+      <div class="panel-hero stagger" style="--delay:120ms">
+        <div class="panel-head" aria-hidden="true">
+          <span class="panel-label">Motor de umbral VRAM</span>
+          <span class="panel-status"><span class="status-dot"></span>EN VIVO</span>
+        </div>
+        <div class="det-wrap">
+          <Detector client:load />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slim coverage strip -->
+  <div class="strip">
+    <div class="strip-inner">
+      <span class="strip-label">Cubre</span>
+      <span class="strip-item">Generación de texto</span>
+      <span class="strip-sep" aria-hidden="true">/</span>
+      <span class="strip-item">Modelos de imagen</span>
+      <span class="strip-sep" aria-hidden="true">/</span>
+      <span class="strip-item">Modelos de video</span>
+      <span class="strip-sep" aria-hidden="true">/</span>
+      <span class="strip-item">Modelos de audio</span>
+      <span class="strip-sep" aria-hidden="true">/</span>
+      <span class="strip-item">Apple Silicon</span>
+      <span class="strip-sep" aria-hidden="true">/</span>
+      <span class="strip-item">NVIDIA / AMD</span>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <section class="mx-auto max-w-5xl px-4 py-12">
+    <h2 class="text-2xl font-bold tracking-tight">{t("home.howItWorks")}</h2>
+    <div class="mt-5 grid gap-4 sm:grid-cols-3">
+      {steps.map((s) => (
+        <div class="rounded-xl border border-border bg-card p-5">
+          <div class="grid h-8 w-8 place-items-center rounded-lg bg-[var(--color-brand)] font-bold text-[oklch(0.18_0.01_270)]">{s.n}</div>
+          <h3 class="mt-3 font-semibold">{s.t}</h3>
+          <p class="mt-1 text-sm text-muted-foreground">{s.d}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-3xl px-4 py-12">
+    <h2 class="text-2xl font-bold tracking-tight">{t("home.faq")}</h2>
+    <div class="mt-5 divide-y divide-border rounded-xl border border-border bg-card">
+      {faqs.map((f) => (
+        <details class="group p-5">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] [&::-webkit-details-marker]:hidden">
+          <span>{f.q}</span>
+          <svg class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+        </summary>
+          <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+        </details>
+      ))}
+    </div>
+    <p class="mt-6 text-center text-sm text-muted-foreground">
+      Más herramientas y dispositivos en la <a href="/" class="text-[var(--brand-ink)] hover:underline">versión completa en inglés →</a>
+    </p>
+  </section>
+</Base>

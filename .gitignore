@@ -1,0 +1,27 @@
+# build output
+dist/
+.astro/
+__pycache__/
+*.pyc
+
+# dependencies
+node_modules/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# local-only working directories (notes, research, tooling state); never committed
+.claude/
+.agents/
+
+# os / editor
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# generated artifacts (workflow / local runs, not committed)
+freshness-report.md
+playwright-failures/

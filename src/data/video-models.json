@@ -1,0 +1,538 @@
+[
+  {
+    "id": "wan-2-1-t2v-1-3b",
+    "name": "Wan 2.1 T2V 1.3B",
+    "family": "wan",
+    "params_b": 1.3,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2025-02",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": null,
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 1.3,
+      "backbone_gb": { "fp16": 2.84, "q8": 1.54, "q4": 0.98 },
+      "components": [
+        { "name": "umT5-XXL text encoder", "fp16_gb": 11.4, "fp8_gb": 6.74, "q4_gb": 3.66, "offloaded": true }
+      ],
+      "vae_gb": 0.51,
+      "default_resolution": "832×480 (480p)",
+      "default_frames": 81,
+      "default_seconds": 5,
+      "recommended": {
+        "gb": 6,
+        "quant": "Q4 GGUF",
+        "source": "https://huggingface.co/samuelchristlie/Wan2.1-T2V-1.3B-GGUF",
+        "synthesis": true
+      },
+      "no_offload_gb": 20,
+      "offload_floor_gb": 5,
+      "device_classes": ["mac", "nvidia", "amd"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B",
+      "https://huggingface.co/samuelchristlie/Wan2.1-T2V-1.3B-GGUF",
+      "https://huggingface.co/city96/umt5-xxl-encoder-gguf",
+      "https://github.com/Wan-Video/Wan2.1"
+    ],
+    "notes": "The accessible Wan tier (1.3B DiT). Backbone bf16 is 2.84GB; the umT5-XXL encoder (11.4GB) is offloaded to CPU via --t5_cpu, so the native bf16 GPU peak is ~8.2GB (Wan-AI's own figure) and GGUF Q4 + T5 on CPU drops it to ~5-6GB. Generates 832x480, 81 frames (~5s) at 16fps. Apache-2.0, commercial OK. Anchor is the GGUF Q4 community path (synthesis). Sources: Wan-AI card, samuelchristlie GGUF, city96 umT5 GGUF, Wan2.1 repo."
+  },
+  {
+    "id": "wan-2-1-t2v-14b",
+    "name": "Wan 2.1 T2V 14B",
+    "family": "wan",
+    "params_b": 14,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2025-02",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": null,
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 14,
+      "backbone_gb": { "fp16": 28.6, "q8": 15.9, "q4": 10.1, "q2": 6.99 },
+      "components": [
+        { "name": "umT5-XXL text encoder", "fp16_gb": 11.4, "fp8_gb": 6.74, "q4_gb": 3.66, "offloaded": true }
+      ],
+      "vae_gb": 0.51,
+      "default_resolution": "1280×720 (720p)",
+      "default_frames": 81,
+      "default_seconds": 5,
+      "recommended": {
+        "gb": 12,
+        "quant": "Q4 GGUF",
+        "source": "https://huggingface.co/city96/Wan2.1-T2V-14B-gguf",
+        "synthesis": true
+      },
+      "no_offload_gb": 40,
+      "offload_floor_gb": 8,
+      "device_classes": ["mac", "nvidia", "amd"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/Wan-AI/Wan2.1-T2V-14B",
+      "https://huggingface.co/city96/Wan2.1-T2V-14B-gguf",
+      "https://huggingface.co/docs/diffusers/v0.33.1/api/pipelines/wan"
+    ],
+    "notes": "Full-size Wan 2.1 (14B DiT, stable at 720p). Backbone bf16 is ~28.6GB; the umT5-XXL encoder is offloaded to CPU. GGUF Q4_K_M (10.1GB) + T5 on CPU runs at ~10-12GB peak; full bf16 no-offload needs ~40GB. Apache-2.0, commercial OK. Anchor is the GGUF Q4 path (synthesis). Sources: Wan-AI card, city96 14B GGUF, diffusers Wan docs."
+  },
+  {
+    "id": "wan-2-2-ti2v-5b",
+    "name": "Wan 2.2 TI2V 5B",
+    "family": "wan",
+    "params_b": 5,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2025-07",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": null,
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 5,
+      "backbone_gb": { "fp16": 10, "q8": 5.4, "q4": 3.43, "q2": 1.85 },
+      "components": [
+        { "name": "umT5-XXL text encoder", "fp16_gb": 11.4, "fp8_gb": 6.74, "q4_gb": 3.66, "offloaded": true }
+      ],
+      "vae_gb": 2.82,
+      "default_resolution": "1280×704 (720p)",
+      "default_frames": 121,
+      "default_seconds": 5,
+      "recommended": {
+        "gb": 8,
+        "quant": "Q4 GGUF",
+        "source": "https://docs.comfy.org/tutorials/video/wan/wan2_2",
+        "synthesis": true
+      },
+      "no_offload_gb": 24,
+      "offload_floor_gb": 5,
+      "device_classes": ["mac", "nvidia", "amd"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B",
+      "https://huggingface.co/QuantStack/Wan2.2-TI2V-5B-GGUF",
+      "https://docs.comfy.org/tutorials/video/wan/wan2_2",
+      "https://github.com/Wan-Video/Wan2.2"
+    ],
+    "notes": "Wan 2.2's unified 5B text-and-image-to-video model (720p, 121 frames at 24fps). The official spec asks for a 24GB GPU with offload, but ComfyUI native offloading fits it well on 8GB, and GGUF Q4_K_M (3.43GB) + T5 on CPU lands around 5-8GB. Note the larger 2.82GB Wan 2.2 VAE. Apache-2.0, commercial OK. Anchor is the ComfyUI 8GB path (synthesis). Sources: Wan-AI card, QuantStack GGUF, ComfyUI Wan 2.2 tutorial, Wan2.2 repo."
+  },
+  {
+    "id": "wan-2-2-t2v-a14b",
+    "name": "Wan 2.2 T2V A14B",
+    "family": "wan",
+    "params_b": 27,
+    "is_moe": true,
+    "active_params_b": 14,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2025-07",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": null,
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 27,
+      "backbone_gb": { "fp16": 57.2, "fp8": 28.6, "q8": 30.8, "q4": 19.3, "q2": 10.6 },
+      "components": [
+        { "name": "umT5-XXL text encoder", "fp16_gb": 11.4, "fp8_gb": 6.74, "q4_gb": 3.66, "offloaded": true }
+      ],
+      "vae_gb": 0.51,
+      "default_resolution": "1280×720 (720p)",
+      "default_frames": 81,
+      "default_seconds": 5,
+      "recommended": {
+        "gb": 16,
+        "quant": "Q4 GGUF",
+        "source": "https://huggingface.co/QuantStack/Wan2.2-T2V-A14B-GGUF",
+        "synthesis": true
+      },
+      "no_offload_gb": 80,
+      "offload_floor_gb": 8,
+      "device_classes": ["nvidia", "amd"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B",
+      "https://huggingface.co/QuantStack/Wan2.2-T2V-A14B-GGUF",
+      "https://github.com/Wan-Video/Wan2.2"
+    ],
+    "notes": "Wan 2.2's flagship: a Mixture-of-Experts video model with two 14B experts (high-noise + low-noise), 27B total / 14B active per step. Both experts must be available, so GGUF Q4_K_M is ~19GB across the pair; full bf16 needs ~80GB. With ComfyUI sequential expert loading + T5 on CPU, peak lands around 12-20GB on a 24GB card (10-15 min per clip). Apache-2.0, commercial OK. Anchor is the GGUF Q4 path (synthesis). Sources: Wan-AI card, QuantStack GGUF, Wan2.2 repo."
+  },
+  {
+    "id": "ltx-video-2b",
+    "name": "LTX-Video 2B",
+    "family": "ltx-video",
+    "params_b": 2,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-11",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "LTX-Video Open Weights (OpenRAIL-M)",
+    "commercial_use": "yes",
+    "license_note": "OpenRAIL-M open-weights license; commercial use permitted subject to use-based restrictions.",
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 2,
+      "backbone_gb": { "fp16": 6.34, "fp8": 4.46, "q8": 2.17, "q4": 1.42 },
+      "components": [
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.73, "q4_gb": 2.9, "offloaded": true }
+      ],
+      "vae_gb": 0,
+      "default_resolution": "1216×704",
+      "default_frames": 121,
+      "default_seconds": 4,
+      "recommended": {
+        "gb": 10,
+        "quant": "fp8 + offload",
+        "source": "https://huggingface.co/docs/diffusers/api/pipelines/ltx_video"
+      },
+      "no_offload_gb": 12,
+      "offload_floor_gb": 6,
+      "device_classes": ["mac", "nvidia", "amd"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/Lightricks/LTX-Video",
+      "https://huggingface.co/docs/diffusers/api/pipelines/ltx_video",
+      "https://huggingface.co/city96/LTX-Video-gguf"
+    ],
+    "notes": "Lightricks' fast DiT video model (2B), notable for near-real-time generation. The diffusers docs cite ~10GB VRAM with fp8 layerwise casting plus group offloading (the T5 encoder is offloaded). GGUF Q4_K_M (1.42GB backbone) + quantized T5 brings it to ~6GB. Generates 1216x704 at 30fps. OpenRAIL-M, commercial OK. Sources: Lightricks card, diffusers LTX docs, city96 GGUF."
+  },
+  {
+    "id": "ltx-video-13b",
+    "name": "LTX-Video 13B",
+    "family": "ltx-video",
+    "params_b": 13,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2025-05",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "LTX-Video Open Weights (OpenRAIL-M)",
+    "commercial_use": "yes",
+    "license_note": "OpenRAIL-M open-weights license; commercial use permitted subject to use-based restrictions.",
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 13,
+      "backbone_gb": { "fp16": 28.6, "fp8": 15.7 },
+      "components": [
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.73, "q4_gb": 2.9, "offloaded": true }
+      ],
+      "vae_gb": 0,
+      "default_resolution": "1216×704",
+      "default_frames": 161,
+      "default_seconds": 5,
+      "recommended": {
+        "gb": 20,
+        "quant": "fp8",
+        "source": "https://apatero.com/blog/ltx-video-13b-real-time-low-vram-generation-guide-2025",
+        "synthesis": true
+      },
+      "no_offload_gb": 38,
+      "offload_floor_gb": 12,
+      "device_classes": ["mac", "nvidia", "amd"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/Lightricks/LTX-Video",
+      "https://huggingface.co/Lightricks/LTX-Video-0.9.8-13B-distilled",
+      "https://huggingface.co/docs/diffusers/api/pipelines/ltx_video"
+    ],
+    "notes": "The 13B LTX-Video tier with a two-stage low-res-then-upscale pipeline. Backbone bf16 is 28.6GB; the fp8 backbone (15.7GB) plus the upscaler and activations peaks around ~20GB at 1216x704 (third-party measured, synthesis). bf16 needs ~38GB+ (A6000/A100). OpenRAIL-M, commercial OK. Sources: Lightricks card, 13B distilled card, diffusers LTX docs."
+  },
+  {
+    "id": "cogvideox-5b",
+    "name": "CogVideoX-5B",
+    "family": "cogvideox",
+    "params_b": 5,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-08",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "CogVideoX License",
+    "commercial_use": "conditional",
+    "license_note": "Free for research; commercial use requires registration and is capped at 1 million visits per month.",
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 5,
+      "backbone_gb": { "fp16": 11, "fp8": 5.5, "q4": 3.5 },
+      "components": [
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.73, "q4_gb": 2.9, "offloaded": true }
+      ],
+      "vae_gb": 0.5,
+      "default_resolution": "720×480",
+      "default_frames": 49,
+      "default_seconds": 6,
+      "recommended": {
+        "gb": 16,
+        "quant": "INT8 / fp8",
+        "source": "https://huggingface.co/docs/diffusers/main/en/api/pipelines/cogvideox"
+      },
+      "no_offload_gb": 26,
+      "offload_floor_gb": 5,
+      "device_classes": ["nvidia", "amd"],
+      "tools": ["Diffusers", "ComfyUI"]
+    },
+    "sources": [
+      "https://huggingface.co/THUDM/CogVideoX-5b",
+      "https://huggingface.co/docs/diffusers/main/en/api/pipelines/cogvideox",
+      "https://huggingface.co/THUDM/CogVideoX-5b/blob/main/LICENSE"
+    ],
+    "notes": "THUDM's 5B video DiT (720x480, 6s at 8fps). The diffusers docs cite ~16GB VRAM for the INT8/fp8-quantized model; the SAT bf16 no-offload path is 26GB, and full sequential CPU offload + INT8 drops the floor to ~5GB (very slow). The T5 encoder is offloaded. Custom license: free for research, commercial needs registration with a 1M-visit cap. Sources: THUDM card, diffusers CogVideoX docs, the license."
+  },
+  {
+    "id": "cogvideox-2b",
+    "name": "CogVideoX-2B",
+    "family": "cogvideox",
+    "params_b": 2,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-08",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": null,
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 2,
+      "backbone_gb": { "fp16": 5, "fp8": 2.5 },
+      "components": [
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.73, "q4_gb": 2.9, "offloaded": true }
+      ],
+      "vae_gb": 0.5,
+      "default_resolution": "720×480",
+      "default_frames": 49,
+      "default_seconds": 6,
+      "recommended": {
+        "gb": 8,
+        "quant": "fp16 + offload",
+        "source": "https://huggingface.co/THUDM/CogVideoX-2b",
+        "synthesis": true
+      },
+      "no_offload_gb": 18,
+      "offload_floor_gb": 4,
+      "device_classes": ["nvidia", "amd"],
+      "tools": ["Diffusers", "ComfyUI"]
+    },
+    "sources": [
+      "https://huggingface.co/THUDM/CogVideoX-2b",
+      "https://huggingface.co/docs/diffusers/main/en/api/pipelines/cogvideox"
+    ],
+    "notes": "The Apache-2.0 CogVideoX tier (2B). The official card lists SAT fp16 no-offload at 18GB, model-offload paths around ~8GB, and a ~4GB floor with full sequential offload + INT8 + VAE tiling. The T5 encoder is offloaded. Apache-2.0, commercial OK (unlike the 5B's custom license). Anchor is the model-offload path (synthesis). Sources: THUDM card, diffusers CogVideoX docs."
+  },
+  {
+    "id": "hunyuanvideo",
+    "name": "HunyuanVideo",
+    "family": "hunyuanvideo",
+    "params_b": 13,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-12",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Tencent Hunyuan Community License",
+    "commercial_use": "conditional",
+    "license_note": "Commercial use permitted under 100M monthly active users; not licensed in the EU, UK, or South Korea.",
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 13,
+      "backbone_gb": { "fp16": 25.6, "fp8": 13.2, "q8": 14, "q4": 7.88, "q2": 6.09 },
+      "components": [
+        { "name": "LLaVA-LLaMA text encoder", "fp16_gb": 16.1, "offloaded": true },
+        { "name": "CLIP", "fp16_gb": 0.5, "offloaded": false }
+      ],
+      "vae_gb": 0.49,
+      "default_resolution": "544×960",
+      "default_frames": 129,
+      "default_seconds": 5,
+      "recommended": {
+        "gb": 16,
+        "quant": "Q4 GGUF",
+        "source": "https://huggingface.co/city96/HunyuanVideo-gguf/discussions/4",
+        "synthesis": true
+      },
+      "no_offload_gb": 60,
+      "offload_floor_gb": 8,
+      "device_classes": ["nvidia", "amd"],
+      "tools": ["ComfyUI"]
+    },
+    "sources": [
+      "https://huggingface.co/tencent/HunyuanVideo",
+      "https://huggingface.co/city96/HunyuanVideo-gguf",
+      "https://github.com/Tencent-Hunyuan/HunyuanVideo"
+    ],
+    "notes": "Tencent's 13B video DiT. Tencent's own table lists 60GB peak at 720p and 45GB at 544p with no offload; the fp8 backbone saves ~10GB. With GGUF Q4_K_M (7.88GB) + the LLaVA encoder on CPU, ComfyUI runs 544p around ~14-16GB (community-measured at reduced resolution). Tencent Community License: commercial under 100M MAU, and not licensed in the EU, UK, or South Korea. Anchor is the GGUF Q4 path (synthesis). Sources: Tencent card, city96 GGUF, Hunyuan repo."
+  },
+  {
+    "id": "mochi-1",
+    "name": "Mochi 1",
+    "family": "mochi",
+    "params_b": 10,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2024-10",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "license_note": null,
+    "video": {
+      "arch": "dit",
+      "backbone_params_b": 10,
+      "backbone_gb": { "fp16": 20.1, "fp8": 10 },
+      "components": [
+        { "name": "T5-XXL text encoder", "fp16_gb": 9.5, "offloaded": true }
+      ],
+      "vae_gb": 1.84,
+      "default_resolution": "480×848",
+      "default_frames": 85,
+      "default_seconds": 3,
+      "recommended": {
+        "gb": 20,
+        "quant": "fp8 + offload",
+        "source": "https://huggingface.co/genmo/mochi-1-preview"
+      },
+      "no_offload_gb": 60,
+      "offload_floor_gb": 18,
+      "device_classes": ["nvidia"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/genmo/mochi-1-preview",
+      "https://huggingface.co/docs/diffusers/en/api/pipelines/mochi",
+      "https://huggingface.co/Comfy-Org/mochi_preview_repackaged"
+    ],
+    "notes": "Genmo's 10B AsymmDiT video model (480x848). Genmo cites ~60GB for full fp32 single-GPU; diffusers needs 42GB (fp32 + offload) or 22GB (bf16 + offload), and ComfyUI's fp8_scaled path runs under 20GB. The T5 encoder is offloaded. Effectively needs a 24GB GPU. Apache-2.0, commercial OK. Sources: Genmo card, diffusers Mochi docs, Comfy-Org repack."
+  },
+  {
+    "id": "stable-video-diffusion",
+    "name": "Stable Video Diffusion (img2vid-XT)",
+    "family": "stable-video-diffusion",
+    "params_b": 1.5,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": null,
+    "ollama_tag": null,
+    "release": "2023-11",
+    "pulls": null,
+    "pulls_text": null,
+    "modality": "video",
+    "license": "Stable Video Diffusion Community License",
+    "commercial_use": "conditional",
+    "license_note": "Non-commercial research by default; commercial use requires a Stability AI license.",
+    "video": {
+      "arch": "unet",
+      "backbone_params_b": 1.5,
+      "backbone_gb": { "fp16": 9.56 },
+      "components": [
+        { "name": "CLIP image encoder", "fp16_gb": 0.5, "offloaded": false }
+      ],
+      "vae_gb": 0.5,
+      "default_resolution": "1024×576",
+      "default_frames": 25,
+      "default_seconds": 4,
+      "recommended": {
+        "gb": 8,
+        "quant": "fp16 + offload",
+        "source": "https://huggingface.co/docs/diffusers/using-diffusers/svd"
+      },
+      "no_offload_gb": 22,
+      "offload_floor_gb": 8,
+      "device_classes": ["mac", "nvidia", "amd"],
+      "tools": ["ComfyUI", "Diffusers"]
+    },
+    "sources": [
+      "https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt",
+      "https://huggingface.co/docs/diffusers/using-diffusers/svd"
+    ],
+    "notes": "Stability's image-to-video model (~1.5B UNet): you feed it a still image, not a text prompt. The distributed svd_xt.safetensors is a single 9.56GB checkpoint that bundles the UNet, the temporal VAE and the CLIP image encoder, so its file size is larger than the UNet parameter count alone implies. With model CPU offload, feed-forward chunking and a small decode chunk size, the diffusers docs put it under 8GB for 25 frames at 1024x576; a straightforward run is ~14-22GB. There is no text encoder (it conditions on CLIP image embeddings). Community License: non-commercial by default, commercial needs Stability approval. Sources: Stability card, diffusers SVD guide."
+  }
+]

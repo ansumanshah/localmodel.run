@@ -1,0 +1,210 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import RigCard from "@/components/RigCard.astro";
+import { devices, modelsBySize, meta } from "@/lib/data";
+import { canRun } from "@/lib/compute";
+import { rigScore, GRADE_BLURB, GRADE_FG } from "@/lib/rig";
+import { breadcrumbLd, techArticleLd, faqLd, truncate, type FaqItem } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return devices.map((device) => ({ params: { device: device.id }, props: { device } }));
+}
+
+const { device } = Astro.props;
+const score = rigScore(device);
+const site = Astro.site ?? new URL("https://localmodel.run");
+const path = `/rig/${device.id}`;
+const pageUrl = new URL(path, site).href;
+
+
+const top = modelsBySize
+  .map((m) => ({ m, r: canRun(m, device) }))
+  .filter((x) => x.r.verdict !== "no")
+  .sort((a, b) => b.m.params_b - a.m.params_b)
+  .slice(0, 6);
+
+// Device-tier prose so each rig page carries real, page-specific content instead
+// of a near-identical card. All derived from the device's own specs + coverage.
+const memWord =
+  device.memory_type === "vram" ? "VRAM" : device.memory_type === "unified" ? "unified memory" : "system RAM";
+const classAdvice: Record<string, string> = {
+  mac: `Apple Silicon shares one ${device.memory_gb} GB pool between CPU and GPU, so almost all of it is available to a model. MLX and llama.cpp Metal builds give the best speed here; close memory-heavy apps before loading a large model.`,
+  nvidia: `Only the ${device.memory_gb} GB of VRAM drives speed: a model that spills into system RAM slows sharply. Keep the weights plus KV cache under VRAM and prefer Q4_K_M to leave headroom.`,
+  amd: `Only the ${device.memory_gb} GB of VRAM drives speed: a model that spills into system RAM slows sharply. Keep the weights plus KV cache under VRAM and prefer Q4_K_M to leave headroom.`,
+  laptop: `With no discrete GPU, generation runs on the CPU and is bound by memory bandwidth. Models under about 8B stay responsive; larger ones load but generate slowly.`,
+  iphone: `On-device models run through apps like PocketPal. Stay under about 4B parameters for usable speed and keep the context short to limit memory.`,
+  android: `On-device models run through apps like PocketPal. Stay under about 4B parameters for usable speed and keep the context short to limit memory.`,
+};
+const advice = classAdvice[device.category] ?? classAdvice.laptop;
+const tierBlurb = `At ${device.memory_gb} GB of ${memWord}, ${device.name} runs ${score.runnable} of ${score.total} tracked local models, ${score.pct}% coverage that earns a ${score.grade}.${
+  score.biggest ? ` The largest it handles is ${score.biggest.name} at ${score.biggest.params_b}B parameters;` : ""
+} anything bigger needs more memory or a lower quantization.`;
+
+const title = `${device.name} Rig Score: ${score.grade} · localmodel.run`;
+const description = truncate(
+  `${device.name} scores ${score.grade} for local AI: runs ${score.runnable} of ${score.total} models (${score.pct}%). Biggest it can run: ${score.biggest?.name ?? "-"}. Check your rig.`,
+);
+const shareText = `My rig scores ${score.grade} on localmodel.run, runs ${score.runnable} of ${score.total} local AI models (${score.pct}%). What's yours?`;
+const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`;
+const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(pageUrl)}&title=${encodeURIComponent(shareText)}`;
+
+const rigFaqs: FaqItem[] = [
+  {
+    q: `What local AI rig score does ${device.name} get?`,
+    a: `${device.name} scores ${score.grade}: it runs ${score.runnable} of ${score.total} tracked local LLMs (${score.pct}%). The biggest it can run is ${score.biggest?.name ?? "none in the tracked set"}.`,
+  },
+  {
+    q: `How big a model can ${device.name} run?`,
+    a: `${score.biggest ? `${device.name} runs models up to ${score.biggest.name} (${score.biggest.params_b}B parameters) at Q4_K_M. ` : ""}${memWord === "VRAM" ? "Speed depends on keeping the whole model inside VRAM" : memWord === "unified memory" ? "Its memory is shared with the system, so leave a few GB for the OS" : "Generation runs on the CPU, so smaller models stay the most responsive"}.`,
+  },
+  {
+    q: `Is ${device.name} good for running local LLMs?`,
+    a: advice,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Rig scores", url: "/rig" },
+      { name: device.name, url: path },
+    ],
+    site.href,
+  ),
+  techArticleLd({
+    headline: `${device.name} local AI rig score: ${score.grade}`,
+    description,
+    url: path,
+    origin: site.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources: device.sources,
+  }),
+  faqLd(rigFaqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogImage={`/og/rig/${device.id}.png`} ogTitle={`${device.name} Rig Score: ${score.grade}`} ogType="article" articleModified={meta.updated} ogImageAlt={`${device.name} rig score: ${score.grade}, runs ${score.runnable} of ${score.total} local LLMs`}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Rig scores", url: "/rig" }, { name: device.name, url: path }]} />
+
+    <!-- Score instrument readout -->
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Rig score &middot; {device.category}</p>
+
+    <div class="panel mt-4">
+      <div class="panel-head">
+        <span class="panel-label">Device readout</span>
+        <span class="panel-label">{meta.updated}</span>
+      </div>
+
+      <div class="p-6 sm:p-8">
+        <div class="grid items-center gap-6 sm:grid-cols-[240px_1fr]">
+          <!-- Iridescent collectible Rig card (shareable showpiece, no heading) -->
+          <RigCard score={score} device={device} />
+
+          <!-- Device summary -->
+          <div class="text-center sm:text-left">
+            <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
+              <EntityIcon device={device.category} size={28} class="text-muted-foreground" />
+              <span>{device.name}</span>
+            </h1>
+            <p class="mt-2 text-lg text-muted-foreground">
+              Runs <strong class="text-foreground">{score.runnable} of {score.total}</strong> models ({score.pct}%)
+            </p>
+            <p class="mt-1 text-sm text-muted-foreground">{GRADE_BLURB[score.grade]}</p>
+            {score.biggest && (
+              <p class="mt-1 text-sm text-muted-foreground">Biggest it can run: <strong class="text-foreground">{score.biggest.name}</strong></p>
+            )}
+          </div>
+        </div>
+
+        <!-- Stat breakdown row -->
+        <div class="mt-6">
+          <div class="wire" aria-hidden="true"></div>
+          <dl class="stat-grid mt-4">
+            <div class="stat">
+              <dt class="stat-label">Grade</dt>
+              <dd class="stat-val" style={`color:${GRADE_FG[score.grade]}`}>{score.grade}</dd>
+            </div>
+            <div class="stat">
+              <dt class="stat-label">Runnable</dt>
+              <dd class="stat-val">{score.runnable}</dd>
+            </div>
+            <div class="stat">
+              <dt class="stat-label">Total</dt>
+              <dd class="stat-val">{score.total}</dd>
+            </div>
+            <div class="stat">
+              <dt class="stat-label">Coverage</dt>
+              <dd class="stat-val stat-yes">{score.pct}%</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="panel-foot">
+        <div class="flex flex-wrap gap-3">
+          <a href={xUrl} rel="noopener noreferrer" target="_blank" aria-label={`Share ${device.name} rig score on X`} class="rounded-lg bg-[var(--color-brand)] px-4 py-3 text-sm font-medium text-[oklch(0.18_0.01_270)]">Share on X</a>
+          <a href={redditUrl} rel="noopener noreferrer" target="_blank" aria-label={`Share ${device.name} rig score on Reddit`} class="rounded-lg border border-border px-4 py-3 text-sm font-medium hover:bg-accent">Share on Reddit</a>
+          <a href={`/best-llm-for/${device.id}`} class="rounded-lg border border-border px-4 py-3 text-sm font-medium hover:bg-accent">Best models &rarr;</a>
+        </div>
+        <span class="panel-label hidden sm:block">localmodel.run</span>
+      </div>
+    </div>
+
+    <!-- What this device can run (device-tier prose) -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">What {device.name} can run</h2>
+      <div class="panel space-y-3 p-5 text-sm text-muted-foreground">
+        <p>{tierBlurb}</p>
+        <p>{advice}</p>
+      </div>
+    </section>
+
+    <!-- Top models section -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Top models on {device.name}</h2>
+      <div class="panel overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Compatible models</span>
+          <span class="panel-label">by size</span>
+        </div>
+        <ul class="grid grid-cols-1 gap-0 divide-y divide-border sm:grid-cols-2 sm:divide-y-0">
+          {top.map((x) => (
+            <li class="border-b border-border last:border-b-0 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:border-border">
+              <a href={`/can-i-run/${x.m.id}/${device.id}`} class="flex items-center justify-between px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_5%,transparent)]">
+                <span class="flex min-w-0 items-center gap-2 text-sm font-medium">
+                  <EntityIcon maker={x.m.family} size={18} class="text-muted-foreground" />
+                  <span class="truncate">{x.m.name}</span>
+                </span>
+                <VerdictBadge verdict={x.r.verdict} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="panel divide-y divide-border">
+        {rigFaqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-8 text-center text-sm text-muted-foreground">
+      Want your own? <a href="/" class="text-[var(--brand-ink)] hover:underline">Check your rig on the homepage &rarr;</a>
+    </p>
+    <p class="mt-2 text-center text-xs text-muted-foreground">Score from coverage of {score.total} tracked models, estimated with our <a href="/methodology" class="underline">memory methodology</a>.</p>
+  </div>
+</Base>

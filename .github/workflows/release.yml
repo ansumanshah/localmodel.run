@@ -1,0 +1,92 @@
+name: Release
+
+# Cuts a GitHub Release. Two ways in:
+#   1. Push a tag like v1.2.0   ->  releases that tag.
+#   2. Run from the Actions tab ->  enter a version, it tags main then releases.
+# Notes are auto-generated from merged PRs / commits since the last tag,
+# grouped by the labels in .github/release.yml. The site itself deploys from
+# Cloudflare on push to main; a release is just the human-readable changelog.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to cut (e.g. v1.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history so the notes generator can diff against the last tag
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache bun install
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      # Gate the release on a green build — never tag a broken tree.
+      - name: Validate + build
+        run: |
+          bun run validate-data
+          bun run build
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "tag=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # For manual runs: bump package.json to the version, commit it, then tag
+      # that commit. The footer reads package.json, so this keeps
+      # package.json == git tag == footer for every release.
+      - name: Bump package.json + tag (manual dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.ver.outputs.tag }}"
+          NUM="${VERSION#v}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm version "$NUM" --no-git-tag-version --allow-same-version
+          git add package.json
+          git commit -m "chore(release): v$NUM"
+          git push origin HEAD:main
+          git tag -a "$VERSION" -m "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create release with generated notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skipping."
+          else
+            gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
+          fi

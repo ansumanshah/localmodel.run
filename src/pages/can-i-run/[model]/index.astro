@@ -1,0 +1,162 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { allModels, categoryDevices, CATEGORY_LABEL, modelModality, meta } from "@/lib/data";
+import { canRun, estimateMemory } from "@/lib/compute";
+import { canRunModality, modalityNeed, modalitySpec } from "@/lib/compute-mm";
+import { breadcrumbLd, techArticleLd, itemListLd, truncate } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return allModels.map((model) => ({ params: { model: model.id }, props: { model } }));
+}
+
+const { model } = Astro.props;
+const modality = modelModality(model);
+const isText = modality === "text";
+const q4 = estimateMemory(model, "q4_k_m");
+const need = isText ? null : modalityNeed(model);
+const spec = isText ? null : modalitySpec(model);
+const kindWord =
+  modality === "image" ? "image model" : modality === "video" ? "video model" : (model.audio?.task ?? "audio model");
+const memWord = modality === "audio" ? "memory" : "VRAM";
+const archWord = spec && "arch" in spec ? `${spec.arch.toUpperCase()} ` : "";
+const paramLabel = model.params_b < 1 ? `${Math.round(model.params_b * 1000)}M` : `${model.params_b}B`;
+const audioHasPhone =
+  modality === "audio" &&
+  !!(model.audio?.device_classes?.includes("iphone") || model.audio?.device_classes?.includes("android"));
+const runtimeSentence =
+  modality === "audio" && model.audio?.cpu_ok
+    ? audioHasPhone
+      ? "It runs on CPU, so most machines can run it; pick your hardware below."
+      : "It runs on CPU, so most desktop and laptop machines can run it; pick your hardware below."
+    : "It needs a GPU (Apple Silicon, NVIDIA or AMD); pick your hardware below.";
+const groups = categoryDevices();
+
+// For image models, list only the device categories with a local runtime.
+const shownGroups = isText
+  ? Object.entries(groups)
+  : Object.entries(groups).filter(
+      ([, list]) => list.length > 0 && !!spec?.device_classes.includes(list[0].category),
+    );
+const listedDevices = shownGroups.flatMap(([, list]) => list);
+
+const path = `/can-i-run/${model.id}`;
+const titleBase = `Can I run ${model.name}? Device compatibility`;
+const title = `${titleBase} · localmodel.run`;
+const description = isText
+  ? truncate(
+      `Check if your device can run ${model.name} (${model.params_b}B${model.is_moe ? ` MoE, ${model.active_params_b}B active` : ""}). Needs ~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M (~${q4.totalGb} GB with overhead). Pick your device below.`,
+    )
+  : truncate(
+      `Check if your hardware can run ${model.name} (${paramLabel} ${archWord}${kindWord}). Peak ~${need!.neededGb} GB ${memWord} at ${need!.quantLabel}. Pick your device below.`,
+    );
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Models", url: "/can-i-run" },
+      { name: model.name, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `Can I run ${model.name} on your device?`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources: model.sources,
+  }),
+  itemListLd({
+    name: `Devices that can run ${model.name}`,
+    items: listedDevices.map((d) => ({ name: d.name, url: `/can-i-run/${model.id}/${d.id}` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogImage={`/og/model/${model.id}.png`}
+  ogImageAlt={`Can I run ${model.name}? Device compatibility overview.`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogTitle={`Can I run ${model.name}?`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Models", url: "/can-i-run" },
+        { name: model.name, url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4">
+      <span class="dot" aria-hidden="true"></span>
+      {isText ? `Text model · ${model.family}` : `${kindWord} · ${model.family}`}
+    </p>
+
+    <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
+      <span>Can I run {model.name}? Pick your device.</span>
+    </h1>
+
+    {isText ? (
+      <p class="mt-4 text-pretty text-lg text-muted-foreground">
+        {model.name} is a {model.params_b}B{model.is_moe ? ` MoE (${model.active_params_b}B active)` : ""} model.
+        At Q4_K_M the weights are <strong class="text-foreground">~{model.q4_k_m_gb ?? q4.weightsGb} GB</strong>;
+        with KV cache and runtime overhead, budget <strong class="text-foreground">~{q4.totalGb} GB</strong>.
+        Select your hardware below to see the full compatibility breakdown.
+      </p>
+    ) : (
+      <p class="mt-4 text-pretty text-lg text-muted-foreground">
+        {model.name} is a {paramLabel} {archWord}{kindWord}.
+        Realistic peak is <strong class="text-foreground">~{need!.neededGb} GB of {memWord}</strong> at {need!.quantLabel}.
+        {runtimeSentence}
+      </p>
+    )}
+
+    <div class="wire mt-6" aria-hidden="true"></div>
+
+    <div class="mt-6 space-y-6">
+      {shownGroups.map(([cat, list]) => (
+        <section>
+          <h2 class="section-label mb-3">{CATEGORY_LABEL[cat] ?? cat}</h2>
+          <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {list.map((d) => {
+              const r = isText ? canRun(model, d) : canRunModality(model, d);
+              return (
+                <li>
+                  <a
+                    href={`/can-i-run/${model.id}/${d.id}`}
+                    class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+                  >
+                    <span class="flex min-w-0 items-center gap-2 text-sm">
+                      <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
+                      <span class="truncate">{d.name}</span>
+                    </span>
+                    <VerdictBadge verdict={r.verdict} />
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <p class="mt-8 text-xs text-muted-foreground">
+      {isText
+        ? `Memory figures are estimates.`
+        : `${memWord === "memory" ? "Memory" : "VRAM"} is a sourced peak-usage anchor at ${need!.quantLabel}, validated ${meta.updated}.`} See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

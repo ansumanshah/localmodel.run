@@ -1,0 +1,12 @@
+# Cloudflare Pages redirects.
+# Note: www -> apex is NOT redirected here. Pages _redirects cannot match on
+# hostname (www and the apex share this one file), so www serves the site with a
+# canonical tag pointing to the apex (Google de-dups it). A hard 301 needs a
+# zone-level Redirect Rule (Rules -> Redirect Rules -> "Redirect WWW to Root").
+
+# Friendly aliases -> canonical pages.
+/models               /can-i-run            301
+/devices              /best-llm-for         301
+/model                /can-i-run            301
+/llms-full            /llms-full.txt        301
+/llms                 /llms.txt             301

@@ -1,0 +1,1 @@
+# No extra Python dependencies — Gradio is provided by the Space SDK.

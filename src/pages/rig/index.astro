@@ -1,0 +1,172 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import { devices, meta } from "@/lib/data";
+import { rigScore, GRADE_BLURB, GRADE_COLOR, GRADE_FG, type Grade } from "@/lib/rig";
+import { breadcrumbLd, itemListLd, techArticleLd, truncate } from "@/lib/seo";
+
+const path = "/rig";
+const title = "Rig score: rate your hardware for local AI · localmodel.run";
+const description = truncate(
+  `See how ${devices.length} devices score for running local LLMs. Each rig grade is based on how many popular models it can run and the biggest it can handle.`,
+);
+
+
+const scored = devices.map((d) => ({ device: d, score: rigScore(d) }));
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Rig scores", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  itemListLd({
+    name: "Local AI rig scores by device",
+    items: devices.map((d) => ({ name: d.name, url: `/rig/${d.id}` })),
+    origin: Astro.site!.href,
+  }),
+  techArticleLd({
+    headline: "Rig score: how good is your hardware for local AI?",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+  }),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogType="website"
+  ogImageAlt={`Rig scores for ${devices.length} devices: how many local LLMs each one can run`}
+>
+  <!-- Intro band: blueprint-styled hub header -->
+  <section class="rig-intro">
+    <div class="mx-auto max-w-3xl px-4 py-10">
+      <Breadcrumbs
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Rig scores", url: path },
+        ]}
+      />
+
+      <p class="eyebrow mt-6">
+        <span class="dot" aria-hidden="true"></span>
+        Hardware grader &middot; {devices.length} devices
+      </p>
+
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+        Rig score: how good is your hardware for local <span class="accent">AI</span>?
+      </h1>
+
+      <p class="mt-4 text-pretty text-lg text-muted-foreground">
+        Each score grades a device on how many of {scored[0]?.score.total ?? 0} tracked local LLMs it can run and
+        the largest model it can load. Pick your device to share your score.
+      </p>
+
+      <div class="wire mt-6" aria-hidden="true"></div>
+
+      <dl class="stat-grid mt-4">
+        <div class="stat">
+          <dt class="stat-label">Devices</dt>
+          <dd class="stat-val">{devices.length}</dd>
+        </div>
+        <div class="stat">
+          <dt class="stat-label">Models tracked</dt>
+          <dd class="stat-val">{scored[0]?.score.total ?? 0}</dd>
+        </div>
+        <div class="stat">
+          <dt class="stat-label">Grades</dt>
+          <dd class="stat-val">{Object.keys(GRADE_BLURB).length}</dd>
+        </div>
+        <div class="stat">
+          <dt class="stat-label">Free</dt>
+          <dd class="stat-val stat-yes">Always</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- Device grid -->
+  <div class="mx-auto max-w-3xl px-4 pb-4">
+    <div class="panel overflow-hidden">
+      <div class="panel-head">
+        <span class="panel-label">Device index</span>
+        <span class="panel-label">{devices.length} rigs</span>
+      </div>
+      <div class="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
+        {scored.map(({ device, score }) => (
+          <a
+            href={`/rig/${device.id}`}
+            class="flex items-center gap-4 bg-card px-4 py-3 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_4%,var(--card))]"
+          >
+            <div
+              class="grid h-12 w-12 shrink-0 place-items-center rounded-xl border"
+              style={`border-color:${GRADE_COLOR[score.grade]};background:color-mix(in oklch, ${GRADE_COLOR[score.grade]} 12%, transparent)`}
+            >
+              <span class="text-xl font-bold leading-none" style={`color:${GRADE_FG[score.grade]}`}>
+                {score.grade}
+              </span>
+            </div>
+            <div class="flex min-w-0 items-center gap-2">
+              <EntityIcon device={device.category} size={18} class="text-muted-foreground shrink-0" />
+              <div class="min-w-0">
+                <div class="truncate text-sm font-medium">{device.name}</div>
+                <div class="stat-label mt-0.5">
+                  runs {score.runnable} of {score.total} models
+                </div>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Grade key -->
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <section>
+      <p class="eyebrow mb-3">
+        <span class="dot" aria-hidden="true"></span>
+        Grade key
+      </p>
+      <div class="panel overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Score legend</span>
+        </div>
+        <div class="divide-y divide-border">
+          {(Object.entries(GRADE_BLURB) as [Grade, string][]).map(([grade, blurb]) => (
+            <div class="flex items-center gap-3 p-4">
+              <span
+                class="w-6 shrink-0 text-center font-mono text-lg font-bold leading-none"
+                style={`color:${GRADE_FG[grade]}`}
+              >
+                {grade}
+              </span>
+              <p class="text-sm text-muted-foreground">{blurb}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <p class="mt-8 text-xs text-muted-foreground">
+      Scores based on coverage of {scored[0]?.score.total ?? 0} tracked models, estimated with our{" "}
+      <a href="/methodology" class="underline">memory methodology</a>. Data validated {meta.updated}.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .rig-intro {
+    background: color-mix(in oklch, var(--color-brand) 3%, var(--background));
+    border-bottom: 1px solid var(--border);
+  }
+</style>

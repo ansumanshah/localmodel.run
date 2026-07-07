@@ -1,0 +1,56 @@
+name: Catalog freshness
+
+# Weekly watchlist: diffs Ollama's newest library listing against our catalog and
+# keeps ONE GitHub issue updated with models we don't track yet. It never edits the
+# dataset (every row is verified by hand against its GGUF source before adding); it
+# just surfaces candidates. Uses the default GITHUB_TOKEN to write the issue, so no
+# extra secret or repo setting is needed.
+
+on:
+  schedule:
+    - cron: "0 7 * * 1" # every Monday 07:00 UTC, an hour after the data refresh
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: freshness-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Diff Ollama's newest models against the catalog
+        run: bun scripts/check-freshness.ts
+      - name: Upsert the freshness issue
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- freshness-bot -->';
+            const title = 'Catalog freshness: new models on Ollama';
+            const report = fs.readFileSync('freshness-report.md', 'utf8').trim();
+            const body = `${marker}\n_Updated weekly by the Catalog freshness workflow._\n\n${report}`;
+
+            const { owner, repo } = context.repo;
+            const existing = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', per_page: 100,
+            });
+            const issue = existing.find(
+              (i) => !i.pull_request && i.title === title && (i.body || '').includes(marker),
+            );
+
+            if (issue) {
+              await github.rest.issues.update({ owner, repo, issue_number: issue.number, body });
+              core.info(`Updated issue #${issue.number}.`);
+            } else {
+              const created = await github.rest.issues.create({ owner, repo, title, body });
+              core.info(`Created issue #${created.data.number}.`);
+            }

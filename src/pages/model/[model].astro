@@ -1,0 +1,691 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import Command from "@/components/Command.astro";
+import Sources from "@/components/Sources.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import ImageModelProfile from "@/components/ImageModelProfile.astro";
+import VideoModelProfile from "@/components/VideoModelProfile.astro";
+import AudioModelProfile from "@/components/AudioModelProfile.astro";
+import {
+  allModels,
+  devices,
+  devicesByMemory,
+  categoryDevices,
+  CATEGORY_LABEL,
+  dedupeSources,
+  installCommands,
+  modelModality,
+  formatRelease,
+  meta,
+} from "@/lib/data";
+import { canRun, estimateMemory, quantLadderSizes, weightsGb, kvCacheGb } from "@/lib/compute";
+import { BOARDS, BOARD_ORDER, rankedFor, scoreOf } from "@/lib/leaderboard";
+import { canRunModality, modalityNeed, modalitySpec } from "@/lib/compute-mm";
+import { gaugeCompute } from "@/lib/gauge";
+import {
+  breadcrumbLd,
+  faqLd,
+  howToLd,
+  techArticleLd,
+  truncate,
+  type FaqItem,
+} from "@/lib/seo";
+
+export function getStaticPaths() {
+  return allModels.map((model) => ({ params: { model: model.id }, props: { model } }));
+}
+
+const { model } = Astro.props;
+const modality = modelModality(model);
+const isText = modality === "text";
+// Cross-model internal links (same family first, then nearest-size text models).
+const similar = [
+  ...allModels.filter((m) => m.id !== model.id && m.family === model.family),
+  ...allModels.filter(
+    (m) =>
+      m.id !== model.id &&
+      m.family !== model.family &&
+      modelModality(m) === "text" &&
+      Math.abs(m.params_b - model.params_b) <= Math.max(2, model.params_b * 0.4),
+  ),
+].slice(0, 6);
+// Explicit size-ladder neighbours (next-smaller / next-bigger text model) for the internal mesh.
+const textLadder = allModels
+  .filter((m) => modelModality(m) === "text" && m.id !== model.id && m.params_b > 0)
+  .sort((a, b) => a.params_b - b.params_b);
+const nextSmaller = [...textLadder].reverse().find((m) => m.params_b < model.params_b);
+const nextBigger = textLadder.find((m) => m.params_b > model.params_b);
+const sizeLabel = (b: number) => (b < 1 ? `${Math.round(b * 1000)}M` : `${b}B`);
+// Same-family text siblings -> head-to-head /compare pages (canonical id-sorted URL).
+const familySiblings = allModels
+  .filter((m) => m.id !== model.id && m.family === model.family && modelModality(m) === "text")
+  .sort((x, y) => x.params_b - y.params_b);
+const comparePair = (other: { id: string }) =>
+  [model.id, other.id].sort((x, y) => (x < y ? -1 : 1)).join("-vs-");
+const path = `/model/${model.id}`;
+const NonTextProfile =
+  modality === "image" ? ImageModelProfile : modality === "video" ? VideoModelProfile : AudioModelProfile;
+
+// Compact HuggingFace stat (6,599,474 -> "6.6M").
+const fmtNum = (n: number | null | undefined): string | null => {
+  if (n == null) return null;
+  if (n >= 1e6) return +(n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return +(n / 1e3).toFixed(1) + "K";
+  return String(n);
+};
+const COMMERCIAL_LABEL: Record<string, string> = { yes: "Commercial OK", conditional: "Conditional", no: "Non-commercial" };
+const COMMERCIAL_VERDICT: Record<string, string> = { yes: "yes", conditional: "tight", no: "no" };
+
+// Interactive "will it run on your device?" card — ALL device verdicts are
+// precomputed here at build (SSG), so the high-traffic model page ships a tiny
+// JSON blob instead of the whole compute engine + dataset. The picker swaps
+// results from that blob in the browser (no client-side recompute).
+const fitDevices = isText ? devicesByMemory : [];
+const fitData = fitDevices.map((d) => {
+  const r = gaugeCompute(model, d);
+  return {
+    id: d.id,
+    name: d.name,
+    verdict: r.verdict,
+    need: r.need,
+    usable: r.usable,
+    fillScale: +r.fillScale.toFixed(3),
+    markAt: +r.markAt.toFixed(1),
+    speed: r.speedLabel,
+    rec: r.rec,
+    cmd: r.cmd,
+  };
+});
+const fitDefault = fitData.find((d) => d.id === "apple-m4-16gb") ?? fitData[Math.floor(fitData.length / 2)];
+const VERDICT_FG: Record<string, string> = { yes: "var(--verdict-yes-fg)", tight: "var(--verdict-tight-fg)", no: "var(--verdict-no-fg)" };
+const VERDICT_COL: Record<string, string> = { yes: "var(--color-verdict-yes)", tight: "var(--color-verdict-tight)", no: "var(--color-verdict-no)" };
+const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes, but tight", no: "No, not enough memory" };
+---
+{
+  isText ? (
+    (() => {
+      const q4 = estimateMemory(model, "q4_k_m");
+      const q8 = estimateMemory(model, "q8_0");
+      const runnable = devicesByMemory.filter((d) => canRun(model, d).verdict !== "no");
+      const minDevice = runnable[0];
+      const groups = categoryDevices();
+      const ladder = quantLadderSizes(model);
+      // Memory at the recommended quant across context lengths — the long-context
+      // KV blow-up is the #1 OOM gotcha, so show it explicitly.
+      const ctxRows = [4, 32, 128].map((k) => estimateMemory(model, "q4_k_m", k));
+      // Speed retention at long context is device-independent: the tok/s ratio is
+      // weights / (weights + KV), since device bandwidth and efficiency cancel.
+      // Dense models only (we don't put a tok/s bound on MoE).
+      const w4 = weightsGb(model, "q4_k_m");
+      const speed128Pct = !model.is_moe ? Math.round((w4 / (w4 + kvCacheGb(model, 128))) * 100) : null;
+      // Context-length framing, keyed to model tier so it is not the same paragraph
+      // on every model page. The numbers (4k vs 128k) are this model's real estimates.
+      const ctx4Gb = ctxRows[0].totalGb;
+      const ctx128Gb = ctxRows[2].totalGb;
+      const ctxNote = model.is_moe
+        ? `Longer context grows the KV cache, which for ${model.name} is sized by its ${model.active_params_b}B active params, not the full ${model.params_b}B. It needs ~${ctx4Gb} GB at 4k and ~${ctx128Gb} GB at 128k.`
+        : model.params_b > 4
+          ? `Longer context grows the KV cache quickly: ${model.name} needs ~${ctx4Gb} GB at 4k but ~${ctx128Gb} GB at 128k, which can push it past a device that fits it at a short context.`
+          : `${model.name} is small enough that the context window is the thing to size for: 128k needs ~${ctx128Gb} GB versus ~${ctx4Gb} GB at 4k, so pick the window you actually use.`;
+      // Sourced leaderboard scores for THIS model, with its rank on each board.
+      const boardScores = BOARD_ORDER.flatMap((k) => {
+        const s = scoreOf(model, k);
+        if (s == null) return [];
+        const ranked = rankedFor(k);
+        return [{ board: BOARDS[k], score: s, rank: ranked.findIndex((r) => r.model.id === model.id) + 1, total: ranked.length }];
+      });
+      const commands = installCommands(model, "linux");
+      const title = `${model.name}: GGUF size, RAM & VRAM requirements · localmodel.run`;
+      const description = truncate(
+        `${model.name} (${model.params_b}B${model.is_moe ? ` MoE, ${model.active_params_b}B active` : ""}): the Q4_K_M GGUF file is ~${model.q4_k_m_gb ?? q4.weightsGb} GB; it needs ~${q4.totalGb} GB of memory to run. Minimum device: ${minDevice ? minDevice.name : "high-memory hardware"}. Quant sizes, the exact Ollama command, and which of ${devices.length} devices run it.`,
+      );
+      const faqs: FaqItem[] = [
+        {
+          q: `How much VRAM or RAM does ${model.name} need?`,
+          a: `At Q4_K_M, ${model.name} needs about ${q4.totalGb} GB (weights ~${model.q4_k_m_gb ?? q4.weightsGb} GB + KV cache + overhead) at a 4k context. At Q8_0 budget ~${q8.totalGb} GB.`,
+        },
+        {
+          q: `What is the Q4_K_M GGUF file size of ${model.name}?`,
+          a: `The Q4_K_M GGUF file is about ${model.q4_k_m_gb ?? q4.weightsGb} GB to download, and the Q8_0 GGUF is about ${model.q8_0_gb ?? q8.weightsGb} GB. That is the weights file on disk; to run it you also need room for the KV cache and overhead, so budget ~${q4.totalGb} GB of memory at Q4_K_M.`,
+        },
+        {
+          q: `Can ${model.name} run on a laptop?`,
+          a: `${model.params_b <= 8 ? `Yes, ${model.name} fits on a 16 GB machine at Q4_K_M and runs on Apple Silicon or a 12 GB+ GPU comfortably.` : `${model.name} is large; you need ${q4.totalGb > 24 ? "a high-memory Mac or multi-GPU setup" : "a 24 GB+ GPU or a 32-48 GB Mac"} at Q4_K_M.`}`,
+        },
+        ...(model.is_moe
+          ? [
+              {
+                q: `Is ${model.name} cheaper to run because it is a MoE model?`,
+                a: `It is faster, not lighter. ${model.name} activates only ${model.active_params_b}B of ${model.params_b}B params per token (so it runs quickly), but all experts must stay in memory, so it still needs memory for the full ${model.params_b}B.`,
+              },
+            ]
+          : []),
+        ...(model.commercial_use != null
+          ? [
+              {
+                q: `Can I use ${model.name} commercially?`,
+                a: model.commercial_use === "yes"
+                  ? `Yes. ${model.name} is licensed ${model.license}, which permits commercial use.`
+                  : model.commercial_use === "conditional"
+                    ? `Conditionally. ${model.license_note ?? `the ${model.license} license applies; check the terms.`}`
+                    : `No. ${model.license_note ?? `the ${model.license} license is non-commercial.`}`,
+              },
+            ]
+          : []),
+      ];
+      const sources = dedupeSources(model.sources);
+      const runtimeCmd = commands[0]?.cmd;
+      const howToSteps = [
+        {
+          name: "Check your hardware has the memory",
+          text: `${model.name} needs about ${q4.totalGb} GB of free memory at Q4_K_M. Confirm your GPU VRAM or unified memory has at least that much before downloading.`,
+        },
+        {
+          name: "Install a local runtime",
+          text: `Install Ollama (ollama.com) or llama.cpp. Both download the GGUF weights for you and run ${model.name} from a single command, no Python setup.`,
+        },
+        ...(runtimeCmd
+          ? [
+              {
+                name: `Pull and run ${model.name}`,
+                text: `Run "${runtimeCmd}" in a terminal. The weights download once (~${model.q4_k_m_gb ?? q4.weightsGb} GB at Q4_K_M), then a local chat session starts. Everything stays on your machine.`,
+              },
+            ]
+          : []),
+      ];
+      const jsonLd = [
+        breadcrumbLd(
+          [
+            { name: "Home", url: "/" },
+            { name: "Models", url: "/can-i-run" },
+            { name: model.name, url: path },
+          ],
+          Astro.site!.href,
+        ),
+        techArticleLd({
+          headline: `${model.name} system requirements`,
+          description,
+          url: path,
+          origin: Astro.site!.href,
+          dateModified: meta.updated,
+          datePublished: meta.launched,
+          speakableSelector: [".verdict-text"],
+          sources,
+        }),
+        faqLd(faqs),
+        ...(runtimeCmd
+          ? [
+              howToLd({
+                name: `How to run ${model.name} locally`,
+                description: `Install a local runtime and run ${model.name} at Q4_K_M on your own hardware.`,
+                url: path,
+                origin: Astro.site!.href,
+                steps: howToSteps,
+              }),
+            ]
+          : []),
+      ];
+      return (
+        <Base title={title} description={description} path={path} jsonLd={jsonLd} ogImage={`/og/model/${model.id}.png`} mdPath={`/model/${model.id}.md`} ogTitle={`${model.name} requirements`} ogType="article" articleModified={meta.updated} ogImageAlt={`${model.name} memory requirements`}>
+          <div class="mx-auto max-w-3xl px-4 py-8">
+            <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Models", url: "/can-i-run" }, { name: model.name, url: path }]} />
+
+            <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Text model · {model.family}</p>
+            <h1 class="mt-3 flex items-center gap-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+              <EntityIcon maker={model.family} size={28} class="text-muted-foreground" />
+              <span transition:name={`model-name-${model.id}`}>{model.name}: RAM and VRAM requirements</span>
+            </h1>
+            <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+              <strong>{model.name} needs about {q4.totalGb} GB to run at Q4_K_M</strong> (the Q4_K_M GGUF file is ~{model.q4_k_m_gb ?? q4.weightsGb} GB to download; KV cache and overhead add the rest), or about {q8.totalGb} GB at Q8_0. The lightest hardware that runs it is <strong>{minDevice ? minDevice.name : "a high-memory machine"}</strong>.
+            </p>
+            <p class="mt-2 text-pretty text-muted-foreground">
+              {model.family} family · {model.params_b}B params{model.is_moe ? ` (Mixture-of-Experts: activates only ${model.active_params_b}B of ${model.params_b}B params per token, so generation is faster than the total size suggests)` : ""}{model.release ? ` · released ${formatRelease(model.release)}` : ""}{model.pulls_text ? ` · ${model.pulls_text} Ollama pulls` : ""}{model.arena_elo ? ` · LMArena Elo ${model.arena_elo}` : ""}.
+            </p>
+            <p class="mt-3">
+              <a href={`/rig-for/${model.id}`} class="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-ink)] hover:underline">
+                Shopping for hardware? See what runs {model.name} &rarr;
+              </a>
+            </p>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+              {model.subtype === "vlm" && (
+                <span class="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 font-medium">Vision · accepts images</span>
+              )}
+              {model.license && (
+                <span class="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1">
+                  <span class="text-muted-foreground">License</span>
+                  <span class="font-medium">{model.license}</span>
+                  {model.commercial_use && (
+                    <span style={`color:var(--verdict-${COMMERCIAL_VERDICT[model.commercial_use]}-fg)`}>· {COMMERCIAL_LABEL[model.commercial_use]}</span>
+                  )}
+                </span>
+              )}
+              {model.hf_id && (fmtNum(model.hf_downloads) || fmtNum(model.hf_likes)) && (
+                <a href={`https://huggingface.co/${model.hf_id}`} rel="noopener nofollow" class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground">
+                  {fmtNum(model.hf_downloads) && <span>&#8595; {fmtNum(model.hf_downloads)}/mo</span>}
+                  {fmtNum(model.hf_likes) && <span>&#9829; {fmtNum(model.hf_likes)}</span>}
+                  <span>on HuggingFace</span>
+                </a>
+              )}
+            </div>
+
+            <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[
+                { k: "Q4_K_M GGUF", num: String(model.q4_k_m_gb ?? q4.weightsGb), unit: "GB" },
+                { k: "Q8_0 GGUF", num: model.q8_0_gb ? String(model.q8_0_gb) : null, unit: "GB" },
+                { k: "Memory @ Q4 (4k)", num: `~${q4.totalGb}`, unit: "GB" },
+                { k: "Context", num: String(model.default_context_k), unit: "k" },
+              ].map((s) => (
+                <div class="panel p-4">
+                  <div class="stat-label">{s.k}</div>
+                  <div class="stat-val mt-1.5 text-lg">
+                    {s.num != null ? <><span class="num">{s.num}</span>&nbsp;{s.unit}</> : "-"}
+                  </div>
+                </div>
+              ))}
+            </section>
+            <p class="mt-2 text-xs text-muted-foreground">Q4_K_M and Q8_0 are GGUF download (file) sizes. Memory @ Q4 includes the KV cache and overhead, so it runs larger than the file on disk.</p>
+
+            {fitDefault && (
+              <section class="mt-8">
+                <h2 class="mb-3 text-lg font-semibold">Will it run on your device?</h2>
+                <div class="panel-hero" id="fit-check" data-model-id={model.id}>
+                  <div class="panel-head">
+                    <span class="panel-label">Fit check</span>
+                    <span class="panel-label">Q4_K_M</span>
+                  </div>
+                  <div class="p-5">
+                    <label class="block" style="max-width:340px">
+                      <span class="field-label">Your device</span>
+                      <div class="field">
+                        <select id="fc-device" aria-label="Your device">
+                          {fitData.map((d) => (
+                            <option value={d.id} selected={d.id === fitDefault.id}>{d.name}</option>
+                          ))}
+                        </select>
+                        <span class="truncate" id="fc-device-name">{fitDefault.name}</span>
+                        <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                      </div>
+                    </label>
+                    <div class="det-result" aria-live="polite" style="border-top:none;padding-top:16px">
+                      <div class="verdict-hero" id="fc-verdict" data-v={fitDefault.verdict} style={`color:${VERDICT_FG[fitDefault.verdict]}`}>
+                        <svg id="fc-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={fitDefault.verdict === "yes" ? '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>' : fitDefault.verdict === "tight" ? '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>' : '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>'} />
+                        <span id="fc-word">{VERDICT_WORD[fitDefault.verdict]}</span>
+                        {fitDefault.verdict !== "no" && fitDefault.speed && <span class="tok" id="fc-speed">{fitDefault.speed}</span>}
+                        {(fitDefault.verdict === "no" || !fitDefault.speed) && <span class="tok" id="fc-speed"></span>}
+                      </div>
+                      <div class="gauge lens mt-4" role="img" aria-label={`Memory: needs ${fitDefault.need} GB, device has ${fitDefault.usable} GB usable`}>
+                        <div class="gauge-fill" id="fc-fill" style={`transform:scaleX(${fitDefault.fillScale});background:color-mix(in oklch, ${VERDICT_COL[fitDefault.verdict]} 88%, transparent);--vc:${VERDICT_COL[fitDefault.verdict]}`}></div>
+                        <div class="gauge-mark" id="fc-mark" style={`--at:${fitDefault.markAt}%`} data-label={`usable ${fitDefault.usable} GB`} data-edge={fitDefault.markAt < 15 ? "start" : fitDefault.markAt > 85 ? "end" : undefined} aria-hidden="true"></div>
+                      </div>
+                      <div class="read">
+                        <span>needs <b class="num" id="fc-need">{fitDefault.need} GB</b></span>
+                        <span>usable <b class="num" id="fc-usable">{fitDefault.usable} GB</b></span>
+                      </div>
+                      <div class="det-cta">
+                        <a id="fc-link" href={`/can-i-run/${model.id}/${fitDefault.id}`} class="btn btn--primary magnetic">
+                          See the full breakdown
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                        </a>
+                        <div class="cmd-chip" id="fc-cmd" data-cmd={fitDefault.cmd ?? ""} style={fitDefault.cmd && fitDefault.verdict !== "no" ? "" : "display:none"}>
+                          <span class="d">$</span><span class="fc-cmd-text overflow-x-auto">{fitDefault.cmd}</span>
+                          <button type="button" class="copy" aria-label="Copy command">copy</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <script type="application/json" id="fc-data" set:html={JSON.stringify(fitData).replace(/</g, "\\u003c")} is:inline />
+                <script is:inline>
+                  (function () {
+                    const ICONS = {
+                      yes: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+                      tight: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+                      no: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+                    };
+                    const FG = { yes: "var(--verdict-yes-fg)", tight: "var(--verdict-tight-fg)", no: "var(--verdict-no-fg)" };
+                    const COL = { yes: "var(--color-verdict-yes)", tight: "var(--color-verdict-tight)", no: "var(--color-verdict-no)" };
+                    const WORD = { yes: "Yes, it runs", tight: "Yes, but tight", no: "No, not enough memory" };
+                    function initFit() {
+                      const root = document.getElementById("fit-check");
+                      const blob = document.getElementById("fc-data");
+                      const sel = document.getElementById("fc-device");
+                      if (!root || !blob || !sel || root.dataset.fcBound) return;
+                      root.dataset.fcBound = "1";
+                      const data = JSON.parse(blob.textContent || "[]");
+                      const byId = {};
+                      data.forEach((d) => (byId[d.id] = d));
+                      const modelId = root.dataset.modelId;
+                      const set = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+                      sel.addEventListener("change", () => {
+                        const d = byId[sel.value];
+                        if (!d) return;
+                        set("fc-device-name", (el) => (el.textContent = d.name));
+                        set("fc-verdict", (el) => { el.setAttribute("data-v", d.verdict); el.style.color = FG[d.verdict]; });
+                        set("fc-icon", (el) => (el.innerHTML = ICONS[d.verdict]));
+                        set("fc-word", (el) => (el.textContent = WORD[d.verdict]));
+                        set("fc-speed", (el) => (el.textContent = d.verdict === "no" ? "" : d.speed || ""));
+                        set("fc-fill", (el) => {
+                          el.style.transform = "scaleX(" + d.fillScale + ")";
+                          el.style.background = "color-mix(in oklch, " + COL[d.verdict] + " 88%, transparent)";
+                          el.style.setProperty("--vc", COL[d.verdict]);
+                        });
+                        set("fc-mark", (el) => { el.style.setProperty("--at", d.markAt + "%"); el.setAttribute("data-label", "usable " + d.usable + " GB"); if (d.markAt < 15) el.setAttribute("data-edge", "start"); else if (d.markAt > 85) el.setAttribute("data-edge", "end"); else el.removeAttribute("data-edge"); });
+                        set("fc-need", (el) => (el.textContent = d.need + " GB"));
+                        set("fc-usable", (el) => (el.textContent = d.usable + " GB"));
+                        set("fc-link", (el) => el.setAttribute("href", "/can-i-run/" + modelId + "/" + d.id));
+                        set("fc-cmd", (el) => {
+                          if (d.cmd && d.verdict !== "no") {
+                            el.style.display = "";
+                            el.setAttribute("data-cmd", d.cmd);
+                            const t = el.querySelector(".fc-cmd-text");
+                            if (t) t.textContent = d.cmd;
+                          } else {
+                            el.style.display = "none";
+                          }
+                        });
+                      });
+                    }
+                    initFit();
+                  })();
+                </script>
+              </section>
+            )}
+
+            <section class="mt-8">
+              <h2 class="mb-3 text-lg font-semibold">Memory breakdown</h2>
+              <div class="panel p-4">
+                <div class="flex flex-wrap items-end gap-x-5 gap-y-2 text-sm">
+                  <div><span class="stat-label block">Weights (Q4_K_M)</span><span class="text-lg font-bold"><span class="num">{q4.weightsGb}</span> GB</span></div>
+                  <span class="pb-1 text-muted-foreground">+</span>
+                  <div><span class="stat-label block">KV cache (4k)</span><span class="text-lg font-bold"><span class="num">{q4.kvGb}</span> GB</span></div>
+                  <span class="pb-1 text-muted-foreground">+</span>
+                  <div><span class="stat-label block">Overhead</span><span class="text-lg font-bold"><span class="num">{q4.overheadGb}</span> GB</span></div>
+                  <span class="pb-1 text-muted-foreground">=</span>
+                  <div><span class="stat-label block">Total</span><span class="text-lg font-bold text-[var(--brand-ink)]"><span class="num">{q4.totalGb}</span> GB</span></div>
+                </div>
+                <div class="mt-4 border-t border-border pt-3">
+                  <p class="stat-label mb-2">How context length changes it</p>
+                  <div class="flex flex-wrap gap-2">
+                    {ctxRows.map((r, i) => (
+                      <span class="rounded-md border border-border px-2.5 py-1 text-sm">
+                        <span class="text-muted-foreground">{[4, 32, 128][i]}k context</span>
+                        <span class="ml-1.5 font-semibold"><span class="num">~{r.totalGb}</span> GB</span>
+                      </span>
+                    ))}
+                  </div>
+                  <p class="mt-2 text-xs text-muted-foreground">{ctxNote}</p>
+                  {speed128Pct != null && (
+                    <p class="mt-1 text-xs text-muted-foreground">Speed drops too: every token re-reads the KV cache, so at 128k context {model.name} generates at roughly <span class="num">~{speed128Pct}%</span> of its short-context speed. <a href="/methodology" class="underline">How this is estimated</a>.</p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {boardScores.length > 0 && (
+              <section class="mt-8">
+                <h2 id="benchmarks" class="mb-3 scroll-mt-20 text-lg font-semibold">Benchmark scores</h2>
+                <div class="panel divide-y divide-border">
+                  {boardScores.map((b) => (
+                    <a href={`/leaderboard/${b.board.slug}`} class="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
+                      <div class="min-w-0">
+                        <p class="font-medium">{b.board.metric} <span class="text-sm font-normal text-muted-foreground">&middot; {b.board.label.toLowerCase()}</span></p>
+                        <p class="stat-label mt-0.5">#{b.rank} of {b.total} ranked &middot; {b.board.blurb}</p>
+                      </div>
+                      <span class="num shrink-0 text-xl font-bold text-[var(--brand-ink)]">{b.board.unit === "%" ? `${b.score}%` : Math.round(b.score)}</span>
+                    </a>
+                  ))}
+                </div>
+                <p class="mt-2 text-xs text-muted-foreground">Sourced third-party benchmarks for the full-precision {model.name}, not a specific quant. See the full <a href="/leaderboard" class="underline">leaderboard</a>.</p>
+              </section>
+            )}
+
+            <section class="mt-8 grid gap-6 sm:grid-cols-2">
+              <div class="min-w-0">
+                <h2 class="mb-3 text-lg font-semibold">Quantization sizes</h2>
+                <div class="panel overflow-hidden">
+                  <div class="panel-head"><span class="panel-label">GGUF quants</span><span class="panel-label">on disk</span></div>
+                  <table class="w-full text-sm">
+                    <thead class="sr-only">
+                      <tr>
+                        <th scope="col">Quantization</th>
+                        <th scope="col">Size on disk</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                      {ladder.map((q) => (
+                        <tr class={q.label === "Q4_K_M" ? "bg-[color-mix(in_oklch,var(--color-brand)_10%,transparent)]" : ""}>
+                          <td class="px-4 py-2 font-medium">{q.label}{q.label === "Q4_K_M" ? " (default)" : ""}</td>
+                          <td class="px-4 py-2 text-right text-muted-foreground"><span class="num">{q.gb}</span>&nbsp;GB{q.measured ? "" : " est"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p class="mt-2 text-xs text-muted-foreground">Lower quant = smaller and faster, slightly lower quality. Q4_K_M is the common default.</p>
+              </div>
+              <div class="min-w-0">
+                <h2 class="mb-3 text-lg font-semibold">Run it</h2>
+                {commands.length > 0 ? (
+                  <div class="space-y-2.5">
+                    {commands.map((c) => <Command code={c.cmd} label={c.tool} />)}
+                  </div>
+                ) : (
+                  <p class="text-sm text-muted-foreground">Run with a GGUF-compatible app such as PocketPal AI on mobile.</p>
+                )}
+              </div>
+            </section>
+
+            <section class="mt-8">
+              <h2 class="text-lg font-semibold">Which devices can run {model.name}?</h2>
+              <div class="mt-3 space-y-5">
+                {Object.entries(groups).map(([cat, list]) => (
+                  <div>
+                    <h3 class="stat-label mb-2">{CATEGORY_LABEL[cat] ?? cat}</h3>
+                    <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {list.map((d) => {
+                        const r = canRun(model, d);
+                        return (
+                          <li>
+                            <a href={`/can-i-run/${model.id}/${d.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                              <span class="flex min-w-0 items-center gap-2 text-sm">
+                                <EntityIcon device={d.category} size={18} class="text-muted-foreground" />
+                                <span class="truncate">{d.name}</span>
+                              </span>
+                              <VerdictBadge verdict={r.verdict} />
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {(nextSmaller || nextBigger) && (
+              <section class="mt-10">
+                <h2 class="text-lg font-semibold">Same job, different size</h2>
+                <p class="mt-2 text-sm text-muted-foreground">Pick by what fits your memory: step down to free up VRAM, or step up if you have headroom.</p>
+                <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {nextSmaller && (
+                    <a href={`/model/${nextSmaller.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                      <span class="flex min-w-0 flex-col">
+                        <span class="section-label">Next size down</span>
+                        <span class="truncate text-sm">{nextSmaller.name}</span>
+                      </span>
+                      <span class="shrink-0 text-xs text-muted-foreground">{sizeLabel(nextSmaller.params_b)}</span>
+                    </a>
+                  )}
+                  {nextBigger && (
+                    <a href={`/model/${nextBigger.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                      <span class="flex min-w-0 flex-col">
+                        <span class="section-label">Next size up</span>
+                        <span class="truncate text-sm">{nextBigger.name}</span>
+                      </span>
+                      <span class="shrink-0 text-xs text-muted-foreground">{sizeLabel(nextBigger.params_b)}</span>
+                    </a>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {similar.length > 0 && (
+              <section class="mt-10">
+                <h2 class="text-lg font-semibold">Similar models</h2>
+                <ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {similar.map((m) => (
+                    <li>
+                      <a href={`/model/${m.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+                        <span class="flex min-w-0 items-center gap-2 text-sm">
+                          <EntityIcon maker={m.family} size={18} class="text-muted-foreground" />
+                          <span class="truncate">{m.name} requirements</span>
+                        </span>
+                        <span class="shrink-0 text-xs text-muted-foreground">{m.params_b < 1 ? `${Math.round(m.params_b * 1000)}M` : `${m.params_b}B`}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {familySiblings.length > 0 && (
+              <section class="mt-10">
+                <h2 class="text-lg font-semibold">Head-to-head</h2>
+                <ul class="mt-3 flex flex-wrap gap-2">
+                  {familySiblings.map((o) => (
+                    <li>
+                      <a href={`/compare/${comparePair(o)}`} class="inline-flex items-center rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">
+                        {model.name} vs {o.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            <section class="mt-10">
+              <h2 class="text-lg font-semibold">FAQ</h2>
+              <div class="panel mt-3 divide-y divide-border">
+                {faqs.map((f) => (
+                  <div class="p-4">
+                    <p class="font-medium">{f.q}</p>
+                    <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {model.notes && <p class="mt-8 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">{model.notes}</p>}
+
+            <Sources urls={sources} />
+
+            <p class="mt-6 text-xs text-muted-foreground">
+              Last validated {meta.updated}. Memory figures are estimates. See <a href="/methodology" class="underline">methodology</a>.
+            </p>
+          </div>
+        </Base>
+      );
+    })()
+  ) : (
+    (() => {
+      const need = modalityNeed(model)!;
+      const spec = modalitySpec(model);
+      const comps = spec && "components" in spec ? spec.components : [];
+      const hasOffloadedEncoder = comps.some((c) => c.offloaded);
+      const archLabel = spec && "arch" in spec ? `${spec.arch.toUpperCase()} ` : "";
+      const kindWord =
+        modality === "image" ? "image model" : modality === "video" ? "video model" : (model.audio?.task ?? "audio model");
+      const memWord = modality === "audio" ? "memory" : "VRAM";
+      const runnable = devices.filter((d) => canRunModality(model, d).verdict !== "no");
+      const minDevice = [...runnable].sort((a, b) => a.memory_gb - b.memory_gb)[0];
+      const title = `${model.name}: ${memWord} & how to run locally · localmodel.run`;
+      const desc = truncate(
+        `${model.name} (${model.params_b}B ${archLabel}${kindWord}) needs ~${need.neededGb} GB ${memWord} at ${need.quantLabel}. Minimum to run: ${minDevice ? minDevice.name : "capable hardware"}. Sizes, the tools, and which devices can run it.`,
+      );
+      const licenseName = model.license ?? "its license";
+      const commercialAnswer =
+        model.commercial_use === "yes"
+          ? `Yes. ${model.name} is licensed ${licenseName}, which permits commercial use.`
+          : model.commercial_use === "conditional"
+            ? `Conditionally. ${model.license_note ?? `the ${licenseName} license applies; check the terms.`}`
+            : `No. ${model.license_note ?? `the ${licenseName} license is non-commercial.`}`;
+      const commercialFaq: FaqItem[] =
+        model.commercial_use != null
+          ? [{ q: `Can I use ${model.name} commercially?`, a: commercialAnswer }]
+          : [];
+      const faqs: FaqItem[] =
+        modality === "audio"
+          ? [
+              {
+                q: `How much memory does ${model.name} need?`,
+                a: `At ${need.quantLabel} it consumes ~${need.neededGb} GB. ${model.audio?.cpu_ok ? "It runs on CPU, so a GPU is optional." : "It needs a GPU or Apple Silicon."}`,
+              },
+              {
+                q: `Can ${model.name} run on a phone or CPU?`,
+                a: model.audio?.cpu_ok
+                  ? (model.audio.device_classes?.includes("iphone") || model.audio.device_classes?.includes("android")
+                      ? `Yes for CPU. The smaller tiers are light enough for real-time use, and on-device phone runtimes are available.`
+                      : `Yes for CPU. It runs on Mac or laptop CPU, though no phone runtime is confirmed.`)
+                  : `Not practically. ${model.name} expects a GPU; CPU inference is too slow for real use.`,
+              },
+              ...commercialFaq,
+            ]
+          : [
+              {
+                q: `How much VRAM does ${model.name} need?`,
+                a: `At ${need.quantLabel} the realistic peak is ~${need.neededGb} GB${need.noOffloadGb ? `, versus ~${need.noOffloadGb} GB with every component resident` : ""}. ${need.offloadFloorGb != null ? `With aggressive CPU offload it drops to ~${need.offloadFloorGb} GB, much slower.` : ""}`,
+              },
+              {
+                q: `Why is peak VRAM lower than the sum of the files?`,
+                a: hasOffloadedEncoder
+                  ? `The text encoder is run once to encode your prompt, then offloaded to CPU before the ${modality === "video" ? "frames are generated" : "denoising steps"}, so it is not resident at the memory peak.`
+                  : `The pipeline moves each stage off the GPU between passes (sequential CPU offload), so peak VRAM stays near the active stage rather than the sum of every file.`,
+              },
+              ...commercialFaq,
+            ];
+      const sources = dedupeSources(model.sources, [need.source]);
+      const jsonLd = [
+        breadcrumbLd(
+          [
+            { name: "Home", url: "/" },
+            { name: "Models", url: "/can-i-run" },
+            { name: model.name, url: path },
+          ],
+          Astro.site!.href,
+        ),
+        techArticleLd({
+          headline: `${model.name} system requirements`,
+          description: desc,
+          url: path,
+          origin: Astro.site!.href,
+          dateModified: meta.updated,
+          datePublished: meta.launched,
+          speakableSelector: [".verdict-text"],
+          sources,
+        }),
+        faqLd(faqs),
+      ];
+      return (
+        <Base title={title} description={desc} path={path} jsonLd={jsonLd} ogImage={`/og/model/${model.id}.png`} mdPath={`/model/${model.id}.md`} ogTitle={`${model.name} requirements`} ogType="article" articleModified={meta.updated} ogImageAlt={`${model.name} ${memWord} requirements`}>
+          <NonTextProfile model={model}>
+            <Breadcrumbs slot="breadcrumbs" items={[{ name: "Home", url: "/" }, { name: "Models", url: "/can-i-run" }, { name: model.name, url: path }]} />
+            <section class="mt-10">
+              <h2 class="text-lg font-semibold">FAQ</h2>
+              <div class="panel mt-3 divide-y divide-border">
+                {faqs.map((f) => (
+                  <div class="p-4">
+                    <p class="font-medium">{f.q}</p>
+                    <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </NonTextProfile>
+        </Base>
+      );
+    })()
+  )
+}

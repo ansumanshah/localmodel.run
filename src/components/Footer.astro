@@ -1,0 +1,95 @@
+---
+import { meta } from "@/lib/data";
+import { getLangFromUrl, useTranslations } from "@/i18n/utils";
+import type { Lang } from "@/i18n/ui";
+import { BUILD_VERSION, BUILD_COMMIT, BUILD_DATE, humanDate } from "@/lib/build-info";
+const siteUpdated = humanDate(meta.site_updated ?? meta.updated);
+interface Props {
+  year: number;
+  lang?: Lang;
+}
+const { year } = Astro.props;
+const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const cols = [
+  {
+    title: "Check",
+    links: [
+      { href: "/can-i-run", label: "All models" },
+      { href: "/best-llm-for", label: "All devices" },
+      { href: "/compare", label: "Compare hardware" },
+      { href: "/best-local", label: "Image, video, audio" },
+      { href: "/tools", label: "Tools by platform" },
+      { href: "/leaderboard", label: "Leaderboard" },
+      { href: "/play", label: "Daily quiz" },
+    ],
+  },
+  {
+    title: "Browse",
+    links: [
+      { href: "/best-llm-for-ram", label: "By memory" },
+      { href: "/best-for", label: "By use case" },
+      { href: "/family", label: "Model families" },
+      { href: "/most-efficient-llms", label: "Most efficient" },
+      { href: "/open-source-llms-for-commercial-use", label: "Commercial use" },
+    ],
+  },
+  {
+    title: "Learn",
+    links: [
+      { href: "/guides", label: "Guides" },
+      { href: "/methodology", label: "How we calculate" },
+      { href: "/developers", label: "API & agents" },
+      { href: "/about", label: "About" },
+    ],
+  },
+];
+---
+
+<footer class="site-footer relative">
+  <!-- Brand hairline along the footer's top edge -->
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] to-transparent"></div>
+
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[1.6fr_2.4fr]">
+    <div>
+      <div class="flex items-center gap-2 font-semibold">
+        localmodel<span class="text-muted-foreground">.run</span>
+        <span class="font-mono text-[10px] font-normal uppercase tracking-widest text-[var(--brand-ink)]">// local ai</span>
+      </div>
+      <p class="mt-2 max-w-xs text-sm text-muted-foreground">{t("footer.tagline")}</p>
+      <p class="mt-3 font-mono text-[11px] text-muted-foreground">{t("footer.dataNote", { date: meta.updated })}</p>
+    </div>
+    <nav aria-label="Footer" class="grid grid-cols-3 gap-4 sm:gap-6">
+      {cols.map((c) => (
+        <div>
+          <div class="font-mono text-[11px] uppercase tracking-widest text-[var(--brand-ink)]">{c.title}</div>
+          <ul class="mt-3 space-y-1.5">
+            {c.links.map((l) => (
+              <li>
+                <a href={l.href} class="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  </div>
+  <div class="border-t border-border/60">
+    <div class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <span>&copy; {year} localmodel.run. Estimates, not guarantees, always verify before a large download. <span class="font-mono" title={`${BUILD_COMMIT} · built ${BUILD_DATE} UTC`}>Updated {siteUpdated} &middot; v{BUILD_VERSION}</span></span>
+      <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span>Built by Ansuman Shah</span>
+        <a href="https://github.com/ansumanshah" rel="me noopener nofollow" aria-label="Ansuman Shah on GitHub" class="inline-flex p-2 text-muted-foreground transition-colors hover:text-foreground">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.52 11.52 0 0 1 3.003-.404c1.018.005 2.042.138 3.003.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.216.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+        <a href="https://x.com/AnsumanShah" rel="me noopener nofollow" aria-label="Ansuman Shah on X" class="inline-flex p-2 text-muted-foreground transition-colors hover:text-foreground">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+        </a>
+        <span class="opacity-50" aria-hidden="true">&middot;</span>
+        <a href="/about" class="underline hover:text-foreground">About</a>
+        <a href="/privacy" class="underline hover:text-foreground">Privacy</a>
+        <a href="/notices" class="underline hover:text-foreground">Notices</a>
+      </span>
+    </div>
+  </div>
+</footer>
