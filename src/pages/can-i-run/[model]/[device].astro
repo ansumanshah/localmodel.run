@@ -391,37 +391,36 @@ if (fits && commands.length > 0) {
         )}
       </dl>
 
-      <!-- Share section: show the shareable verdict card, then the actions. The
-           card is drawn client-side (lazily) into the canvas below; the Download
-           button exports that same canvas as a PNG. -->
+      <!-- Share section: the verdict card sits left with the actions stacked to
+           its right on desktop; both stack on mobile. The card is drawn
+           client-side (lazily) into the canvas; Download exports that canvas. -->
       <div class="border-t border-border p-5">
-        <canvas
-          data-verdict-canvas
-          width="2400"
-          height="1260"
-          class="mx-auto block w-full max-w-md rounded-md border border-border"
-          style="aspect-ratio:1200/630;background:#15171a"
-          data-verdict={result.verdict}
-          data-stamp={verdictLabel(result.verdict)}
-          data-model={model.name}
-          data-device={device.name}
-          data-needed={String(neededGb)}
-          data-usable={String(usable)}
-          data-quant={quantWord}
-          data-path={path}
-          data-dl={`verdict-${model.id}-${device.id}.png`}
-          role="img"
-          aria-label={`Shareable verdict card: ${model.name} on ${device.name}, ${verdictLabel(result.verdict)}`}
-        ></canvas>
-      </div>
-      <div class="panel-foot">
-        <div class="flex flex-wrap gap-2.5">
-          <button type="button" class="btn" data-verdict-download>Download PNG</button>
-          <button type="button" class="btn" data-copy={shareMarkdown}>Copy Markdown</button>
-          <a href={xUrl} rel="noopener noreferrer" target="_blank" class="btn" aria-label={`Share this verdict on X`}>Share on X</a>
-          <a href={redditUrl} rel="noopener noreferrer" target="_blank" class="btn" aria-label={`Share this verdict on Reddit`}>Reddit</a>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <canvas
+            data-verdict-canvas
+            width="2400"
+            height="1260"
+            class="block w-full rounded-md border border-border sm:w-3/5 sm:shrink-0"
+            style="aspect-ratio:1200/630;background:#15171a"
+            data-verdict={result.verdict}
+            data-stamp={verdictLabel(result.verdict)}
+            data-model={model.name}
+            data-device={device.name}
+            data-needed={String(neededGb)}
+            data-usable={String(usable)}
+            data-quant={quantWord}
+            data-path={path}
+            data-dl={`verdict-${model.id}-${device.id}.png`}
+            role="img"
+            aria-label={`Shareable verdict card: ${model.name} on ${device.name}, ${verdictLabel(result.verdict)}`}
+          ></canvas>
+          <div class="flex flex-1 flex-wrap gap-2.5 sm:flex-col sm:flex-nowrap">
+            <button type="button" class="btn sm:w-full sm:justify-center" data-verdict-download>Download PNG</button>
+            <button type="button" class="btn sm:w-full sm:justify-center" data-copy={shareMarkdown}>Copy Markdown</button>
+            <a href={xUrl} rel="noopener noreferrer" target="_blank" class="btn sm:w-full sm:justify-center" aria-label={`Share this verdict on X`}>Share on X</a>
+            <a href={redditUrl} rel="noopener noreferrer" target="_blank" class="btn sm:w-full sm:justify-center" aria-label={`Share this verdict on Reddit`}>Share on Reddit</a>
+          </div>
         </div>
-        <span class="panel-label hidden sm:block">localmodel.run</span>
       </div>
     </div>
 
