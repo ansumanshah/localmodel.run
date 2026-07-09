@@ -87,10 +87,19 @@ const shell = (inner: string) => `
 
 export function homeCard(): string {
   return shell(`
-  <div style="display:flex;flex-direction:column;margin-top:auto">
-    <div style="display:flex;font-size:74px;font-weight:700;line-height:1.05">Can I run this AI</div>
-    <div style="display:flex;font-size:74px;font-weight:700;line-height:1.05">model <span style="color:${C.brand};margin-left:18px">locally?</span></div>
-    <div style="display:flex;font-size:30px;color:${C.muted};margin-top:24px">Mac · Windows · Linux · iOS · Android, which model, which tool.</div>
+  <div style="display:flex;align-items:center;gap:52px;margin-top:auto">
+    <div style="display:flex;flex-direction:column;flex:1">
+      <div style="display:flex;font-size:58px;font-weight:700;line-height:1.05">Can I run this AI</div>
+      <div style="display:flex;font-size:58px;font-weight:700;line-height:1.05">model <span style="color:${C.brand};margin-left:16px">locally?</span></div>
+      <div style="display:flex;font-size:26px;color:${C.muted};margin-top:22px">Mac · Windows · Linux · iOS · Android</div>
+    </div>
+    <div style="display:flex;flex-direction:column;width:430px;padding:30px;border-radius:14px;background:${C.bg2};border:1px solid ${C.border};gap:14px">
+      <div style="display:flex;font-size:16px;font-weight:600;letter-spacing:0.08em;color:${C.muted}">COMPATIBILITY VERDICT</div>
+      <div style="display:flex;align-self:flex-start;border:2px solid ${C.green};border-radius:4px;padding:8px 18px;font-size:29px;font-weight:700;color:${C.green}">YES, IT RUNS</div>
+      <div style="display:flex;font-size:34px;font-weight:700;margin-top:6px">Llama 3.1 8B</div>
+      <div style="display:flex;font-size:20px;color:${C.muted}">on Apple M4 (16GB)</div>
+      <div style="display:flex;font-size:19px">needs ~6.4 GB · ~10.5 GB usable</div>
+    </div>
   </div>`)
 }
 
