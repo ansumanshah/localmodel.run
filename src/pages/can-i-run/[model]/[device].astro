@@ -23,6 +23,7 @@ import {
 } from "@/lib/data";
 import {
   estimateMemory,
+  quantLadderSizes,
   usableGb,
   QUANT_LABEL,
   verdictLabel,
@@ -85,6 +86,27 @@ const panelVc = verdictColor[result.verdict];
 const q4 = estimateMemory(model, "q4_k_m");
 const spec = isText ? null : modalitySpec(model);
 const neededGb = isText ? q4.totalGb : (result.neededGb ?? 0);
+
+// Quant ladder for THIS device (text only): total memory (weights at each GGUF
+// quant + the same KV cache + overhead the engine uses) against the device's
+// usable budget, each rung coloured by whether it clears the line. KV and
+// overhead are quant-independent, so they come from the Q4 estimate above.
+const quantLadder = isText
+  ? quantLadderSizes(model).map((r) => {
+      const total = Math.round((r.gb + q4.kvGb + q4.overheadGb) * 10) / 10;
+      const headroom = usable - total;
+      const verdict = total > usable ? "no" : headroom < Math.max(1, usable * 0.1) ? "tight" : "yes";
+      return { label: r.label, total, verdict };
+    })
+  : [];
+const ladderMax = quantLadder.length ? Math.max(usable, ...quantLadder.map((q) => q.total)) * 1.08 : 1;
+const usableMarkPct = Math.min(100, (usable / ladderMax) * 100);
+// Precompute the fill percent per rung so the template can use a paren-body map
+// (block-body maps inside markup can trip the Astro compiler).
+const quantLadderRows = quantLadder.map((q) => ({
+  ...q,
+  pct: Math.min(100, (q.total / ladderMax) * 100),
+}));
 
 // Pair-specific detail line (text): ±15% context variance + headroom on this device.
 const varianceNote =
@@ -402,6 +424,33 @@ if (fits && commands.length > 0) {
         <span class="panel-label hidden sm:block">localmodel.run</span>
       </div>
     </div>
+
+    {isText && quantLadderRows.length > 0 && (
+      <section class="mt-8">
+        <p class="eyebrow mb-3"><span class="dot" aria-hidden="true"></span>Which quant fits</p>
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-label">Quant ladder</span>
+            <span class="panel-label">vs ~{usable} GB usable</span>
+          </div>
+          <div class="space-y-1.5 p-4">
+            {quantLadderRows.map((q) => (
+              <div class="flex items-center gap-3">
+                <span class="w-16 shrink-0 font-mono text-[11px] tracking-wider">{q.label}</span>
+                <div class="relative h-4 flex-1 overflow-hidden rounded-[2px] bg-[color-mix(in_oklch,var(--foreground)_7%,transparent)]">
+                  <div class="h-full" style={`width:${q.pct}%;background:color-mix(in oklch, var(--color-verdict-${q.verdict}) 85%, transparent)`}></div>
+                  <div class="absolute inset-y-0 w-px bg-[color-mix(in_oklch,var(--foreground)_45%,transparent)]" style={`left:${usableMarkPct}%`} aria-hidden="true"></div>
+                </div>
+                <span class="w-20 shrink-0 text-right font-mono text-[11px] text-muted-foreground">~<span class="num">{q.total}</span> GB</span>
+              </div>
+            ))}
+          </div>
+          <div class="panel-foot">
+            <span class="panel-label">The line marks {device.name}'s ~{usable} GB budget; rungs past it are too large.</span>
+          </div>
+        </div>
+      </section>
+    )}
 
     {elecPerMtok != null && (
       <section class="mt-8">
