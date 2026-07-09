@@ -1,10 +1,10 @@
-import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
-import { Resvg } from '@resvg/resvg-js'
-import satori from 'satori'
-import { html } from 'satori-html'
+import { Resvg } from "@resvg/resvg-js";
+import satori from "satori";
+import { html } from "satori-html";
 
 // Dynamic OG/social-card generation: Satori (HTML -> SVG) -> resvg (SVG -> PNG).
 // Runs at build time (static endpoints), so the output is plain PNG files.
@@ -13,9 +13,9 @@ import { html } from 'satori-html'
 
 // Public Sans (the site body face) for the social cards too, read from the
 // @fontsource package at build time. Satori needs static .woff (not woff2).
-const fontsDir = join(process.cwd(), 'node_modules', '@fontsource', 'public-sans', 'files')
-const fontRegular = readFileSync(join(fontsDir, 'public-sans-latin-400-normal.woff'))
-const fontBold = readFileSync(join(fontsDir, 'public-sans-latin-700-normal.woff'))
+const fontsDir = join(process.cwd(), "node_modules", "@fontsource", "public-sans", "files");
+const fontRegular = readFileSync(join(fontsDir, "public-sans-latin-400-normal.woff"));
+const fontBold = readFileSync(join(fontsDir, "public-sans-latin-700-normal.woff"));
 
 // Build-time PNG cache. The markup string fully determines a card's pixels, so
 // hash(markup + dims + font bytes) is a COMPLETE key: a hit is always correct,
@@ -24,56 +24,56 @@ const fontBold = readFileSync(join(fontsDir, 'public-sans-latin-700-normal.woff'
 // from ~25s to a few seconds. CI/CF start with an empty cache (fresh workspace),
 // so they always regenerate. The dir lives under node_modules (gitignored); any
 // cache I/O error falls through to a normal render, so it can never break a build.
-const OG_CACHE_DIR = join(process.cwd(), 'node_modules', '.cache', 'og')
-const fontKey = createHash('sha1').update(fontRegular).update(fontBold).digest('hex').slice(0, 8)
-let ogCacheReady = false
+const OG_CACHE_DIR = join(process.cwd(), "node_modules", ".cache", "og");
+const fontKey = createHash("sha1").update(fontRegular).update(fontBold).digest("hex").slice(0, 8);
+let ogCacheReady = false;
 
 // The Calibrated Instrument on gunmetal: matte bench-plate cards, needle accent.
 const C = {
-  bg: '#15171a',
-  bg2: '#1c1f24',
-  card: '#1c1f24',
-  text: '#edeff2',
-  muted: '#9ba0a8',
-  brand: '#85ace2',
-  green: '#8fbf88',
-  amber: '#d9a94f',
-  red: '#e08579',
-  border: '#2c2f34',
-}
+  bg: "#15171a",
+  bg2: "#1c1f24",
+  card: "#1c1f24",
+  text: "#edeff2",
+  muted: "#9ba0a8",
+  brand: "#85ace2",
+  green: "#8fbf88",
+  amber: "#d9a94f",
+  red: "#e08579",
+  border: "#2c2f34",
+};
 
 export async function renderOg(markup: string, width = 1200, height = 630): Promise<Uint8Array> {
-  const key = createHash('sha1').update(`${fontKey}|${width}x${height}|${markup}`).digest('hex')
-  const cachePath = join(OG_CACHE_DIR, `${key}.png`)
+  const key = createHash("sha1").update(`${fontKey}|${width}x${height}|${markup}`).digest("hex");
+  const cachePath = join(OG_CACHE_DIR, `${key}.png`);
   try {
-    if (existsSync(cachePath)) return readFileSync(cachePath)
+    if (existsSync(cachePath)) return readFileSync(cachePath);
   } catch {
     /* unreadable cache entry: fall through and re-render */
   }
 
-  const vnode = html(markup)
+  const vnode = html(markup);
   const svg = await satori(vnode as Parameters<typeof satori>[0], {
     width,
     height,
     fonts: [
-      { name: 'Geist', data: fontRegular, weight: 400, style: 'normal' },
-      { name: 'Geist', data: fontBold, weight: 700, style: 'normal' },
+      { name: "Geist", data: fontRegular, weight: 400, style: "normal" },
+      { name: "Geist", data: fontBold, weight: 700, style: "normal" },
       // Kept under the historical family name so every card template's
       // font-family:Geist declaration resolves without a sweep of edits.
     ],
-  })
-  const png = new Resvg(svg, { fitTo: { mode: 'width', value: width } }).render().asPng()
+  });
+  const png = new Resvg(svg, { fitTo: { mode: "width", value: width } }).render().asPng();
 
   try {
     if (!ogCacheReady) {
-      mkdirSync(OG_CACHE_DIR, { recursive: true })
-      ogCacheReady = true
+      mkdirSync(OG_CACHE_DIR, { recursive: true });
+      ogCacheReady = true;
     }
-    writeFileSync(cachePath, png)
+    writeFileSync(cachePath, png);
   } catch {
     /* read-only fs or quota: caching is best-effort, never fatal */
   }
-  return png
+  return png;
 }
 
 const shell = (inner: string) => `
@@ -83,7 +83,7 @@ const shell = (inner: string) => `
     <div style="display:flex;font-size:28px;font-weight:700">localmodel<span style="color:${C.muted}">.run</span></div>
   </div>
   ${inner}
-</div>`
+</div>`;
 
 export function homeCard(): string {
   return shell(`
@@ -100,10 +100,15 @@ export function homeCard(): string {
       <div style="display:flex;font-size:20px;color:${C.muted}">on Apple M4 (16GB)</div>
       <div style="display:flex;font-size:19px">needs ~6.4 GB · ~10.5 GB usable</div>
     </div>
-  </div>`)
+  </div>`);
 }
 
-export function modelCard(opts: { name: string; params: string; q4: string; context: string }): string {
+export function modelCard(opts: {
+  name: string;
+  params: string;
+  q4: string;
+  context: string;
+}): string {
   return shell(`
   <div style="display:flex;flex-direction:column;margin-top:auto">
     <div style="display:flex;font-size:26px;color:${C.muted}">Can I run</div>
@@ -114,15 +119,15 @@ export function modelCard(opts: { name: string; params: string; q4: string; cont
       ${pill(`${opts.q4} at Q4_K_M`)}
       ${pill(`${opts.context} context`)}
     </div>
-  </div>`)
+  </div>`);
 }
 
 export function imageModelCard(opts: {
-  name: string
-  kind: string // "Image model (DiT)"
-  params: string
-  vram: string
-  resolution: string
+  name: string;
+  kind: string; // "Image model (DiT)"
+  params: string;
+  vram: string;
+  resolution: string;
 }): string {
   return shell(`
   <div style="display:flex;flex-direction:column;margin-top:auto">
@@ -135,14 +140,14 @@ export function imageModelCard(opts: {
       ${pill(`${opts.vram} VRAM`)}
       ${pill(opts.resolution)}
     </div>
-  </div>`)
+  </div>`);
 }
 
 export function audioModelCard(opts: {
-  name: string
-  task: string // "Speech to text"
-  params: string
-  mem: string
+  name: string;
+  task: string; // "Speech to text"
+  params: string;
+  mem: string;
 }): string {
   return shell(`
   <div style="display:flex;flex-direction:column;margin-top:auto">
@@ -154,27 +159,27 @@ export function audioModelCard(opts: {
       ${pill(`${opts.params} params`)}
       ${pill(`${opts.mem} memory`)}
     </div>
-  </div>`)
+  </div>`);
 }
 
 const GRADE_COLOR: Record<string, string> = {
   S: C.green,
   A: C.green,
-  B: '#86efac',
+  B: "#86efac",
   C: C.amber,
-  D: '#fdba74',
+  D: "#fdba74",
   F: C.red,
-}
+};
 
 export function rigCard(opts: {
-  device: string
-  grade: string
-  pct: number
-  runnable: number
-  total: number
-  biggest: string
+  device: string;
+  grade: string;
+  pct: number;
+  runnable: number;
+  total: number;
+  biggest: string;
 }): string {
-  const col = GRADE_COLOR[opts.grade] ?? C.muted
+  const col = GRADE_COLOR[opts.grade] ?? C.muted;
   return shell(`
   <div style="display:flex;align-items:center;margin-top:auto;gap:48px">
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:240px;height:240px;border-radius:8px;background:${C.card};border:3px solid ${col}">
@@ -187,9 +192,9 @@ export function rigCard(opts: {
       <div style="display:flex;font-size:34px;margin-top:24px">Runs <span style="color:${C.brand};font-weight:700;margin:0 10px">${opts.runnable} of ${opts.total}</span> models (${opts.pct}%)</div>
       <div style="display:flex;font-size:28px;color:${C.muted};margin-top:10px">Biggest it can run: ${opts.biggest}</div>
     </div>
-  </div>`)
+  </div>`);
 }
 
 function pill(text: string): string {
-  return `<div style="display:flex;align-items:center;padding:10px 20px;border-radius:4px;background:${C.card};border:1px solid ${C.border};font-size:26px;color:${C.text}">${text}</div>`
+  return `<div style="display:flex;align-items:center;padding:10px 20px;border-radius:4px;background:${C.card};border:1px solid ${C.border};font-size:26px;color:${C.text}">${text}</div>`;
 }
