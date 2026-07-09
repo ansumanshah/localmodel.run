@@ -507,15 +507,19 @@
     isolation: isolate;
     overflow: hidden;
     /* Matte: the hero sits on the bare panel. No radial brand wash; the only
-       color on the faceplate is ink and the needle. */
-    padding: clamp(2.5rem, 7vh, 5rem) clamp(1rem, 4vw, 3rem);
+       color on the faceplate is ink and the needle. Horizontal gutter lives on
+       .hero-inner so the hero content lines up with the rest of the page. */
+    padding: clamp(2.5rem, 7vh, 5rem) 0;
   }
   .hero-inner {
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 1180px;
+    /* Match the page container (max-w-5xl + px-4) so the hero is the same width
+       and edge-aligned with every section below it. */
+    max-width: 64rem;
     margin: 0 auto;
+    padding-inline: 1rem;
     display: grid;
     grid-template-columns: 1fr;
     gap: 2.5rem;
