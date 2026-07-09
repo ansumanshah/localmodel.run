@@ -273,7 +273,7 @@
     font-size: 0.6875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--accent, var(--brand-ink));
+    color: var(--brand-ink);
     margin: 0;
   }
   /* The brand "tick": a short 2px bar, the calm successor to the old grid ticks. */
@@ -282,7 +282,7 @@
     width: 2px;
     height: 0.7rem;
     border-radius: 2px;
-    background: var(--accent, var(--color-brand));
+    background: var(--color-brand);
     flex-shrink: 0;
   }
   .wire {
