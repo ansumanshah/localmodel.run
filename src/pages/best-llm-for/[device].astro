@@ -38,6 +38,11 @@ const ranked = modelsBySize
   .sort((a, b) => b.model.params_b - a.model.params_b);
 const fitting = ranked.filter((r) => r.result.verdict !== "no");
 const notFitting = ranked.filter((r) => r.result.verdict === "no");
+// Fit distribution for the at-a-glance bar: how the whole tracked catalog splits
+// on this device (runs well / tight fit / too heavy), shown in the verdict palette.
+const yesCount = ranked.filter((r) => r.result.verdict === "yes").length;
+const tightCount = ranked.filter((r) => r.result.verdict === "tight").length;
+const noCount = notFitting.length;
 // "Best" pick = the highest-quality model that runs comfortably (LMArena Elo where
 // we have it), not just the biggest. Falls back to fast-and-fitting, then anything that fits.
 const topPick =
@@ -143,6 +148,25 @@ const jsonLd = [
       <strong class="text-foreground">{fitting.length}</strong> of {ranked.length} popular models.
       {tool && <> Best tool: <strong class="text-foreground">{tool.beginner.name}</strong>.</>}
     </p>
+
+    <!-- Fit distribution: how the tracked catalog splits on this device, scannable
+         in one glance in the verdict palette (runs well / tight fit / too heavy). -->
+    <div class="mt-5">
+      <div
+        class="flex h-3 w-full overflow-hidden rounded-[3px] border border-border"
+        role="img"
+        aria-label={`On ${device.name}: ${yesCount} run well, ${tightCount} a tight fit, ${noCount} too heavy, of ${ranked.length} tracked models`}
+      >
+        {yesCount > 0 && <div style={`flex:${yesCount};background:var(--color-verdict-yes)`}></div>}
+        {tightCount > 0 && <div style={`flex:${tightCount};background:var(--color-verdict-tight)`}></div>}
+        {noCount > 0 && <div style={`flex:${noCount};background:var(--color-verdict-no)`}></div>}
+      </div>
+      <div class="mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5 font-mono text-xs">
+        <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-yes)"></span><b class="text-foreground">{yesCount}</b> <span class="text-muted-foreground">run well</span></span>
+        <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-tight)"></span><b class="text-foreground">{tightCount}</b> <span class="text-muted-foreground">tight fit</span></span>
+        <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-no)"></span><b class="text-foreground">{noCount}</b> <span class="text-muted-foreground">too heavy</span></span>
+      </div>
+    </div>
 
     <div class="wire mt-5" aria-hidden="true"></div>
 
