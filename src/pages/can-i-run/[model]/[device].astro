@@ -369,30 +369,35 @@ if (fits && commands.length > 0) {
         )}
       </dl>
 
-      <!-- Share row: the verdict is the shareable artifact. PNG card for
-           threads and chats, markdown for a paste-ready Reddit/HN answer,
-           intents for one-tap posting. -->
+      <!-- Share section: show the shareable verdict card, then the actions. The
+           card is drawn client-side (lazily) into the canvas below; the Download
+           button exports that same canvas as a PNG. -->
+      <div class="border-t border-border p-5">
+        <canvas
+          data-verdict-canvas
+          width="2400"
+          height="1260"
+          class="mx-auto block w-full max-w-md rounded-md border border-border"
+          style="aspect-ratio:1200/630;background:#15171a"
+          data-verdict={result.verdict}
+          data-stamp={verdictLabel(result.verdict)}
+          data-model={model.name}
+          data-device={device.name}
+          data-needed={String(neededGb)}
+          data-usable={String(usable)}
+          data-quant={quantWord}
+          data-path={path}
+          data-dl={`verdict-${model.id}-${device.id}.png`}
+          role="img"
+          aria-label={`Shareable verdict card: ${model.name} on ${device.name}, ${verdictLabel(result.verdict)}`}
+        ></canvas>
+      </div>
       <div class="panel-foot">
         <div class="flex flex-wrap gap-2.5">
-          <button
-            type="button"
-            class="btn"
-            data-verdict-card
-            data-verdict={result.verdict}
-            data-stamp={verdictLabel(result.verdict)}
-            data-model={model.name}
-            data-device={device.name}
-            data-needed={String(neededGb)}
-            data-usable={String(usable)}
-            data-quant={quantWord}
-            data-path={path}
-            data-dl={`verdict-${model.id}-${device.id}.png`}
-          >
-            Download verdict card (PNG)
-          </button>
-          <button type="button" class="btn" data-copy={shareMarkdown}>Copy as Markdown</button>
+          <button type="button" class="btn" data-verdict-download>Download PNG</button>
+          <button type="button" class="btn" data-copy={shareMarkdown}>Copy Markdown</button>
           <a href={xUrl} rel="noopener noreferrer" target="_blank" class="btn" aria-label={`Share this verdict on X`}>Share on X</a>
-          <a href={redditUrl} rel="noopener noreferrer" target="_blank" class="btn" aria-label={`Share this verdict on Reddit`}>Share on Reddit</a>
+          <a href={redditUrl} rel="noopener noreferrer" target="_blank" class="btn" aria-label={`Share this verdict on Reddit`}>Reddit</a>
         </div>
         <span class="panel-label hidden sm:block">localmodel.run</span>
       </div>
@@ -650,9 +655,11 @@ if (fits && commands.length > 0) {
 </Base>
 
 <script>
-  // Shareable verdict card: draws the SSR-computed verdict (read from data-*
-  // on the button, nothing recomputed) onto the instrument plate and downloads
-  // it as a PNG. Landscape 1200x630 so it embeds cleanly in threads and chats.
+  // Verdict card: drawn client-side onto the visible <canvas data-verdict-canvas>
+  // so users see the shareable artifact, and exported to PNG by the Download
+  // button. Drawn lazily as it nears the viewport; every number is read from the
+  // canvas data-* (SSR-computed, nothing recomputed). Landscape 1200x630 so it
+  // embeds cleanly in threads and chats.
   const STAMP_COLOR: Record<string, string> = {
     yes: "#8fbf88",
     tight: "#d9a94f",
@@ -662,17 +669,18 @@ if (fits && commands.length > 0) {
   const DISPLAY = '"Fjalla One", "Avenir Next Condensed", "Arial Narrow", sans-serif';
   const MONO = '"JetBrains Mono Variable", ui-monospace, Menlo, monospace';
 
-  async function drawVerdictCard(d: DOMStringMap) {
+  async function drawCard(canvas: HTMLCanvasElement) {
+    if (canvas.dataset.drawn === "1") return;
+    const d = canvas.dataset;
     await document.fonts?.ready;
     const W = 1200;
     const H = 630;
     const scale = 2;
-    const c = document.createElement("canvas");
-    c.width = W * scale;
-    c.height = H * scale;
-    const x = c.getContext("2d");
+    canvas.width = W * scale;
+    canvas.height = H * scale;
+    const x = canvas.getContext("2d");
     if (!x) return;
-    x.scale(scale, scale);
+    x.setTransform(scale, 0, 0, scale, 0, 0);
     const rr = (rx: number, ry: number, rw: number, rh: number, rad: number) => {
       x.beginPath();
       x.moveTo(rx + rad, ry);
@@ -765,16 +773,38 @@ if (fits && commands.length > 0) {
     x.font = `500 ${urlPx}px ` + MONO;
     x.fillText("localmodel.run" + (d.path ?? ""), pad, H - 52);
 
-    c.toBlob((blob) => {
+    canvas.dataset.drawn = "1";
+  }
+
+  function downloadCard(canvas: HTMLCanvasElement) {
+    canvas.toBlob((blob) => {
       if (!blob) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = d.dl ?? "verdict.png";
+      a.download = canvas.dataset.dl ?? "verdict.png";
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     }, "image/png");
+  }
+
+  // Draw each visible verdict canvas lazily as it nears the viewport.
+  function setupVerdictCards() {
+    const canvases = document.querySelectorAll<HTMLCanvasElement>("[data-verdict-canvas]");
+    if (!canvases.length) return;
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            drawCard(e.target as HTMLCanvasElement);
+            obs.unobserve(e.target);
+          }
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    canvases.forEach((c) => io.observe(c));
   }
 
   // Delegated once at the document so it survives view-transition swaps
@@ -789,8 +819,13 @@ if (fits && commands.length > 0) {
     document.addEventListener("click", (e) => {
       const t = e.target;
       if (!(t instanceof Element)) return;
-      const btn = t.closest<HTMLElement>("[data-verdict-card]");
-      if (btn) drawVerdictCard(btn.dataset);
+      if (!t.closest("[data-verdict-download]")) return;
+      const canvas = document.querySelector<HTMLCanvasElement>("[data-verdict-canvas]");
+      if (!canvas) return;
+      // Ensure it is drawn (in case of a click before the lazy draw fired).
+      Promise.resolve(drawCard(canvas)).then(() => downloadCard(canvas));
     });
+    document.addEventListener("astro:page-load", setupVerdictCards);
   }
+  setupVerdictCards();
 </script>
