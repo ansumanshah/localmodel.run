@@ -1,0 +1,35 @@
+name: Add a model
+description: Suggest a model for the catalog. Sizes are measured from primary sources, never estimated.
+title: "model: "
+labels: ["data"]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Model name and variant
+      placeholder: Qwen3.6 27B Instruct
+    validations:
+      required: true
+  - type: input
+    id: gguf
+    attributes:
+      label: HuggingFace GGUF repo URL
+      description: The repo whose file sizes the entry will be measured from (bartowski, unsloth, mradermacher, and similar).
+      placeholder: https://huggingface.co/bartowski/...
+    validations:
+      required: true
+  - type: input
+    id: ollama
+    attributes:
+      label: Ollama tag, if one exists
+      placeholder: qwen3.6:27b
+  - type: input
+    id: params
+    attributes:
+      label: Parameters (B), plus active params if MoE
+      placeholder: 27B dense, or 30.5B total / 3.3B active
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: License, context length, modality, anything unusual.

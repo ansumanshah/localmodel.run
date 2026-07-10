@@ -113,8 +113,9 @@ Optional build-time env vars (Cloudflare Pages → Settings → Environment vari
 
 - **Code:** MIT ([LICENSE](LICENSE)).
 - **Data:** the dataset under `src/data/` (every row carries its `sources[]`) is
-  also available under CC BY 4.0 ([LICENSE-DATA](LICENSE-DATA)). Use it in your
-  app, benchmark, paper or README; credit it with a link:
+  also available under CC BY 4.0 ([LICENSE-DATA](LICENSE-DATA)), and mirrored as a
+  [HuggingFace dataset](https://huggingface.co/datasets/ansumanshah/local-ai-model-memory-requirements).
+  Use it in your app, benchmark, paper or README; credit it with a link:
 
   ```md
   Data: [localmodel.run](https://localmodel.run) (CC BY 4.0)

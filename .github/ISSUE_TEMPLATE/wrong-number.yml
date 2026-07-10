@@ -1,0 +1,28 @@
+name: Report a wrong number
+description: A memory figure, device spec or benchmark score that does not match its source.
+title: "data: "
+labels: ["data"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page URL
+      placeholder: https://localmodel.run/can-i-run/llama-3.1-8b/apple-m4-16gb
+    validations:
+      required: true
+  - type: input
+    id: shown
+    attributes:
+      label: The number shown
+    validations:
+      required: true
+  - type: input
+    id: correct
+    attributes:
+      label: What it should be, with the source URL
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
