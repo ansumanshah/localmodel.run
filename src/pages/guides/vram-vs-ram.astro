@@ -108,6 +108,19 @@ const jsonLd = [
     </div>
 
     <section class="mt-8">
+      <h2 class="text-xl font-semibold">Is unified memory the same as VRAM?</h2>
+      <p class="mt-2 text-pretty text-muted-foreground">
+        Not the same, but close in practice. <strong class="text-foreground">VRAM</strong> is
+        dedicated memory on a discrete GPU. <strong class="text-foreground">Unified memory</strong>,
+        as on Apple Silicon, is one pool the CPU and GPU share, so there is no separate video memory.
+        For running a model the two behave alike, because the GPU reads weights from fast memory
+        either way. The practical difference: unified memory is shared with the whole system, so only
+        about 66 to 75% of it is usable for a model, where a discrete GPU hands over nearly all its
+        VRAM.
+      </p>
+    </section>
+
+    <section class="mt-8">
       <h2 class="text-xl font-semibold">The three kinds of memory</h2>
       <div class="panel mt-3 divide-y divide-border">
         <div class="p-4">
