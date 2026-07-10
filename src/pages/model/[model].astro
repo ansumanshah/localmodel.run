@@ -99,6 +99,13 @@ const fitData = fitDevices.map((d) => {
   };
 });
 const fitDefault = fitData.find((d) => d.id === "apple-m4-16gb") ?? fitData[Math.floor(fitData.length / 2)];
+// Device fit distribution for the at-a-glance bar: how the whole tracked device
+// set splits for this model (runs well / tight fit / device too small), in the
+// verdict palette. Same engine + default context as the fit-check picker below,
+// so fitYes + fitTight equals the "runs on N devices" count in the lede.
+const fitYes = fitData.filter((d) => d.verdict === "yes").length;
+const fitTight = fitData.filter((d) => d.verdict === "tight").length;
+const fitNo = fitData.filter((d) => d.verdict === "no").length;
 const VERDICT_FG: Record<string, string> = { yes: "var(--verdict-yes-fg)", tight: "var(--verdict-tight-fg)", no: "var(--verdict-no-fg)" };
 const VERDICT_COL: Record<string, string> = { yes: "var(--color-verdict-yes)", tight: "var(--color-verdict-tight)", no: "var(--color-verdict-no)" };
 const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes, but tight", no: "No, not enough memory" };
@@ -291,6 +298,28 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
             {fitDefault && (
               <section class="mt-8">
                 <h2 class="mb-3 text-lg font-semibold">Will it run on your device?</h2>
+
+                <!-- Device fit distribution: how the tracked device set splits for
+                     this model (runs well / tight fit / too small), scannable in one
+                     glance in the verdict palette before you check a specific device. -->
+                <p class="text-sm text-muted-foreground">
+                  {model.name} runs on <strong class="text-foreground">{fitYes + fitTight}</strong> of {fitData.length} tracked devices at Q4_K_M.
+                </p>
+                <div
+                  class="mt-2.5 flex h-3 w-full overflow-hidden rounded-[3px] border border-border"
+                  role="img"
+                  aria-label={`${model.name} across ${fitData.length} tracked devices: ${fitYes} run well, ${fitTight} a tight fit, ${fitNo} too small`}
+                >
+                  {fitYes > 0 && <div style={`flex:${fitYes};background:var(--color-verdict-yes)`}></div>}
+                  {fitTight > 0 && <div style={`flex:${fitTight};background:var(--color-verdict-tight)`}></div>}
+                  {fitNo > 0 && <div style={`flex:${fitNo};background:var(--color-verdict-no)`}></div>}
+                </div>
+                <div class="mb-5 mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5 font-mono text-xs">
+                  <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-yes)"></span><b class="text-foreground">{fitYes}</b> <span class="text-muted-foreground">run well</span></span>
+                  <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-tight)"></span><b class="text-foreground">{fitTight}</b> <span class="text-muted-foreground">tight fit</span></span>
+                  <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-no)"></span><b class="text-foreground">{fitNo}</b> <span class="text-muted-foreground">too small</span></span>
+                </div>
+
                 <div class="panel-hero" id="fit-check" data-model-id={model.id}>
                   <div class="panel-head">
                     <span class="panel-label">Fit check</span>
