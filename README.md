@@ -3,6 +3,7 @@
 [![CI](https://github.com/ansumanshah/localmodel.run/actions/workflows/ci.yml/badge.svg)](https://github.com/ansumanshah/localmodel.run/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-2D5FA8)](LICENSE)
 [![Live](https://img.shields.io/badge/live-localmodel.run-2D5FA8)](https://localmodel.run)
+[![HF Space](https://img.shields.io/badge/%F0%9F%A4%97%20Space-can%20i%20run%20it%20locally-2D5FA8)](https://huggingface.co/spaces/ansumanshah/can-i-run-it-locally)
 [![Made with Astro](https://img.shields.io/badge/built%20with-Astro-2D5FA8)](https://astro.build)
 
 [![localmodel.run: can I run this AI model locally?](docs/og.png)](https://localmodel.run)
@@ -107,3 +108,21 @@ Optional build-time env vars (Cloudflare Pages → Settings → Environment vari
 - `robots.txt` explicitly allows AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended) since being citable is the strategy.
 - `/llms.txt` and `/llms-full.txt` expose all 153 models (text, image, video, audio) for answer engines.
 - Sitemap, RSS, canonical URLs, OG/Twitter cards (dynamic per page via Satori), fast static HTML.
+
+## License and reusing the data
+
+- **Code:** MIT ([LICENSE](LICENSE)).
+- **Data:** the dataset under `src/data/` (every row carries its `sources[]`) is
+  also available under CC BY 4.0 ([LICENSE-DATA](LICENSE-DATA)). Use it in your
+  app, benchmark, paper or README; credit it with a link:
+
+  ```md
+  Data: [localmodel.run](https://localmodel.run) (CC BY 4.0)
+  ```
+
+- **Badges:** every `model × device` pair has an embeddable SVG badge for GGUF
+  model cards and project READMEs:
+
+  ```md
+  [![Runs on Apple M4 16GB](https://localmodel.run/badge/llama-3.1-8b/apple-m4-16gb.svg)](https://localmodel.run/can-i-run/llama-3.1-8b/apple-m4-16gb)
+  ```
