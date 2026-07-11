@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Methodology
+    url: https://localmodel.run/methodology
+    about: How every number is computed, and the sourcing rules behind the catalog.

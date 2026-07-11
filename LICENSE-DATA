@@ -1,0 +1,15 @@
+Dataset license (CC BY 4.0)
+
+The compatibility dataset under src/data/ (model and device facts, with the
+per-row source citations) is made available under the Creative Commons
+Attribution 4.0 International license (CC BY 4.0):
+https://creativecommons.org/licenses/by/4.0/
+
+Attribution: link to https://localmodel.run, for example
+"Data: localmodel.run (CC BY 4.0)".
+
+Brand logos rendered via the icon system are the trademarks of their respective
+owners and are used for identification only. The model figures are estimates
+compiled from the cited primary sources; see https://localmodel.run/methodology.
+
+The site's code is separately licensed under MIT (see LICENSE).
