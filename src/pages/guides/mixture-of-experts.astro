@@ -1,6 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import GuideToc from "@/components/GuideToc.astro";
 import Sources from "@/components/Sources.astro";
 import { models, getModel, meta } from "@/lib/data";
 import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
@@ -105,8 +106,18 @@ const jsonLd = [
       </p>
     </div>
 
+    <GuideToc
+      items={[
+        { id: "two-numbers", label: "Two numbers, not one" },
+        { id: "worked-example", label: "A worked example" },
+        { id: "by-size", label: "MoE models, by total size" },
+        { id: "when-to-use", label: "When should you run a MoE?" },
+        { id: "faq", label: "FAQ" },
+      ]}
+    />
+
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">Two numbers, not one</h2>
+      <h2 id="two-numbers" class="scroll-mt-20 text-xl font-semibold">Two numbers, not one</h2>
       <p class="mt-2 text-muted-foreground">
         A dense model has one parameter count that drives both speed and memory. A MoE has two: total
         parameters and active parameters. They pull in different directions.
@@ -124,7 +135,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">A worked example: {hero.name}</h2>
+      <h2 id="worked-example" class="scroll-mt-20 text-xl font-semibold">A worked example: {hero.name}</h2>
       <p class="mt-2 text-muted-foreground">
         {hero.name} has about {hero.params_b}B total parameters but activates only ~{hero.active_params_b}B
         per token. So it generates at roughly the speed of a {hero.active_params_b}B model, while
@@ -154,7 +165,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">MoE models, by total size</h2>
+      <h2 id="by-size" class="scroll-mt-20 text-xl font-semibold">MoE models, by total size</h2>
       <p class="mt-2 text-muted-foreground">
         Tracked mixture-of-experts models and the gap between what they cost in speed and in memory:
       </p>
@@ -180,7 +191,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">So when should you run a MoE?</h2>
+      <h2 id="when-to-use" class="scroll-mt-20 text-xl font-semibold">So when should you run a MoE?</h2>
       <p class="mt-2 text-muted-foreground">
         When you have the memory for the total size and want more capability without slowing down. If
         memory is the constraint, compare by on-disk size, not by the active part: a MoE's total is
@@ -192,7 +203,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-10">
-      <h2 class="text-xl font-semibold">FAQ</h2>
+      <h2 id="faq" class="scroll-mt-20 text-xl font-semibold">FAQ</h2>
       <div class="panel mt-3 divide-y divide-border">
         {faqs.map((f) => (
           <div class="p-4">
