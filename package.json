@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^6.0.0",
-    "@astrojs/rss": "4.0.18",
+    "@astrojs/rss": "4.0.19",
     "@astrojs/sitemap": "3.7.3",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource/fjalla-one": "^5.2.7",
@@ -43,7 +43,7 @@
     "react-dom": "19.2.7",
     "satori": "^0.26.0",
     "satori-html": "^0.3.2",
-    "tailwindcss": "4.3.1"
+    "tailwindcss": "4.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
