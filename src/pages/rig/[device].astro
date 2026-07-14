@@ -26,6 +26,15 @@ const top = modelsBySize
   .sort((a, b) => b.m.params_b - a.m.params_b)
   .slice(0, 6);
 
+// Model coverage distribution for the at-a-glance bar: how the whole tracked
+// text-model set splits on this device (runs well / tight fit / too small), in
+// the verdict palette. Same engine + model set as rigScore, so covYes + covTight
+// equals score.runnable and covYes + covTight + covNo equals score.total.
+const coverage = modelsBySize.map((m) => canRun(m, device).verdict);
+const covYes = coverage.filter((v) => v === "yes").length;
+const covTight = coverage.filter((v) => v === "tight").length;
+const covNo = coverage.filter((v) => v === "no").length;
+
 // Device-tier prose so each rig page carries real, page-specific content instead
 // of a near-identical card. All derived from the device's own specs + coverage.
 const memWord =
@@ -162,6 +171,24 @@ const jsonLd = [
       <div class="panel space-y-3 p-5 text-sm text-muted-foreground">
         <p>{tierBlurb}</p>
         <p>{advice}</p>
+
+        <!-- Model coverage distribution: how the tracked model set splits on this
+             device (runs well / tight fit / too small), scannable in one glance in
+             the verdict palette. covYes + covTight matches the runnable count above. -->
+        <div
+          class="mt-1 flex h-3 w-full overflow-hidden rounded-[3px] border border-border"
+          role="img"
+          aria-label={`${score.total} tracked models on ${device.name}: ${covYes} run well, ${covTight} a tight fit, ${covNo} too big`}
+        >
+          {covYes > 0 && <div style={`flex:${covYes};background:var(--color-verdict-yes)`}></div>}
+          {covTight > 0 && <div style={`flex:${covTight};background:var(--color-verdict-tight)`}></div>}
+          {covNo > 0 && <div style={`flex:${covNo};background:var(--color-verdict-no)`}></div>}
+        </div>
+        <div class="flex flex-wrap gap-x-5 gap-y-1.5 font-mono text-xs">
+          <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-yes)"></span><b class="text-foreground">{covYes}</b> <span class="text-muted-foreground">run well</span></span>
+          <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-tight)"></span><b class="text-foreground">{covTight}</b> <span class="text-muted-foreground">tight fit</span></span>
+          <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-no)"></span><b class="text-foreground">{covNo}</b> <span class="text-muted-foreground">too big</span></span>
+        </div>
       </div>
     </section>
 
