@@ -45,6 +45,30 @@ const sweet =
   fitting.find((r) => r.result.verdict === "yes") ??
   fitting[0];
 
+// Hardware-type breakdown of the runnable set: "what hardware do I need" is
+// really a class question (GPU vs Mac vs laptop vs phone), so group the devices
+// that fit by class. Distinct dimension from the model page's verdict split, and
+// brand-hue tints (not the verdict palette) since a class is not a verdict.
+const HW_GROUP: Record<string, "gpu" | "mac" | "laptop" | "phone"> = {
+  nvidia: "gpu",
+  amd: "gpu",
+  intel: "gpu",
+  mac: "mac",
+  laptop: "laptop",
+  iphone: "phone",
+  android: "phone",
+};
+const HW_META: { group: "gpu" | "mac" | "laptop" | "phone"; label: string; tint: string }[] = [
+  { group: "gpu", label: "discrete GPU", tint: "var(--color-brand)" },
+  { group: "mac", label: "Mac", tint: "color-mix(in oklch, var(--color-brand) 70%, var(--color-border))" },
+  { group: "laptop", label: "laptop", tint: "color-mix(in oklch, var(--color-brand) 45%, var(--color-border))" },
+  { group: "phone", label: "phone", tint: "color-mix(in oklch, var(--color-brand) 22%, var(--color-border))" },
+];
+const hwBreakdown = HW_META.map((h) => ({
+  ...h,
+  count: fitting.filter((r) => HW_GROUP[r.device.category] === h.group).length,
+})).filter((h) => h.count > 0);
+
 const anyMac = fitting.some((r) => r.device.category === "mac");
 const anyPhone = fitting.some((r) => r.device.category === "iphone" || r.device.category === "android");
 const commands = installCommands(model, "linux");
@@ -206,6 +230,36 @@ const jsonLd = [
           <p class="mt-1 text-sm text-muted-foreground">{sweet.result.reason}</p>
         </div>
       </div>
+    )}
+
+    {hwBreakdown.length > 0 && (
+      <section class="mt-8">
+        <h2 class="mb-3 text-lg font-semibold">What kind of hardware runs {model.name}</h2>
+        <p class="mb-3 text-sm text-muted-foreground">
+          Of the {fitting.length} devices that run it, here is the split by hardware class.
+        </p>
+        <!-- Hardware-class split of the runnable set (GPU / Mac / laptop / phone),
+             brand-hue tints since a class is not a verdict. Answers "what kind of
+             hardware do I need" at a glance before the ranked list below. -->
+        <div
+          class="flex h-3 w-full overflow-hidden rounded-[3px] border border-border"
+          role="img"
+          aria-label={`Of ${fitting.length} devices that run ${model.name}: ${hwBreakdown.map((h) => `${h.count} ${h.label}${h.count === 1 ? "" : "s"}`).join(", ")}`}
+        >
+          {hwBreakdown.map((h) => (
+            <div style={`flex:${h.count};background:${h.tint}`}></div>
+          ))}
+        </div>
+        <div class="mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5 font-mono text-xs">
+          {hwBreakdown.map((h) => (
+            <span class="inline-flex items-center gap-1.5">
+              <span class="size-2 shrink-0 rounded-[1px]" style={`background:${h.tint}`}></span>
+              <b class="text-foreground">{h.count}</b>
+              <span class="text-muted-foreground">{h.label}{h.count === 1 ? "" : "s"}</span>
+            </span>
+          ))}
+        </div>
+      </section>
     )}
 
     {fitting.length > 0 && (
