@@ -136,6 +136,16 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
         : model.params_b > 4
           ? `Longer context grows the KV cache quickly: ${model.name} needs ~${ctx4Gb} GB at 4k but ~${ctx128Gb} GB at 128k, which can push it past a device that fits it at a short context.`
           : `${model.name} is small enough that the context window is the thing to size for: 128k needs ~${ctx128Gb} GB versus ~${ctx4Gb} GB at 4k, so pick the window you actually use.`;
+      // Bidirectional internal mesh: the guides link out to model pages, so link
+      // back to the guides that explain the numbers on this page. MoE guide only for MoE.
+      const guideLinks = [
+        { href: "/guides/how-local-llms-work", label: "How local LLMs work" },
+        { href: "/guides/quantization", label: "Quantization explained" },
+        { href: "/guides/vram-vs-ram", label: "VRAM vs RAM vs unified memory" },
+        ...(model.is_moe
+          ? [{ href: "/guides/mixture-of-experts", label: "Mixture of experts explained" }]
+          : []),
+      ];
       // Sourced leaderboard scores for THIS model, with its rank on each board.
       const boardScores = BOARD_ORDER.flatMap((k) => {
         const s = scoreOf(model, k);
@@ -605,6 +615,16 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                   </div>
                 ))}
               </div>
+            </section>
+
+            <section class="mt-10">
+              <h2 class="text-lg font-semibold">Understand the numbers</h2>
+              <p class="mt-2 text-sm text-muted-foreground">Short guides to the ideas behind {model.name}'s memory and quant figures.</p>
+              <nav class="mt-3 flex flex-wrap gap-2" aria-label="Related guides">
+                {guideLinks.map((g) => (
+                  <a href={g.href} class="inline-flex items-center rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">{g.label}</a>
+                ))}
+              </nav>
             </section>
 
             {model.notes && <p class="mt-8 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">{model.notes}</p>}
