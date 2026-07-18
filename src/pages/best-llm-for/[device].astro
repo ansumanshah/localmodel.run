@@ -52,6 +52,25 @@ const topPick =
   fitting.find((r) => r.result.speed === "fast" || r.result.speed === "ok") ??
   fitting[0];
 
+// Nearby devices for lateral navigation: the closest usable-memory peers in the
+// same broad class (computers vs phones/tablets), so "similar GB, similar story"
+// holds and a Mac's neighbours are not iPhones. Proximity is ranked on the cheap
+// usableGb figure first; only the shortlisted six pay for a full runnable-count pass.
+const isMobileDevice = device.category === "iphone" || device.category === "android";
+const nearby = devices
+  .filter(
+    (d) => d.id !== device.id && (d.category === "iphone" || d.category === "android") === isMobileDevice,
+  )
+  .map((d) => ({ d, u: usableGb(d) }))
+  .sort((a, b) => Math.abs(a.u - usable) - Math.abs(b.u - usable))
+  .slice(0, 6)
+  .map(({ d, u }) => ({
+    d,
+    u,
+    runs: modelsBySize.filter((m) => canRun(m, d).verdict !== "no").length,
+  }))
+  .sort((a, b) => b.u - a.u);
+
 const path = `/best-llm-for/${device.id}`;
 const year = new Date(meta.updated).getFullYear();
 const title = `Best local LLMs for ${device.name} (${year}) · localmodel.run`;
@@ -271,6 +290,57 @@ const jsonLd = [
         ))}
       </div>
     </section>
+
+    {nearby.length > 0 && (
+      <section class="mt-8" aria-labelledby="nearby-heading">
+        <h2 id="nearby-heading" class="mb-1 text-lg font-semibold">Compare nearby devices</h2>
+        <p class="mb-3 text-sm text-muted-foreground">
+          Hardware with a similar usable pool, and how many of the {ranked.length} tracked models each
+          runs next to {device.name}'s {fitting.length}.
+        </p>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {nearby.map((n) => {
+            const delta = n.runs - fitting.length;
+            const deltaLabel =
+              delta === 0
+                ? `Runs the same number of models as ${device.name}`
+                : `Runs ${Math.abs(delta)} ${delta > 0 ? "more" : "fewer"} models than ${device.name}`;
+            return (
+              <a
+                href={`/best-llm-for/${n.d.id}`}
+                class="panel card-seam group flex items-center gap-3 px-4 py-3 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+              >
+                <EntityIcon device={n.d.category} size={18} class="shrink-0 text-muted-foreground" />
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm font-medium">{n.d.name}</div>
+                  <div class="stat-label mt-0.5">~{n.u} GB usable &middot; runs {n.runs} of {ranked.length}</div>
+                </div>
+                <span
+                  class="shrink-0 font-mono text-xs text-muted-foreground"
+                  aria-label={deltaLabel}
+                >
+                  {delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : "="}
+                </span>
+              </a>
+            );
+          })}
+        </div>
+        <nav class="mt-4 flex flex-wrap gap-2" aria-label="More devices">
+          <a
+            href="/best-llm-for"
+            class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+          >
+            Browse all devices &rarr;
+          </a>
+          <a
+            href={`/rig/${device.id}`}
+            class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+          >
+            {device.name} rig score &rarr;
+          </a>
+        </nav>
+      </section>
+    )}
 
     <Sources urls={sources} />
 
