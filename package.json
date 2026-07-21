@@ -1,7 +1,7 @@
 {
   "name": "localmodel-run",
   "type": "module",
-  "version": "0.1.18",
+  "version": "0.1.20",
   "description": "Can I run this AI model locally? Per-platform compatibility checker for local AI models (text, image, video, audio) on Mac, Windows, Linux, iOS and Android.",
   "license": "MIT",
   "author": "Ansuman Shah (https://github.com/ansumanshah)",
