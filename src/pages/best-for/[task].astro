@@ -5,6 +5,7 @@ import EntityIcon from "@/components/EntityIcon.astro";
 import { models, devices, meta, dedupeSources } from "@/lib/data";
 import { canRun, estimateMemory } from "@/lib/compute";
 import { USE_CASES, USE_CASE_META, useCasesFor, type UseCase } from "@/lib/usecases";
+import { BOARDS, rankedFor, type BoardKey } from "@/lib/leaderboard";
 import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
 
 // "Best local <task> model" pages. Models are tagged by their own stated purpose
@@ -36,6 +37,13 @@ const tagged = models
   })
   // Rank by quality where we have it (Elo), then by size.
   .sort((a, b) => (b.model.arena_elo ?? 0) - (a.model.arena_elo ?? 0) || b.model.params_b - a.model.params_b);
+
+// Objective benchmark board that measures this same capability, where one exists.
+// These pages rank by stated purpose plus quality Elo; the leaderboard ranks by a
+// single sourced benchmark, so the deep-link gives the reader the harder number too.
+const BOARD_FOR: Partial<Record<UseCase, BoardKey>> = { coding: "coding" };
+const boardKey = BOARD_FOR[task];
+const board = boardKey && rankedFor(boardKey).length > 0 ? BOARDS[boardKey] : null;
 
 const best = tagged[0];
 const smallest = [...tagged].sort((a, b) => a.q4Gb - b.q4Gb)[0];
@@ -156,6 +164,11 @@ const jsonLd = [
         </ul>
       </div>
       <p class="mt-2 text-xs text-muted-foreground">Tagged by each model's stated purpose. "Runs on N devices" counts the {devices.length} tracked devices that fit it at Q4_K_M.</p>
+      {board && (
+        <p class="mt-3 text-sm text-muted-foreground">
+          Prefer an objective score to purpose tags? The <a href={`/leaderboard/${board.slug}`} class="underline">{board.label.toLowerCase()} leaderboard</a> ranks these models by {board.metric} ({board.blurb.toLowerCase().replace(/\.$/, "")}).
+        </p>
+      )}
     </section>
 
     <section class="mt-8">
@@ -177,6 +190,7 @@ const jsonLd = [
           <a href={`/best-for/${uc}`} class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">{USE_CASE_META[uc].label}</a>
         ))}
         <a href="/best-llm-for" class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">Browse by device →</a>
+        <a href="/leaderboard" class="rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">See the leaderboards →</a>
       </div>
     </nav>
 
