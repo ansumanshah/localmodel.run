@@ -1,6 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import GuideToc from "@/components/GuideToc.astro";
 import Sources from "@/components/Sources.astro";
 import { getModel, meta } from "@/lib/data";
 import { quantLadderSizes } from "@/lib/compute";
@@ -102,8 +103,18 @@ const jsonLd = [
       </p>
     </div>
 
+    <GuideToc
+      items={[
+        { id: "what-the-letters-mean", label: "What the letters and numbers mean" },
+        { id: "worked-example", label: "A worked example" },
+        { id: "which-quant", label: "Which quant should you pick?" },
+        { id: "what-you-can-run", label: "How this changes what you can run" },
+        { id: "faq", label: "FAQ" },
+      ]}
+    />
+
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">What the letters and numbers mean</h2>
+      <h2 id="what-the-letters-mean" class="scroll-mt-20 text-xl font-semibold">What the letters and numbers mean</h2>
       <p class="mt-2 text-muted-foreground">
         A raw model stores each weight in 16 bits (FP16). Quantization stores each weight in fewer
         bits, which shrinks the file and the memory it needs. The tag breaks down like this:
@@ -121,7 +132,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">A worked example: {example.name}</h2>
+      <h2 id="worked-example" class="scroll-mt-20 text-xl font-semibold">A worked example: {example.name}</h2>
       <p class="mt-2 text-muted-foreground">
         Here is the same {example.params_b}B model at each quant. Sizes marked measured are read from
         real GGUF files; the rest are computed from bits-per-weight.
@@ -154,7 +165,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">Which quant should you pick?</h2>
+      <h2 id="which-quant" class="scroll-mt-20 text-xl font-semibold">Which quant should you pick?</h2>
       <div class="panel mt-3 divide-y divide-border">
         <div class="p-4">
           <p class="font-medium">Q4_K_M, the default</p>
@@ -176,7 +187,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">How this changes what you can run</h2>
+      <h2 id="what-you-can-run" class="scroll-mt-20 text-xl font-semibold">How this changes what you can run</h2>
       <p class="mt-2 text-muted-foreground">
         Quant choice is the single biggest lever on whether a model fits your hardware. The same
         model at Q4_K_M might fit a 16 GB machine where its FP16 version needs more than three times the memory.
@@ -188,7 +199,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-10">
-      <h2 class="text-xl font-semibold">FAQ</h2>
+      <h2 id="faq" class="scroll-mt-20 text-xl font-semibold">FAQ</h2>
       <div class="panel mt-3 divide-y divide-border">
         {faqs.map((f) => (
           <div class="p-4">

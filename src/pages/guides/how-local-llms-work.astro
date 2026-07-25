@@ -1,6 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import GuideToc from "@/components/GuideToc.astro";
 import Sources from "@/components/Sources.astro";
 import { meta } from "@/lib/data";
 import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
@@ -105,8 +106,20 @@ const jsonLd = [
       </p>
     </div>
 
+    <GuideToc
+      items={[
+        { id: "running-locally", label: "What running locally means" },
+        { id: "memory", label: "Memory: weights + KV cache + overhead" },
+        { id: "quantization", label: "Quantization" },
+        { id: "speed", label: "Why some hardware is faster" },
+        { id: "runtimes", label: "The runtimes" },
+        { id: "local-vs-cloud", label: "Local vs cloud" },
+        { id: "faq", label: "FAQ" },
+      ]}
+    />
+
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">What "running locally" actually means</h2>
+      <h2 id="running-locally" class="scroll-mt-20 text-xl font-semibold">What "running locally" actually means</h2>
       <p class="mt-2 text-muted-foreground">
         A language model is, at its core, a large file of learned numbers called weights. To use it, a
         runtime reads those weights from disk into memory, then does matrix math on your input to produce
@@ -117,7 +130,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">Memory: weights + KV cache + overhead</h2>
+      <h2 id="memory" class="scroll-mt-20 text-xl font-semibold">Memory: weights + KV cache + overhead</h2>
       <p class="mt-2 text-muted-foreground">
         The memory a model needs is roughly its parameters times the bytes per parameter. At full 16-bit
         precision each parameter costs 2 bytes, so a 7B model needs about 14 GB and a 70B needs ~140 GB.
@@ -133,7 +146,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">Quantization: fit a big model in less memory</h2>
+      <h2 id="quantization" class="scroll-mt-20 text-xl font-semibold">Quantization: fit a big model in less memory</h2>
       <p class="mt-2 text-muted-foreground">
         Quantization stores each weight in fewer bits. The common local format is GGUF, and
         <strong class="text-foreground">Q4_K_M</strong> is the practical default: it keeps most weights at
@@ -146,7 +159,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">Why some hardware is much faster</h2>
+      <h2 id="speed" class="scroll-mt-20 text-xl font-semibold">Why some hardware is much faster</h2>
       <p class="mt-2 text-muted-foreground">
         Local inference speed is set mainly by <strong class="text-foreground">memory bandwidth</strong>,
         not raw compute: every token loads the full set of weights from memory. GPUs have wide, fast memory
@@ -158,7 +171,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">The runtimes</h2>
+      <h2 id="runtimes" class="scroll-mt-20 text-xl font-semibold">The runtimes</h2>
       <div class="panel mt-3 divide-y divide-border">
         <div class="p-4"><p class="font-medium">Ollama</p><p class="mt-1 text-sm text-muted-foreground">One command pulls a model and starts a local API. The easiest first choice; uses MLX on Apple Silicon.</p></div>
         <div class="p-4"><p class="font-medium">LM Studio</p><p class="mt-1 text-sm text-muted-foreground">A desktop app with a model browser and chat UI, plus a headless server mode. Best if you want a GUI.</p></div>
@@ -169,7 +182,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
-      <h2 class="text-xl font-semibold">Local vs cloud</h2>
+      <h2 id="local-vs-cloud" class="scroll-mt-20 text-xl font-semibold">Local vs cloud</h2>
       <p class="mt-2 text-muted-foreground">
         Local inference buys you three things a cloud API cannot: privacy (data stays on your machine),
         offline use, and no per-token cost. The trade is hardware. A 7-8B model at Q4_K_M runs comfortably
@@ -180,7 +193,7 @@ const jsonLd = [
     </section>
 
     <section class="mt-10">
-      <h2 class="text-xl font-semibold">FAQ</h2>
+      <h2 id="faq" class="scroll-mt-20 text-xl font-semibold">FAQ</h2>
       <div class="panel mt-3 divide-y divide-border">
         {faqs.map((f) => (
           <div class="p-4">
