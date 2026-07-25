@@ -1,0 +1,27 @@
+---
+export interface GuideTocItem {
+  id: string;
+  label: string;
+}
+interface Props {
+  items: GuideTocItem[];
+}
+const { items } = Astro.props;
+---
+
+<nav class="panel guide-toc mt-6" aria-label="On this page">
+  <div class="panel-head"><span class="panel-label">On this page</span></div>
+  <ol class="p-2 sm:grid sm:grid-cols-2 sm:gap-x-4">
+    {items.map((it, i) => (
+      <li>
+        <a
+          href={`#${it.id}`}
+          class="flex items-baseline gap-2.5 rounded-sm px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_8%,transparent)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+        >
+          <span class="font-mono text-xs tabular-nums text-[var(--brand-ink)]">{String(i + 1).padStart(2, "0")}</span>
+          <span>{it.label}</span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</nav>
