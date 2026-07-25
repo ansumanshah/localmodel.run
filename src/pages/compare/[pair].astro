@@ -47,6 +47,28 @@ const differ = rows.filter((r) => (r.s.verdict !== "no") !== (r.l.verdict !== "n
 const sLadder = quantLadderSizes(s);
 const lLadder = quantLadderSizes(l);
 
+// Sibling head-to-head pages in the same family: pairs that share one of the two
+// models on this page. Lets these pair pages mesh laterally with each other, not
+// just up to the model/rig pages. Canonical id-sorted URL, deterministic order.
+const famModels = models.filter((m) => m.family === s.family);
+const relatedPairs = (() => {
+  const seen = new Set<string>([path]);
+  const out: { url: string; sm: ModelRow; lg: ModelRow }[] = [];
+  for (const anchor of [s, l]) {
+    for (const o of famModels) {
+      if (o.id === anchor.id) continue;
+      const url = `/compare/${[anchor.id, o.id].sort().join("-vs-")}`;
+      if (seen.has(url)) continue;
+      seen.add(url);
+      const [sm, lg] = anchor.params_b <= o.params_b ? [anchor, o] : [o, anchor];
+      out.push({ url, sm, lg });
+    }
+  }
+  return out
+    .sort((p, q) => p.sm.params_b - q.sm.params_b || (p.url < q.url ? -1 : 1))
+    .slice(0, 8);
+})();
+
 const fmtElo = (m: ModelRow) => (m.arena_elo ? `Elo ${m.arena_elo}` : "not ranked");
 const eloLine =
   s.arena_elo && l.arena_elo
@@ -211,6 +233,21 @@ const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 t
         <a href={redditUrl} rel="noopener noreferrer" target="_blank" class="btn" aria-label={`Share ${s.name} vs ${l.name} on Reddit`}>Share on Reddit</a>
       </div>
     </section>
+
+    {relatedPairs.length > 0 && (
+      <section class="mt-10">
+        <h2 class="mb-3 text-lg font-semibold">More {s.family} comparisons</h2>
+        <ul class="flex flex-wrap gap-2">
+          {relatedPairs.map((p) => (
+            <li>
+              <a href={p.url} class="inline-flex items-center rounded-[3px] border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground">
+                {p.sm.name} vs {p.lg.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     <section class="mt-10">
       <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
