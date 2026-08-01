@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { fit, refresh } from "localfit";
+import { fit, probe, refresh } from "localfit";
 import type { FitPlan } from "localfit";
 import { ProgressAggregator, formatBytes } from "./progress";
 import type {
@@ -82,10 +82,27 @@ export default function Playground({ model, task }: PlaygroundProps) {
   // stale bytes next to the page's corrected ones. refresh() pulls the live
   // catalog (same origin as this page's data) and silently keeps the
   // snapshot on any failure, after which fit() reads current numbers.
+  // Two-pass fit with one shared probe: the first call resolves the backend,
+  // and when this page's run config loads a different build than that
+  // backend's headline (a PLAYGROUND_RUN_OVERRIDES model), the second call
+  // rescores on the variant that will actually download, so the verdict
+  // stamp and reasons match the real bytes.
   useEffect(() => {
     let alive = true;
     refresh()
-      .then(() => fit(model.id))
+      .then(() => probe())
+      .then(async (env) => {
+        const first = await fit(model.id, { env });
+        const runVariant = model.run[first.backend].variant;
+        if (runVariant === model.headline[first.backend].variant) return first;
+        // Coupling: this rescore only lands if localfit's variants table
+        // (live refresh, else its bundled snapshot) contains runVariant. A
+        // new PLAYGROUND_RUN_OVERRIDES entry whose variant is missing from
+        // the pinned localfit's snapshot degrades, with refresh() offline,
+        // to reasons scored on the headline build (localfit says so in the
+        // reasons); the promise line above is page-props and stays correct.
+        return fit(model.id, { env, variant: runVariant });
+      })
       .then(
         (p) => alive && setPlan(p),
         () => alive && setPlan(null),
@@ -93,7 +110,7 @@ export default function Playground({ model, task }: PlaygroundProps) {
     return () => {
       alive = false;
     };
-  }, [model.id]);
+  }, [model]);
 
   // localfit's probe decides backend and verdict; the variant and its bytes
   // come from the page's own measured run config (which names the
@@ -185,14 +202,6 @@ export default function Playground({ model, task }: PlaygroundProps) {
                   {plan.reasons.map((r) => (
                     <li key={r}>{r}</li>
                   ))}
-                  {dtype !== model.headline[backend].variant && (
-                    <li>
-                      localfit scored the catalog&apos;s {model.headline[backend].variant} build (
-                      {formatBytes(model.headline[backend].bytes)}). This page&apos;s live run loads{" "}
-                      {dtype} ({formatBytes(promisedBytes)}) instead, for the reason noted above, so
-                      the sizing here understates the actual download.
-                    </li>
-                  )}
                 </ul>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Decision by{" "}
