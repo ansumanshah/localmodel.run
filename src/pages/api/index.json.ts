@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { allModels, devices, meta } from "@/lib/data";
+import { allModels, browserModels, devices, meta } from "@/lib/data";
 import { json } from "@/lib/api";
 
 // API catalog: the discovery entry point for AI agents.
@@ -11,10 +11,15 @@ export const GET: APIRoute = ({ site }) => {
       "Check whether a device can run a local AI model (text, image, video, audio), and which tool to use. Free, no auth.",
     version: "1",
     updated: meta.updated,
-    counts: { models: allModels.length, devices: devices.length },
+    counts: {
+      models: allModels.length,
+      devices: devices.length,
+      browser_models: browserModels.length,
+    },
     endpoints: {
       models: `${origin}/api/models.json`,
       devices: `${origin}/api/devices.json`,
+      browser_models: `${origin}/api/browser-models.json`,
       can_i_run: `${origin}/api/can-i-run/{model}/{device}.json`,
       example: `${origin}/api/can-i-run/llama-3.1-8b/apple-m4-16gb.json`,
       openapi: `${origin}/api/openapi.json`,

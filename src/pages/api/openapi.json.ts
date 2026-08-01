@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { allModels, devices, meta } from "@/lib/data";
+import { allModels, browserModels, devices, meta } from "@/lib/data";
 import { json } from "@/lib/api";
 
 // OpenAPI 3.1 description of the existing read-only data API. Lets API directories
@@ -43,6 +43,15 @@ export const GET: APIRoute = ({ site }) => {
           operationId: "listDevices",
           summary: `List all ${devices.length} tracked devices with memory specs`,
           responses: { "200": { description: "Array of device objects" } },
+        },
+      },
+      "/api/browser-models.json": {
+        get: {
+          operationId: "listBrowserModels",
+          summary: `List all ${browserModels.length} in-browser (WebGPU/WASM) models with per-variant measured download bytes`,
+          description:
+            "Raw contents of src/data/browser-models.json (no wrapper). Stable machine-readable source for in-browser model size/variant data.",
+          responses: { "200": { description: "Array of browser model objects" } },
         },
       },
       "/api/can-i-run/{model}/{device}.json": {
