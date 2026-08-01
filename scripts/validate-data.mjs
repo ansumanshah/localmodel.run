@@ -18,6 +18,7 @@ const imageModels = await readJson("image-models.json");
 const videoModels = await readJson("video-models.json");
 const audioModels = await readJson("audio-models.json");
 const devices = await readJson("devices.json");
+const browserModels = await readJson("browser-models.json");
 
 const nonText = [...imageModels, ...videoModels, ...audioModels];
 const allModels = [...textModels, ...nonText];
@@ -84,11 +85,44 @@ for (const m of allModels) {
   ids.add(m.id);
 }
 
+// --- Browser / ONNX models: sizes come from scripts/browser-model-sizes.json
+// (measured, never estimated). Enforce shape + that every headline variant is
+// one of the model's own measured variants + every row is sourced. ---
+const browserIds = new Set();
+for (const m of browserModels) {
+  if (!m.id || !m.name) errors.push(`browser model missing id/name: ${JSON.stringify(m).slice(0, 60)}`);
+  if (browserIds.has(m.id)) errors.push(`duplicate browser model id: ${m.id}`);
+  browserIds.add(m.id);
+  if (!m.hf_repo) errors.push(`${m.id}: no hf_repo`);
+  if (!m.task) errors.push(`${m.id}: no task`);
+  if (!Array.isArray(m.sources) || m.sources.length === 0) errors.push(`${m.id}: no sources`);
+  for (const s of m.sources ?? []) if (!s.label || !isUrl(s.url)) errors.push(`${m.id}: bad source entry`);
+  if (m.params_m != null && !(m.params_m > 0)) errors.push(`${m.id}: params_m must be > 0 or null`);
+
+  const variants = m.variants ?? {};
+  const variantKeys = Object.keys(variants);
+  if (variantKeys.length === 0) errors.push(`${m.id}: no variants`);
+  for (const [k, v] of Object.entries(variants))
+    if (!(Number.isInteger(v) && v > 0)) errors.push(`${m.id}: variant "${k}" bytes must be a positive integer`);
+
+  const head = m.headline ?? {};
+  for (const backend of ["webgpu", "wasm"]) {
+    const h = head[backend];
+    if (!h) {
+      errors.push(`${m.id}: missing headline.${backend}`);
+      continue;
+    }
+    if (!(Number.isInteger(h.bytes) && h.bytes > 0)) errors.push(`${m.id}: headline.${backend}.bytes must be a positive integer`);
+    if (!h.variant || variants[h.variant] !== h.bytes)
+      errors.push(`${m.id}: headline.${backend} (${h.variant}: ${h.bytes}) does not match a measured variant in variants{}`);
+  }
+}
+
 warnings.forEach((w) => console.warn("WARN:", w));
 if (errors.length) {
   errors.forEach((e) => console.error("ERROR:", e));
   process.exit(1);
 }
 console.log(
-  `OK: ${textModels.length} text + ${imageModels.length} image + ${videoModels.length} video + ${audioModels.length} audio models, ${devices.length} devices valid (${warnings.length} warnings).`,
+  `OK: ${textModels.length} text + ${imageModels.length} image + ${videoModels.length} video + ${audioModels.length} audio models, ${devices.length} devices, ${browserModels.length} browser models valid (${warnings.length} warnings).`,
 );

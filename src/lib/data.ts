@@ -5,7 +5,15 @@ import audioModelsData from "@/data/audio-models.json";
 import devicesData from "@/data/devices.json";
 import toolsData from "@/data/tools.json";
 import metaData from "@/data/meta.json";
-import type { DataMeta, DeviceRow, ModelRow, Platform, ToolRow } from "@/data/types";
+import browserModelsData from "@/data/browser-models.json";
+import type {
+  BrowserModelRow,
+  DataMeta,
+  DeviceRow,
+  ModelRow,
+  Platform,
+  ToolRow,
+} from "@/data/types";
 import { modalityRunsOnDevice } from "@/lib/compute-mm";
 
 // `models` is the validated TEXT array; every text-calibrated surface (rig
@@ -20,6 +28,9 @@ export const allModels: ModelRow[] = [...models, ...imageModels, ...videoModels,
 export const devices = (devicesData as DeviceRow[]).slice();
 export const tools = toolsData as ToolRow[];
 export const meta = metaData as DataMeta;
+// Browser/ONNX (Transformers.js) models: a separate catalog from the GGUF
+// text/image/video/audio arrays above, with its own page tree under /browser.
+export const browserModels = (browserModelsData as BrowserModelRow[]).slice();
 
 const RELEASE_MONTHS = [
   "Jan",
@@ -185,4 +196,82 @@ export function installCommands(model: ModelRow, platform: Platform): InstallCmd
     out.push({ tool: "LM Studio", cmd: `lms get ${repo}` });
   }
   return out;
+}
+
+// ── Browser / ONNX (Transformers.js) models ────────────────────────────────
+
+/** Hub group order: rough practical popularity, per the brief. */
+export const BROWSER_TASK_ORDER = [
+  "speech-to-text",
+  "speaker-diarization",
+  "text-generation",
+  "embeddings",
+  "reranker",
+  "text-to-speech",
+  "vision",
+  "vision-language",
+  "multimodal",
+  "utility",
+] as const;
+
+export const BROWSER_TASK_LABEL: Record<string, string> = {
+  "speech-to-text": "Speech to text",
+  "speaker-diarization": "Speaker diarization",
+  "text-generation": "Text generation",
+  embeddings: "Embeddings",
+  reranker: "Reranking",
+  "text-to-speech": "Text to speech",
+  vision: "Vision",
+  "vision-language": "Vision + language",
+  multimodal: "Multimodal (any-to-any)",
+  utility: "Text utilities",
+};
+
+/** Browser models grouped by task, in BROWSER_TASK_ORDER (unknown tasks appended last). */
+export function browserModelsByTask(): {
+  task: string;
+  label: string;
+  models: BrowserModelRow[];
+}[] {
+  const groups = new Map<string, BrowserModelRow[]>();
+  for (const m of browserModels) {
+    const list = groups.get(m.task);
+    if (list) list.push(m);
+    else groups.set(m.task, [m]);
+  }
+  const order = [
+    ...BROWSER_TASK_ORDER,
+    ...[...groups.keys()].filter((t) => !(BROWSER_TASK_ORDER as readonly string[]).includes(t)),
+  ];
+  return order
+    .filter((t) => groups.has(t))
+    .map((t) => ({
+      task: t,
+      label: BROWSER_TASK_LABEL[t] ?? t,
+      models: (groups.get(t) ?? []).sort(
+        (a, b) => a.headline.webgpu.bytes - b.headline.webgpu.bytes,
+      ),
+    }));
+}
+
+/** Bytes -> "123.4 MB" under 1 GB, "1.23 GB" at/above (1024-based, one/two decimals). */
+export function formatBytes(bytes: number): string {
+  const mb = bytes / 1024 / 1024;
+  if (mb < 1024) return `${mb.toFixed(1)} MB`;
+  return `${(mb / 1024).toFixed(2)} GB`;
+}
+
+/** Next-smaller / next-bigger sibling within the same task, by WebGPU headline size. */
+export function browserSizeNeighbors(model: BrowserModelRow): {
+  smaller?: BrowserModelRow;
+  bigger?: BrowserModelRow;
+} {
+  const ladder = browserModels
+    .filter((m) => m.task === model.task && m.id !== model.id)
+    .sort((a, b) => a.headline.webgpu.bytes - b.headline.webgpu.bytes);
+  const smaller = [...ladder]
+    .reverse()
+    .find((m) => m.headline.webgpu.bytes < model.headline.webgpu.bytes);
+  const bigger = ladder.find((m) => m.headline.webgpu.bytes > model.headline.webgpu.bytes);
+  return { smaller, bigger };
 }

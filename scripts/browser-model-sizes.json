@@ -1,0 +1,2431 @@
+{
+  "onnx-community/Qwen2.5-0.5B-Instruct": {
+    "bnb4": {
+      "bytes": 763794004,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 997354499,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1993796793,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 786156820,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 483003582,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 1024193114,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 512096636,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "HuggingFaceTB/SmolLM2-135M-Instruct": {
+    "bnb4": {
+      "bytes": 175434623,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 270267067,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 540345794,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 182068553,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 117691126,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 274295848,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 137147981,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "HuggingFaceTB/SmolLM2-360M-Instruct": {
+    "bnb4": {
+      "bytes": 368284174,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 724891911,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1449582810,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 387943246,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 272737275,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 729129229,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 364564671,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/Llama-3.2-1B-Instruct": {
+    "bnb4": {
+      "bytes": 1598832302,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 2090026952,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 2082653372,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 1692821112,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 1089755422,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 2473307902,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 1236654010,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/gemma-3-270m-it-ONNX": {
+    "fp16": {
+      "bytes": 570135451,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1139686504,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 323175770,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 272956893,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 545274884,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "HuggingFaceTB/SmolVLM-256M-Instruct": {
+    "bnb4": {
+      "bytes": 249731074,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "fp16": {
+      "bytes": 514479822,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 1028498218,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 263889326,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 188843109,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 519710718,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "uint8": {
+      "bytes": 259855437,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/Florence-2-base-ft": {
+    "bnb4": {
+      "bytes": 373270176,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "fp16": {
+      "bytes": 723967244,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 1445577323,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 392765234,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 275572080,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 731070050,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "uint8": {
+      "bytes": 365535084,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/whisper-tiny": {
+    "bnb4": {
+      "bytes": 179961562,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 133075065,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 265097817,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4": {
+      "bytes": 181508962,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q8": {
+      "bytes": 140129401,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 70064760,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    }
+  },
+  "onnx-community/whisper-base": {
+    "bnb4": {
+      "bytes": 259584515,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 244095639,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 486637100,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4": {
+      "bytes": 263711699,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q8": {
+      "bytes": 253939513,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 126969816,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    }
+  },
+  "onnx-community/whisper-small": {
+    "bnb4": {
+      "bytes": 504456859,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 764668995,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1526268085,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4": {
+      "bytes": 523033363,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q8": {
+      "bytes": 781459393,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 390729822,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    }
+  },
+  "onnx-community/moonshine-base-ONNX": {
+    "bnb4": {
+      "bytes": 163752247,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 278661449,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 401665040,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4": {
+      "bytes": 168076857,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 143372082,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q8": {
+      "bytes": 204051333,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 101977848,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    }
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX": {
+    "fp16": {
+      "bytes": 163234740,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 525775043,
+      "files": [
+        "model",
+        "model_q8f16",
+        "model_uint8f16"
+      ]
+    },
+    "q4": {
+      "bytes": 305215966,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 154586422,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 92361116,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 177464632,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "Xenova/all-MiniLM-L6-v2": {
+    "bnb4": {
+      "bytes": 53915448,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 45297825,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 90387606,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 54578772,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 30018257,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 45944740,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 22845806,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "Xenova/bge-small-en-v1.5": {
+    "bnb4": {
+      "bytes": 60147542,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 66749212,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 133093490,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 61474190,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 36190171,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 67775257,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 33760859,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/embeddinggemma-300m-ONNX": {
+    "fp16": {
+      "bytes": 618089375,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1235001020,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 392403166,
+      "files": [
+        "model_no_gather",
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 176115397,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 309458498,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "Xenova/clip-vit-base-patch32": {
+    "bnb4": {
+      "bytes": 363373339,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 606935621,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1211543291,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "q4": {
+      "bytes": 378788443,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 251617632,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "q8": {
+      "bytes": 460036878,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 305458290,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    }
+  },
+  "briaai/RMBG-1.4": {
+    "fp16": {
+      "bytes": 88217533,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 176153355,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 44403226,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "Xenova/modnet": {
+    "bnb4": {
+      "bytes": 23080899,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 12984781,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 25888640,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 23132083,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 11801931,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 6632188,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 6627048,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/depth-anything-v2-small": {
+    "bnb4": {
+      "bytes": 26077648,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 49642442,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 99060839,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 27404416,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 19126267,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 54517602,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 27258801,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "Xenova/depth-anything-small-hf": {
+    "bnb4": {
+      "bytes": 26236495,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 49861035,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 99170955,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 27563143,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 20336189,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 27524771,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 27256285,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "Xenova/slimsam-77-uniform": {
+    "fp16": {
+      "bytes": 20720775,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 39833906,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 13785975,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    }
+  },
+  "Xenova/trocr-small-printed": {
+    "fp16": {
+      "bytes": 123900617,
+      "files": [
+        "decoder_model_merged",
+        "encoder_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 400583431,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q8": {
+      "bytes": 102506435,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    }
+  },
+  "onnx-community/Qwen3-0.6B-ONNX": {
+    "bnb4": {
+      "bytes": 891573033,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 1202829402,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 3977995364,
+      "files": [
+        "model",
+        "onnxruntime/cpu_and_mobile/cpu-int4-kld-block-128/model",
+        "onnxruntime/cuda/cuda-int4-kld-block-128/model",
+        "onnxruntime/webgpu/webgpu-int4-kld-block-32/model"
+      ]
+    },
+    "q4": {
+      "bytes": 919096585,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 569789750,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 1235375053,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 617687575,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/Qwen2.5-1.5B-Instruct": {
+    "bnb4": {
+      "bytes": 1705680982,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 3105275452,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 6209469491,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 1787566590,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 1221878940,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 3157908586,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 1578954395,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/DeepSeek-R1-Distill-Qwen-1.5B-ONNX": {
+    "bnb4": {
+      "bytes": 1869990808,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 3605547692,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 7175991958,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 1966462264,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 1369397579,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 3690734849,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 1845367473,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/gemma-3-1b-it-ONNX": {
+    "bnb4": {
+      "bytes": 1602007661,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 2033972730,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 2070575091,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 859454179,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 763529245,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 2527433531,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 1001482078,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/LFM2.5-350M-ONNX": {
+    "fp16": {
+      "bytes": 725490555,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1450841916,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 293813394,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 255148587,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 510117461,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/granite-4.0-350m-ONNX-web": {
+    "fp16": {
+      "bytes": 709157057,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1418109704,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 575912398,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 350484597,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/Bonsai-1.7B-ONNX": {
+    "fp32": {
+      "bytes": 4893298299,
+      "files": [
+        "model",
+        "model_q1",
+        "model_q2",
+        "model_q8"
+      ]
+    },
+    "q4": {
+      "bytes": 1119428094,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 2006258923,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/Phi-3.5-mini-instruct-onnx-web": {
+    "q4f16": {
+      "bytes": 2317473274,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/gemma-4-E2B-it-ONNX": {
+    "fp16": {
+      "bytes": 3827754603,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 5530277394,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 3930062458,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 3381966758,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 3101630901,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/gemma-4-E2B-it-qat-mobile-ONNX": {
+    "fp16": {
+      "bytes": 187494915,
+      "files": [
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 2384256610,
+      "files": [
+        "audio_encoder_q2f16",
+        "decoder_model_merged_q2f16",
+        "embed_tokens_q2f16"
+      ]
+    }
+  },
+  "onnx-community/gemma-4-E4B-it-ONNX": {
+    "fp16": {
+      "bytes": 4363908079,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 6543747885,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 4240529338,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 4366542985,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 3418704565,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/Qwen3.5-0.8B-ONNX": {
+    "fp16": {
+      "bytes": 2220256556,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 3414640924,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 717652150,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 646838112,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 1291007603,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/Janus-Pro-1B-ONNX": {
+    "bnb4": {
+      "bytes": 2873668114,
+      "files": [
+        "embed_tokens",
+        "gen_head",
+        "gen_img_embeds",
+        "image_decode",
+        "language_model",
+        "lm_head",
+        "prepare_inputs_embeds"
+      ]
+    },
+    "fp16": {
+      "bytes": 4519051913,
+      "files": [
+        "embed_tokens",
+        "gen_head",
+        "gen_img_embeds",
+        "image_decode",
+        "language_model",
+        "lm_head",
+        "prepare_inputs_embeds"
+      ]
+    },
+    "fp32": {
+      "bytes": 9037350507,
+      "files": [
+        "embed_tokens",
+        "gen_head",
+        "gen_img_embeds",
+        "image_decode",
+        "language_model",
+        "lm_head",
+        "prepare_inputs_embeds"
+      ]
+    },
+    "q4": {
+      "bytes": 2985705893,
+      "files": [
+        "embed_tokens",
+        "gen_head",
+        "gen_img_embeds",
+        "image_decode",
+        "language_model",
+        "lm_head",
+        "prepare_inputs_embeds"
+      ]
+    },
+    "q4f16": {
+      "bytes": 1941567247,
+      "files": [
+        "embed_tokens",
+        "gen_head",
+        "gen_img_embeds",
+        "image_decode",
+        "language_model",
+        "lm_head",
+        "prepare_inputs_embeds"
+      ]
+    },
+    "q8": {
+      "bytes": 4539747577,
+      "files": [
+        "embed_tokens",
+        "gen_head",
+        "gen_img_embeds",
+        "image_decode",
+        "language_model",
+        "lm_head",
+        "prepare_inputs_embeds"
+      ]
+    },
+    "uint8": {
+      "bytes": 2269873869,
+      "files": [
+        "embed_tokens",
+        "gen_head",
+        "gen_img_embeds",
+        "image_decode",
+        "language_model",
+        "lm_head",
+        "prepare_inputs_embeds"
+      ]
+    }
+  },
+  "onnx-community/granite-docling-258M-ONNX": {
+    "bnb4": {
+      "bytes": 58065286,
+      "files": [
+        "vision_encoder"
+      ]
+    },
+    "fp16": {
+      "bytes": 632192648,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 1263876953,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 400028103,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 264311910,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 472120286,
+      "files": [
+        "decoder_model_merged",
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    },
+    "uint8": {
+      "bytes": 152076214,
+      "files": [
+        "embed_tokens",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/Florence-2-large-ft": {
+    "bnb4": {
+      "bytes": 878572190,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "fp16": {
+      "bytes": 2109209960,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 4215069940,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 939233135,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 713986906,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 2121786031,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    },
+    "uint8": {
+      "bytes": 1060893077,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "embed_tokens",
+        "encoder_model",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/whisper-large-v3-turbo": {
+    "bnb4": {
+      "bytes": 1033192175,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 1936341699,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 3871708520,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4": {
+      "bytes": 1084799335,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 749364426,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q8": {
+      "bytes": 3022598891,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 1511299506,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    }
+  },
+  "onnx-community/moonshine-tiny-ONNX": {
+    "bnb4": {
+      "bytes": 97471229,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 128811026,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 182977775,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4": {
+      "bytes": 99024857,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 80194709,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "q8": {
+      "bytes": 93777778,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 46853167,
+      "files": [
+        "decoder_model_merged",
+        "decoder_with_past_model",
+        "encoder_model"
+      ]
+    }
+  },
+  "onnx-community/Voxtral-Mini-4B-Realtime-2602-ONNX": {
+    "fp16": {
+      "bytes": 4871297853,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens"
+      ]
+    },
+    "fp32": {
+      "bytes": 5753690980,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens"
+      ]
+    },
+    "q4": {
+      "bytes": 2926531867,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens"
+      ]
+    },
+    "q4f16": {
+      "bytes": 2835604336,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens"
+      ]
+    },
+    "q8": {
+      "bytes": 3724575097,
+      "files": [
+        "audio_encoder",
+        "decoder_model_merged",
+        "embed_tokens"
+      ]
+    }
+  },
+  "onnx-community/nemotron-3.5-asr-streaming-0.6b-onnx-int4": {
+    "fp32": {
+      "bytes": 4927402,
+      "files": [
+        "decoder",
+        "encoder",
+        "joint",
+        "silero_vad"
+      ]
+    }
+  },
+  "onnx-community/pyannote-segmentation-3.0": {
+    "bnb4": {
+      "bytes": 5815342,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 3000918,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 5986908,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 5818448,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 2929425,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 3084612,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 1542308,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/Supertonic-TTS-2-ONNX": {
+    "fp32": {
+      "bytes": 262872737,
+      "files": [
+        "latent_denoiser",
+        "text_encoder",
+        "voice_decoder"
+      ]
+    }
+  },
+  "onnx-community/chatterbox-multilingual-ONNX": {
+    "fp16": {
+      "bytes": 1040489073,
+      "files": [
+        "language_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 3281989169,
+      "files": [
+        "conditional_decoder",
+        "embed_tokens",
+        "language_model",
+        "speech_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 353849159,
+      "files": [
+        "language_model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 304966796,
+      "files": [
+        "language_model"
+      ]
+    }
+  },
+  "onnx-community/gte-multilingual-base": {
+    "bnb4": {
+      "bytes": 866226340,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 627988827,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1255502649,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 873303844,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 465204574,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 680637594,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 340318797,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/bge-reranker-v2-m3-ONNX": {
+    "bnb4": {
+      "bytes": 1233652957,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 1136209678,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 2271745547,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 1252526149,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 702120377,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 1141454188,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 570727094,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/Qwen3-Embedding-0.6B-ONNX": {
+    "bnb4": {
+      "bytes": 886593402,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 1200510818,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 2400598343,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 914121462,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 567458583,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 1227055170,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 613527631,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/bge-m3-ONNX": {
+    "bnb4": {
+      "bytes": 1248100641,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 2,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 2267319617,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 1248100641,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 699926120,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 1136958790,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 568479466,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/voyage-4-nano-ONNX": {
+    "fp16": {
+      "bytes": 703605360,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1406994406,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 243267303,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 211073759,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 421893932,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/siglip2-base-patch16-224-ONNX": {
+    "bnb4": {
+      "bytes": 1790152569,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "fp16": {
+      "bytes": 1501811944,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "fp32": {
+      "bytes": 3002563235,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "q4": {
+      "bytes": 1812195067,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 994828997,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "q8": {
+      "bytes": 1511983486,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    },
+    "uint8": {
+      "bytes": 755991743,
+      "files": [
+        "model",
+        "text_model",
+        "vision_model"
+      ]
+    }
+  },
+  "onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX": {
+    "fp32": {
+      "bytes": 86485745,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 14836561,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 21945937,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/grounding-dino-tiny-ONNX": {
+    "bnb4": {
+      "bytes": 218129274,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 360393267,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 718761381,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 227229745,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 151069879,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 407649156,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 203824675,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/sam2.1-hiera-tiny-ONNX": {
+    "bnb4": {
+      "bytes": 49551078,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "fp16": {
+      "bytes": 78004244,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "fp32": {
+      "bytes": 155610424,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "q4": {
+      "bytes": 51481493,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "q4f16": {
+      "bytes": 33667410,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "q8": {
+      "bytes": 123932099,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    },
+    "uint8": {
+      "bytes": 61965721,
+      "files": [
+        "prompt_encoder_mask_decoder",
+        "vision_encoder"
+      ]
+    }
+  },
+  "onnx-community/BiRefNet_lite-ONNX": {
+    "fp16": {
+      "bytes": 114538221,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 224005088,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/BEN2-ONNX": {
+    "fp16": {
+      "bytes": 219121675,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/ormbg-ONNX": {
+    "bnb4": {
+      "bytes": 176116038,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 88117930,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 176116019,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 176116038,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 88117949,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 88630341,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 44315205,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/punctuate-all-ONNX": {
+    "bnb4": {
+      "bytes": 818186877,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 555239208,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1110154243,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 823495046,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 433149933,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 557316196,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 278658098,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/gliner_small-v2.1": {
+    "bnb4": {
+      "bytes": 463106905,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 306253040,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 611293061,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 463106905,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 245226118,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 366807468,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 183403759,
+      "files": [
+        "model"
+      ]
+    }
+  },
+  "onnx-community/piiranha-v1-detect-personal-information-ONNX": {
+    "bnb4": {
+      "bytes": 857781721,
+      "files": [
+        "model"
+      ]
+    },
+    "fp16": {
+      "bytes": 575239383,
+      "files": [
+        "model"
+      ]
+    },
+    "fp32": {
+      "bytes": 1149780766,
+      "files": [
+        "model"
+      ]
+    },
+    "q4": {
+      "bytes": 863090465,
+      "files": [
+        "model"
+      ]
+    },
+    "q4f16": {
+      "bytes": 453136858,
+      "files": [
+        "model"
+      ]
+    },
+    "q8": {
+      "bytes": 634289658,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8": {
+      "bytes": 317144829,
+      "files": [
+        "model"
+      ]
+    }
+  }
+}
