@@ -27,7 +27,12 @@ const LARGE_NOTE =
 // files other variants ship). Dropped here rather than guessed at or backfilled.
 const EXCLUDE_VARIANTS = {
   "onnx-community/Qwen3-0.6B-ONNX": ["fp32"],
-  "onnx-community/Kokoro-82M-v1.0-ONNX": ["fp32"],
+  // Kokoro's fp32 is a clean single-file measurement (the old contamination was
+  // model_q8f16/model_uint8f16 falling into the fp32 bucket; the measurement
+  // script now labels them). q8f16/uint8f16 are excluded because kokoro-js,
+  // the package that actually drives this model, cannot request them (its
+  // dtype options are fp32/fp16/q8/q4/q4f16).
+  "onnx-community/Kokoro-82M-v1.0-ONNX": ["q8f16", "uint8f16"],
   "onnx-community/Bonsai-1.7B-ONNX": ["fp32"],
   "onnx-community/granite-docling-258M-ONNX": ["uint8", "bnb4"],
   "onnx-community/bge-m3-ONNX": ["fp16"],
@@ -328,7 +333,7 @@ const METADATA = [
     params_m: 82,
     paramsSourceUrl: "https://huggingface.co/hexgrad/Kokoro-82M",
     notes:
-      "Sizes are not monotonic by quant here: q8 (about 92 MB) is smaller than q4f16 (about 155 MB) and is the community-standard build most demos ship. In practice Kokoro is usually driven through the dedicated kokoro-js package rather than a generic pipeline() call.",
+      "Sizes are not monotonic by quant here: q8 (about 88 MB) is smaller than q4f16 (about 147 MB) and is the community-standard build most demos ship. In practice Kokoro is usually driven through the dedicated kokoro-js package rather than a generic pipeline() call, and kokoro-js recommends the fp32 build on WebGPU: the q4f16 build produces audibly degraded audio there (verified in Chrome on Apple silicon, 2026-08-01).",
   },
   {
     id: "supertonic-tts-2",

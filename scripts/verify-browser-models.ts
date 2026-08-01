@@ -3,7 +3,9 @@
  * HuggingFace API (exact bytes, never estimates). Prints a per-variant table
  * and writes scripts/browser-model-sizes.json for catalog authoring.
  *
- *   bun run scripts/verify-browser-models.ts
+ *   bun run scripts/verify-browser-models.ts            # all repos, full rewrite
+ *   bun run scripts/verify-browser-models.ts Kokoro     # only matching repos,
+ *                                                       # merged into the file
  */
 
 type TreeEntry = { type: string; size: number; path: string };
@@ -84,6 +86,8 @@ const CANDIDATES: { repo: string; note?: string }[] = [
 // suffix → variant label (order matters: longest match first)
 const VARIANT_SUFFIXES: [string, string][] = [
   ["_quantized", "q8"],
+  ["_uint8f16", "uint8f16"],
+  ["_q8f16", "q8f16"],
   ["_uint8", "uint8"],
   ["_int8", "q8"],
   ["_bnb4", "bnb4"],
@@ -134,7 +138,16 @@ function alternateBaseOf(name: string): string | null {
 
 const out: Record<string, Record<string, { bytes: number; files: string[] }>> = {};
 
-for (const { repo } of CANDIDATES) {
+// Optional repo filter: re-measure only matching repos and merge the result
+// into the existing file, so a one-model fix doesn't re-sync every repo to
+// whatever HF holds today.
+const filter = Bun.argv[2];
+const candidates = filter
+  ? CANDIDATES.filter((c) => c.repo.toLowerCase().includes(filter.toLowerCase()))
+  : CANDIDATES;
+if (candidates.length === 0) throw new Error(`No candidate repo matches "${filter}"`);
+
+for (const { repo } of candidates) {
   const tree = await fetchTree(repo);
   if (!tree) {
     console.log(`✗ ${repo}: NOT FOUND`);
@@ -193,8 +206,9 @@ for (const { repo } of CANDIDATES) {
   }
 }
 
-await Bun.write(
-  new URL("./browser-model-sizes.json", import.meta.url).pathname,
-  JSON.stringify(out, null, 2),
+const sizesPath = new URL("./browser-model-sizes.json", import.meta.url).pathname;
+const merged = filter ? { ...JSON.parse(await Bun.file(sizesPath).text()), ...out } : out;
+await Bun.write(sizesPath, JSON.stringify(merged, null, 2));
+console.log(
+  `\nWrote scripts/browser-model-sizes.json${filter ? ` (merged ${candidates.length} repo(s))` : ""}`,
 );
-console.log("\nWrote scripts/browser-model-sizes.json");
