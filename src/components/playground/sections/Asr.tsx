@@ -17,6 +17,10 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const recRef = useRef<Recorder | null>(null);
+  // Synchronous guard across the getUserMedia await: without it, two rapid
+  // clicks both pass the `recording` check and the first mic stream is
+  // orphaned live with nothing left holding a reference to stop it.
+  const micPendingRef = useRef(false);
 
   useEffect(() => () => recRef.current?.cancel(), []);
 
@@ -47,7 +51,7 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
   }
 
   async function toggleMic() {
-    if (busy) return;
+    if (busy || micPendingRef.current) return;
     if (recording) {
       setRecording(false);
       const rec = recRef.current;
@@ -55,6 +59,7 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
       if (rec) await transcribeBlob(await rec.stop());
       return;
     }
+    micPendingRef.current = true;
     setError(null);
     try {
       recRef.current = await startRecording();
@@ -63,6 +68,8 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
       setError(
         "Microphone access was blocked. You can still try the sample clip below; audio never leaves this tab either way.",
       );
+    } finally {
+      micPendingRef.current = false;
     }
   }
 

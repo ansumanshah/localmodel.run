@@ -1664,7 +1664,10 @@
 .pg-img--sm {
   max-width: 14rem;
 }
-/* Checkerboard behind the cut-out PNG so the transparency reads as such. */
+/* Checkerboard behind the cut-out PNG so the transparency reads as such.
+   Documented exception to the zero-gradients doctrine: repeating-conic here
+   draws the universal editor transparency pattern, a functional affordance,
+   not decorative chrome. */
 .pg-img--checker {
   background:
     repeating-conic-gradient(color-mix(in oklch, var(--foreground) 12%, transparent) 0% 25%, transparent 0% 50%)

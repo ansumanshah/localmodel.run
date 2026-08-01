@@ -85,8 +85,8 @@ export default function EmbedSection({ api, onMetrics }: SectionProps) {
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            1.0 means identical meaning, 0 means unrelated. Same math a vector database runs on
-            every query.
+            1.0 means identical meaning; near 0, or below it, means unrelated. Same math a vector
+            database runs on every query.
           </p>
         </div>
       )}

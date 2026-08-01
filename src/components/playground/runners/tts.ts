@@ -12,10 +12,22 @@ const VOICES = [
   { id: "bm_george", label: "George (UK male)" },
 ];
 
+// kokoro-js accepts a narrower dtype union than transformers.js; fail loud
+// rather than cast if the catalog ever picks one it cannot load.
+const KOKORO_DTYPES = ["fp32", "fp16", "q8", "q4", "q4f16"] as const;
+type KokoroDtype = (typeof KOKORO_DTYPES)[number];
+
+function asKokoroDtype(d: string): KokoroDtype {
+  if (!(KOKORO_DTYPES as readonly string[]).includes(d)) {
+    throw new Error(`The catalog picked dtype "${d}", which kokoro-js does not accept.`);
+  }
+  return d as KokoroDtype;
+}
+
 export async function load(opts: LoadOpts): Promise<TtsApi> {
   const { KokoroTTS } = await import("kokoro-js");
   const tts = await KokoroTTS.from_pretrained(opts.hfRepo, {
-    dtype: opts.dtype as "q8" | "q4f16" | "fp16" | "fp32",
+    dtype: asKokoroDtype(opts.dtype),
     device: opts.device,
     progress_callback: adaptProgress(opts.onProgress),
   });

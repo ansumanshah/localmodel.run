@@ -648,12 +648,17 @@ const masks = await processor.post_process_masks(
 );`,
   // Verified against the official smolvlm-webgpu example's worker.js:
   // https://github.com/huggingface/transformers.js-examples/blob/main/smolvlm-webgpu/src/worker.js
+  // dtype is fp32 on purpose, matching that demo: the q4f16 and fp16 builds
+  // both generate garbled text over WebGPU (verified in-browser 2026-08-01
+  // on this site's playground; see PLAYGROUND_RUN_OVERRIDES).
   "smolvlm-256m-instruct": (repo, head) => `import { AutoProcessor, AutoModelForVision2Seq, load_image } from "@huggingface/transformers";
 
 const processor = await AutoProcessor.from_pretrained("${repo}");
 const model = await AutoModelForVision2Seq.from_pretrained("${repo}", {
   device: "webgpu",
-  dtype: "${head.webgpu.variant}", // use "${head.wasm.variant}" for the WASM build
+  // fp32 on purpose: the q4f16 and fp16 builds generate garbled text over
+  // WebGPU today (the official demo ships fp32 for the same reason).
+  dtype: "fp32", // use "${head.wasm.variant}" for the WASM build
 });
 
 const image = await load_image("https://your-image-url.jpg");

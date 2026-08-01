@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { fit } from "localfit";
+import { fit, refresh } from "localfit";
 import type { FitPlan } from "localfit";
 import { ProgressAggregator, formatBytes } from "./progress";
 import type {
@@ -77,12 +77,19 @@ export default function Playground({ model, task }: PlaygroundProps) {
   const lastPaintRef = useRef(0);
 
   // Probe runs client-side only; the SSR'd island shows the static idle shell.
+  // refresh() first: localfit's bundled snapshot ships with the package and
+  // can lag a catalog correction, so its "Why this plan?" reasons would cite
+  // stale bytes next to the page's corrected ones. refresh() pulls the live
+  // catalog (same origin as this page's data) and silently keeps the
+  // snapshot on any failure, after which fit() reads current numbers.
   useEffect(() => {
     let alive = true;
-    fit(model.id).then(
-      (p) => alive && setPlan(p),
-      () => alive && setPlan(null),
-    );
+    refresh()
+      .then(() => fit(model.id))
+      .then(
+        (p) => alive && setPlan(p),
+        () => alive && setPlan(null),
+      );
     return () => {
       alive = false;
     };
@@ -109,8 +116,13 @@ export default function Playground({ model, task }: PlaygroundProps) {
       setPhase((prev) => (prev.name === "loading" ? { name: "loading", progress: snap } : prev));
   }
 
+  const startingRef = useRef(false);
+
   async function start() {
-    if (!plan) return;
+    // Synchronous re-entrancy guard: React may not re-render (and hide the
+    // button) between two rapid clicks, and the load below is expensive.
+    if (!plan || startingRef.current) return;
+    startingRef.current = true;
     const agg = new ProgressAggregator();
     aggRef.current = agg;
     setPhase({ name: "loading", progress: agg.snapshot() });
@@ -130,6 +142,8 @@ export default function Playground({ model, task }: PlaygroundProps) {
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setPhase({ name: "error", message });
+    } finally {
+      startingRef.current = false;
     }
   }
 
