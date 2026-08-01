@@ -45,7 +45,9 @@ export default function ImagePick({ disabled, onPick, sampleUrl, sampleLabel }: 
         disabled={disabled}
       >
         Drop an image here or click to choose one
-        <span className="mt-1 block text-xs text-muted-foreground">Stays in this tab; never uploaded.</span>
+        <span className="mt-1 block text-xs text-muted-foreground">
+          Stays in this tab; never uploaded.
+        </span>
       </button>
       <input
         ref={inputRef}
@@ -57,7 +59,12 @@ export default function ImagePick({ disabled, onPick, sampleUrl, sampleLabel }: 
         disabled={disabled}
       />
       {sampleUrl && (
-        <button type="button" className="btn mt-2 text-xs" onClick={() => onPick(sampleUrl)} disabled={disabled}>
+        <button
+          type="button"
+          className="btn mt-2 text-xs"
+          onClick={() => onPick(sampleUrl)}
+          disabled={disabled}
+        >
           {sampleLabel ?? "Use a sample image"}
         </button>
       )}

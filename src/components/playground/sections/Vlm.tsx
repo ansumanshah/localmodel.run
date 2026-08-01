@@ -40,15 +40,31 @@ export default function VlmSection({ api, onMetrics }: SectionProps) {
 
   return (
     <div>
-      <ImagePick disabled={busy} onPick={setImageUrl} sampleUrl={SAMPLE_URL} sampleLabel="Use the sample photo" />
+      <ImagePick
+        disabled={busy}
+        onPick={setImageUrl}
+        sampleUrl={SAMPLE_URL}
+        sampleLabel="Use the sample photo"
+      />
       {imageUrl && (
         <div className="mt-4">
           <img src={imageUrl} alt="Chosen input" className="pg-img pg-img--sm" />
           <label className="mt-3 block">
             <span className="field-label">Ask about it</span>
-            <textarea className="pg-input" rows={1} value={prompt} onChange={(e) => setPrompt(e.target.value)} disabled={busy} />
+            <textarea
+              className="pg-input"
+              rows={1}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              disabled={busy}
+            />
           </label>
-          <button type="button" className="btn btn--primary mt-3" onClick={run} disabled={busy || !prompt.trim()}>
+          <button
+            type="button"
+            className="btn btn--primary mt-3"
+            onClick={run}
+            disabled={busy || !prompt.trim()}
+          >
             {busy ? "Looking…" : "Describe"}
           </button>
         </div>

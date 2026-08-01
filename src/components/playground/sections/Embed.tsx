@@ -23,7 +23,12 @@ export default function EmbedSection({ api, onMetrics }: SectionProps) {
       setCosine(res.cosine);
       onMetrics([
         { key: "cos", label: "cosine similarity", value: res.cosine.toFixed(3) },
-        { key: "ms", label: "per sentence", value: Math.round((res.msA + res.msB) / 2).toString(), unit: "ms" },
+        {
+          key: "ms",
+          label: "per sentence",
+          value: Math.round((res.msA + res.msB) / 2).toString(),
+          unit: "ms",
+        },
       ]);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Embedding failed.");
@@ -36,13 +41,30 @@ export default function EmbedSection({ api, onMetrics }: SectionProps) {
     <div>
       <label className="block">
         <span className="field-label">Sentence A</span>
-        <textarea className="pg-input" rows={1} value={a} onChange={(e) => setA(e.target.value)} disabled={busy} />
+        <textarea
+          className="pg-input"
+          rows={1}
+          value={a}
+          onChange={(e) => setA(e.target.value)}
+          disabled={busy}
+        />
       </label>
       <label className="mt-3 block">
         <span className="field-label">Sentence B</span>
-        <textarea className="pg-input" rows={1} value={b} onChange={(e) => setB(e.target.value)} disabled={busy} />
+        <textarea
+          className="pg-input"
+          rows={1}
+          value={b}
+          onChange={(e) => setB(e.target.value)}
+          disabled={busy}
+        />
       </label>
-      <button type="button" className="btn btn--primary mt-3" onClick={run} disabled={busy || !a.trim() || !b.trim()}>
+      <button
+        type="button"
+        className="btn btn--primary mt-3"
+        onClick={run}
+        disabled={busy || !a.trim() || !b.trim()}
+      >
         {busy ? "Embedding…" : "Compare"}
       </button>
       {cosine != null && (
@@ -63,7 +85,8 @@ export default function EmbedSection({ api, onMetrics }: SectionProps) {
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            1.0 means identical meaning, 0 means unrelated. Same math a vector database runs on every query.
+            1.0 means identical meaning, 0 means unrelated. Same math a vector database runs on
+            every query.
           </p>
         </div>
       )}

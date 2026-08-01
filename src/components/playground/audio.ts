@@ -7,7 +7,8 @@ export const WHISPER_SAMPLE_RATE = 16000;
 
 export async function blobToMono16k(blob: Blob): Promise<{ audio: Float32Array; seconds: number }> {
   const Ctor: typeof AudioContext =
-    window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext!;
+    window.AudioContext ??
+    (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext!;
   const ctx = new Ctor({ sampleRate: WHISPER_SAMPLE_RATE });
   try {
     const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
@@ -19,7 +20,8 @@ export async function blobToMono16k(blob: Blob): Promise<{ audio: Float32Array; 
       const left = buf.getChannelData(0);
       const right = buf.getChannelData(1);
       audio = new Float32Array(left.length);
-      for (let i = 0; i < left.length; i += 1) audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
+      for (let i = 0; i < left.length; i += 1)
+        audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
     } else {
       audio = buf.getChannelData(0);
     }

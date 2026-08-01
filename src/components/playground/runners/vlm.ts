@@ -6,9 +6,8 @@ import { adaptProgress, asDtype, makeStreamMeter } from "./util";
 // AutoModelForVision2Seq + apply_chat_template), the same flow the page's
 // code snippet documents.
 export async function load(opts: LoadOpts): Promise<VlmApi> {
-  const { AutoProcessor, AutoModelForVision2Seq, TextStreamer, load_image } = await import(
-    "@huggingface/transformers"
-  );
+  const { AutoProcessor, AutoModelForVision2Seq, TextStreamer, load_image } =
+    await import("@huggingface/transformers");
   const processor = await AutoProcessor.from_pretrained(opts.hfRepo, {
     progress_callback: adaptProgress(opts.onProgress),
   });

@@ -46,7 +46,13 @@ export default function ChatSection({ api, onMetrics }: SectionProps) {
     <div>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Example prompts">
         {PRESETS.map((p) => (
-          <button key={p} type="button" className="tag pg-preset" onClick={() => setPrompt(p)} disabled={busy}>
+          <button
+            key={p}
+            type="button"
+            className="tag pg-preset"
+            onClick={() => setPrompt(p)}
+            disabled={busy}
+          >
             {p.length > 42 ? `${p.slice(0, 40)}…` : p}
           </button>
         ))}
@@ -61,7 +67,12 @@ export default function ChatSection({ api, onMetrics }: SectionProps) {
           disabled={busy}
         />
       </label>
-      <button type="button" className="btn btn--primary mt-3" onClick={run} disabled={busy || !prompt.trim()}>
+      <button
+        type="button"
+        className="btn btn--primary mt-3"
+        onClick={run}
+        disabled={busy || !prompt.trim()}
+      >
         {busy ? "Generating…" : "Generate"}
       </button>
       {output && (

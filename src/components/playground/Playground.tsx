@@ -34,7 +34,10 @@ const RUNNERS: Record<PlaygroundTask, () => Promise<{ load(opts: LoadOpts): Prom
   vlm: () => import("./runners/vlm"),
 };
 
-const STAMP: Record<string, { word: string; fg: string; icon: "yes" | "tight" | "no" | "unknown" }> = {
+const STAMP: Record<
+  string,
+  { word: string; fg: string; icon: "yes" | "tight" | "no" | "unknown" }
+> = {
   yes: { word: "Ready to run", fg: "var(--verdict-yes-fg)", icon: "yes" },
   tight: { word: "Tight fit", fg: "var(--verdict-tight-fg)", icon: "tight" },
   no: { word: "Can't run here", fg: "var(--verdict-no-fg)", icon: "no" },
@@ -43,7 +46,17 @@ const STAMP: Record<string, { word: string; fg: string; icon: "yes" | "tight" | 
 
 function StampIcon({ kind }: { kind: "yes" | "tight" | "no" | "unknown" }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <circle cx="12" cy="12" r="10" />
       {kind === "yes" && <path d="m9 12 2 2 4-4" />}
       {kind === "tight" && <path d="M12 8v4M12 16h.01" />}
@@ -92,7 +105,8 @@ export default function Playground({ model, task }: PlaygroundProps) {
     if (now - lastPaintRef.current < 100) return;
     lastPaintRef.current = now;
     const snap = aggRef.current?.snapshot();
-    if (snap) setPhase((prev) => (prev.name === "loading" ? { name: "loading", progress: snap } : prev));
+    if (snap)
+      setPhase((prev) => (prev.name === "loading" ? { name: "loading", progress: snap } : prev));
   }
 
   async function start() {
@@ -135,9 +149,11 @@ export default function Playground({ model, task }: PlaygroundProps) {
                 <span>{stamp.word}</span>
               </span>
               <p className="mt-3 text-sm text-muted-foreground">
-                Pressing Run downloads <span className="num text-foreground">{formatBytes(promisedBytes)}</span> ({dtype}) from
-                HuggingFace and runs it {backend === "webgpu" ? "on your GPU over WebGPU" : "on your CPU over WebAssembly"}, entirely
-                in this tab. Nothing downloads until you press it.
+                Pressing Run downloads{" "}
+                <span className="num text-foreground">{formatBytes(promisedBytes)}</span> ({dtype})
+                from HuggingFace and runs it{" "}
+                {backend === "webgpu" ? "on your GPU over WebGPU" : "on your CPU over WebAssembly"},
+                entirely in this tab. Nothing downloads until you press it.
               </p>
               {model.runNote && dtype !== model.headline[backend].variant && (
                 <p className="mt-2 text-xs text-muted-foreground">{model.runNote}</p>
@@ -148,7 +164,9 @@ export default function Playground({ model, task }: PlaygroundProps) {
                 </button>
               )}
               <details className="pg-why mt-3">
-                <summary className="cursor-pointer text-xs text-muted-foreground">Why this plan?</summary>
+                <summary className="cursor-pointer text-xs text-muted-foreground">
+                  Why this plan?
+                </summary>
                 <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                   {plan.reasons.map((r) => (
                     <li key={r}>{r}</li>
@@ -156,7 +174,11 @@ export default function Playground({ model, task }: PlaygroundProps) {
                 </ul>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Decision by{" "}
-                  <a href="https://github.com/ansumanshah/localfit" rel="noopener" className="underline">
+                  <a
+                    href="https://github.com/ansumanshah/localfit"
+                    rel="noopener"
+                    className="underline"
+                  >
                     localfit
                   </a>
                   , probing this browser at page load. No download happened yet.
@@ -164,7 +186,9 @@ export default function Playground({ model, task }: PlaygroundProps) {
               </details>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">Checking what this browser can run&hellip;</p>
+            <p className="text-sm text-muted-foreground">
+              Checking what this browser can run&hellip;
+            </p>
           )}
         </div>
       )}
@@ -176,7 +200,13 @@ export default function Playground({ model, task }: PlaygroundProps) {
             Downloading model weights
           </span>
           <p className="text-sm text-muted-foreground">
-            Downloading model weights{phase.progress.currentFile ? <> &middot; <span className="num">{phase.progress.currentFile}</span></> : null}
+            Downloading model weights
+            {phase.progress.currentFile ? (
+              <>
+                {" "}
+                &middot; <span className="num">{phase.progress.currentFile}</span>
+              </>
+            ) : null}
           </p>
           <div
             className="gauge lens mt-3"
@@ -184,7 +214,10 @@ export default function Playground({ model, task }: PlaygroundProps) {
             aria-label="Model download"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={Math.min(100, Math.round((phase.progress.weightsLoaded / Math.max(1, promisedBytes)) * 100))}
+            aria-valuenow={Math.min(
+              100,
+              Math.round((phase.progress.weightsLoaded / Math.max(1, promisedBytes)) * 100),
+            )}
           >
             <div
               className="gauge-fill bar-fill"
@@ -198,11 +231,13 @@ export default function Playground({ model, task }: PlaygroundProps) {
           </div>
           <div className="read">
             <span>
-              <b className="num">{formatBytes(phase.progress.weightsLoaded)}</b> of <b className="num">{formatBytes(promisedBytes)}</b> promised
+              <b className="num">{formatBytes(phase.progress.weightsLoaded)}</b> of{" "}
+              <b className="num">{formatBytes(promisedBytes)}</b> promised
             </span>
             {phase.progress.extraTotal > 0 && (
               <span>
-                + <b className="num">{formatBytes(phase.progress.extraLoaded)}</b> tokenizer &amp; config
+                + <b className="num">{formatBytes(phase.progress.extraLoaded)}</b> tokenizer &amp;
+                config
               </span>
             )}
           </div>
@@ -236,7 +271,12 @@ export default function Playground({ model, task }: PlaygroundProps) {
 
           {metrics.length > 0 && (
             <div className="mt-5">
-              <div className="readout-grid" style={{ gridTemplateColumns: `repeat(${Math.min(3, metrics.length)}, minmax(0, 1fr))` }}>
+              <div
+                className="readout-grid"
+                style={{
+                  gridTemplateColumns: `repeat(${Math.min(3, metrics.length)}, minmax(0, 1fr))`,
+                }}
+              >
                 {metrics.map((m) => (
                   <div key={m.key} className="readout surface-lite">
                     <span className="k">{m.label}</span>
@@ -247,19 +287,26 @@ export default function Playground({ model, task }: PlaygroundProps) {
                   </div>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">Measured on this device just now, not estimated.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Measured on this device just now, not estimated.
+              </p>
             </div>
           )}
 
           {downloaded && (
             <p className="mt-4 text-xs text-muted-foreground">
-              Loaded in <span className="num">{loadMs != null ? (loadMs / 1000).toFixed(1) : "?"}s</span>
+              Loaded in{" "}
+              <span className="num">{loadMs != null ? (loadMs / 1000).toFixed(1) : "?"}s</span>
               {downloaded.weightsTotal > 0 ? (
                 <>
-                  {" "}&middot; <span className="num">{formatBytes(downloaded.weightsTotal)}</span> of weights
+                  {" "}
+                  &middot; <span className="num">{formatBytes(downloaded.weightsTotal)}</span> of
+                  weights
                   {downloaded.extraTotal > 0 && (
                     <>
-                      {" "}+ <span className="num">{formatBytes(downloaded.extraTotal)}</span> tokenizer &amp; config
+                      {" "}
+                      + <span className="num">{formatBytes(downloaded.extraTotal)}</span> tokenizer
+                      &amp; config
                     </>
                   )}
                 </>

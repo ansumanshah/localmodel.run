@@ -34,7 +34,12 @@ export default function RmbgSection({ api, onMetrics }: SectionProps) {
 
   return (
     <div>
-      <ImagePick disabled={busy} onPick={run} sampleUrl={SAMPLE_URL} sampleLabel="Use the sample photo" />
+      <ImagePick
+        disabled={busy}
+        onPick={run}
+        sampleUrl={SAMPLE_URL}
+        sampleLabel="Use the sample photo"
+      />
       {busy && (
         <p className="mt-3 text-sm text-muted-foreground" role="status">
           Cutting out the subject&hellip;

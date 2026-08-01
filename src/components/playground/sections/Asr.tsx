@@ -60,7 +60,9 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
       recRef.current = await startRecording();
       setRecording(true);
     } catch {
-      setError("Microphone access was blocked. You can still try the sample clip below; audio never leaves this tab either way.");
+      setError(
+        "Microphone access was blocked. You can still try the sample clip below; audio never leaves this tab either way.",
+      );
     }
   }
 
@@ -81,7 +83,12 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" className={recording ? "btn pg-rec" : "btn btn--primary"} onClick={toggleMic} disabled={busy}>
+        <button
+          type="button"
+          className={recording ? "btn pg-rec" : "btn btn--primary"}
+          onClick={toggleMic}
+          disabled={busy}
+        >
           {recording ? (
             <>
               <span className="pg-rec-dot" aria-hidden="true" /> Stop &amp; transcribe
@@ -90,7 +97,12 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
             "Record from mic"
           )}
         </button>
-        <button type="button" className="btn text-xs" onClick={useSample} disabled={busy || recording}>
+        <button
+          type="button"
+          className="btn text-xs"
+          onClick={useSample}
+          disabled={busy || recording}
+        >
           Use an 11s sample clip
         </button>
       </div>

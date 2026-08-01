@@ -50,29 +50,47 @@ export default function TtsSection({ api, onMetrics }: SectionProps) {
     <div>
       <label className="block">
         <span className="field-label">Text to speak</span>
-        <textarea className="pg-input" rows={2} value={text} onChange={(e) => setText(e.target.value)} disabled={busy} />
+        <textarea
+          className="pg-input"
+          rows={2}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          disabled={busy}
+        />
       </label>
       {api.voices.length > 1 && (
         <label className="mt-3 block max-w-xs">
           <span className="field-label">Voice</span>
           <div className="field">
-            <select value={voice} onChange={(e) => setVoice(e.target.value)} disabled={busy} aria-label="Voice">
+            <select
+              value={voice}
+              onChange={(e) => setVoice(e.target.value)}
+              disabled={busy}
+              aria-label="Voice"
+            >
               {api.voices.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.label}
                 </option>
               ))}
             </select>
-            <span className="truncate">{api.voices.find((v) => v.id === voice)?.label ?? voice}</span>
+            <span className="truncate">
+              {api.voices.find((v) => v.id === voice)?.label ?? voice}
+            </span>
           </div>
         </label>
       )}
-      <button type="button" className="btn btn--primary mt-3" onClick={run} disabled={busy || !text.trim()}>
+      <button
+        type="button"
+        className="btn btn--primary mt-3"
+        onClick={run}
+        disabled={busy || !text.trim()}
+      >
         {busy ? "Synthesizing…" : "Speak"}
       </button>
       <p className="mt-2 text-xs text-muted-foreground">
-        Each voice is a one-time <span className="num">0.5 MB</span> file on top of the model download
-        (measured, fetched on first use). It caches like the weights do.
+        Each voice is a one-time <span className="num">0.5 MB</span> file on top of the model
+        download (measured, fetched on first use). It caches like the weights do.
       </p>
       {audioUrl && (
         <div className="mt-4">
