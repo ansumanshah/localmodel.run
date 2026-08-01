@@ -1,5 +1,14 @@
 import type { APIRoute } from "astro";
-import { models, imageModels, videoModels, audioModels, devices, meta } from "@/lib/data";
+import {
+  models,
+  imageModels,
+  videoModels,
+  audioModels,
+  devices,
+  meta,
+  browserModels,
+  formatBytes,
+} from "@/lib/data";
 import { estimateMemory } from "@/lib/compute";
 import { modalityNeed } from "@/lib/compute-mm";
 
@@ -50,6 +59,21 @@ export const GET: APIRoute = ({ site }) => {
     }
     out.push("");
   }
+
+  out.push(
+    "## Browser models (run in-tab via Transformers.js, WebGPU/WASM; separate catalog from the GGUF models above)",
+  );
+  for (const m of browserModels) {
+    out.push(
+      `### ${m.name} (${origin}/browser/${m.id})\n` +
+        `- Task: ${m.task}${m.pipeline_task ? ` (pipeline: ${m.pipeline_task})` : " (no stable pipeline() task yet)"}\n` +
+        `- Params: ${m.params_m != null ? `${m.params_m}M` : "n/a"}\n` +
+        `- WebGPU download: ${formatBytes(m.headline.webgpu.bytes)} (${m.headline.webgpu.variant}); WASM download: ${formatBytes(m.headline.wasm.bytes)} (${m.headline.wasm.variant})\n` +
+        `- HF repo: ${m.hf_repo}${m.notes ? `\n- Notes: ${m.notes}` : ""}\n` +
+        `- Sources: ${m.sources.map((s) => s.url).join(", ")}`,
+    );
+  }
+  out.push("");
 
   out.push("## Devices (usable memory for model weights)");
   for (const d of devices) {
