@@ -1,0 +1,300 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Sources from "@/components/Sources.astro";
+import { browserModels, browserSizeNeighbors, BROWSER_TASK_LABEL, formatBytes, meta } from "@/lib/data";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return browserModels.map((model) => ({ params: { model: model.id }, props: { model } }));
+}
+
+const { model } = Astro.props;
+const path = `/browser/${model.id}`;
+const taskLabel = BROWSER_TASK_LABEL[model.task] ?? model.task;
+const webgpuSize = formatBytes(model.headline.webgpu.bytes);
+const wasmSize = formatBytes(model.headline.wasm.bytes);
+const paramsLabel = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(2)}B` : `${n}M`);
+const { smaller, bigger } = browserSizeNeighbors(model);
+
+// Smallest first; flag whichever row IS the webgpu/wasm headline pick.
+const variantRows = Object.entries(model.variants)
+  .sort((a, b) => a[1] - b[1])
+  .map(([variant, bytes]) => ({
+    variant,
+    bytes,
+    isWebgpu: variant === model.headline.webgpu.variant && bytes === model.headline.webgpu.bytes,
+    isWasm: variant === model.headline.wasm.variant && bytes === model.headline.wasm.bytes,
+  }));
+
+// A real pipeline() call when a stable transformers.js task exists for this
+// model; otherwise an honest lower-level AutoModel snippet (see model.notes
+// for why pipeline() doesn't cover it yet).
+const snippet = model.pipeline_task
+  ? `import { pipeline } from "@huggingface/transformers";
+
+const pipe = await pipeline("${model.pipeline_task}", "${model.hf_repo}", {
+  device: "webgpu", // falls back to "wasm" automatically if unavailable
+  dtype: "${model.headline.webgpu.variant}", // use "${model.headline.wasm.variant}" for the WASM build
+});
+
+const result = await pipe(/* your input */);`
+  : `// No stable transformers.js pipeline() task for this model yet, see the note below.
+import { AutoModel, AutoProcessor } from "@huggingface/transformers";
+
+const model = await AutoModel.from_pretrained("${model.hf_repo}", {
+  device: "webgpu",
+  dtype: "${model.headline.webgpu.variant}",
+});
+const processor = await AutoProcessor.from_pretrained("${model.hf_repo}");`;
+
+const title = `${model.name}: browser download size (WebGPU/WASM) · localmodel.run`;
+const description = truncate(
+  `${model.name} downloads ${webgpuSize} over WebGPU (${model.headline.webgpu.variant}), or ${wasmSize} over WebAssembly (${model.headline.wasm.variant}), to run entirely in the browser with Transformers.js. Measured sizes for every quant, a live WebGPU check, and a copy-paste snippet.`,
+);
+
+const faqs: FaqItem[] = [
+  {
+    q: `How big is the ${model.name} download?`,
+    a: `The WebGPU build (${model.headline.webgpu.variant}) is ${webgpuSize}; the WebAssembly fallback (${model.headline.wasm.variant}) is ${wasmSize}. Both are measured from the HuggingFace API file tree for ${model.hf_repo}, not estimated.`,
+  },
+  {
+    q: `Does ${model.name} need a GPU?`,
+    a: `No. It runs over WebGPU when your browser supports it (faster, usually a smaller download), or falls back to WebAssembly on CPU everywhere else. The check on this page shows which one applies to your current browser.`,
+  },
+  ...(model.params_m != null
+    ? [
+        {
+          q: `How many parameters does ${model.name} have?`,
+          a: `About ${paramsLabel(model.params_m)} parameters.`,
+        },
+      ]
+    : []),
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Browser", url: "/browser" },
+      { name: model.name, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `${model.name} browser download size`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    speakableSelector: [".verdict-text"],
+    sources: model.sources.map((s) => s.url),
+  }),
+  faqLd(faqs),
+];
+
+// Fed to the client-side WebGPU check (no recompute needed, just labels).
+const fitData = {
+  webgpuLabel: `${webgpuSize} (${model.headline.webgpu.variant})`,
+  wasmLabel: `${wasmSize} (${model.headline.wasm.variant})`,
+};
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogType="article" articleModified={meta.updated}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Browser", url: "/browser" }, { name: model.name, url: path }]} />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Runs in the browser &middot; {taskLabel}</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      {model.name}: browser download size
+    </h1>
+    <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+      <strong>{model.name} downloads {webgpuSize}</strong> over WebGPU ({model.headline.webgpu.variant}), or {wasmSize} over WebAssembly ({model.headline.wasm.variant}), to run entirely in the tab with <a href="https://huggingface.co/docs/transformers.js" rel="noopener nofollow" class="underline">Transformers.js</a>. No install, no server.
+    </p>
+    <p class="mt-2 text-pretty text-muted-foreground">
+      {taskLabel}{model.params_m != null ? ` · ${paramsLabel(model.params_m)} params` : ""} · <code class="rounded bg-card px-1.5 py-0.5 text-sm">{model.hf_repo}</code>
+    </p>
+
+    <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {[
+        { k: "WebGPU download", num: webgpuSize, sub: model.headline.webgpu.variant },
+        { k: "WASM download", num: wasmSize, sub: model.headline.wasm.variant },
+        { k: "Parameters", num: model.params_m != null ? paramsLabel(model.params_m) : "-", sub: null },
+        { k: "Pipeline task", num: model.pipeline_task ?? "custom", sub: null },
+      ].map((s) => (
+        <div class="panel p-4">
+          <div class="stat-label">{s.k}</div>
+          <div class="stat-val mt-1.5 text-lg"><span class="num">{s.num}</span></div>
+          {s.sub && <div class="mt-0.5 text-xs text-muted-foreground">{s.sub}</div>}
+        </div>
+      ))}
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Will it run in your browser?</h2>
+      <div class="panel-hero" id="browser-check">
+        <div class="panel-head">
+          <span class="panel-label">Live check</span>
+          <span class="panel-label">this browser</span>
+        </div>
+        <div class="p-5">
+          <p class="text-sm text-muted-foreground" id="bc-loading">Checking for WebGPU support&hellip;</p>
+          <span class="verdict-stamp hidden" id="bc-stamp">
+            <svg id="bc-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+            <span id="bc-word"></span>
+          </span>
+          <p class="mt-2 text-sm text-muted-foreground" id="bc-note"></p>
+          <noscript>
+            <p class="text-sm text-muted-foreground">Enable JavaScript to check whether your browser supports WebGPU for this model. Either way, it can fall back to WebAssembly on CPU.</p>
+          </noscript>
+        </div>
+      </div>
+      <script type="application/json" id="bc-data" set:html={JSON.stringify(fitData).replace(/</g, "\\u003c")} is:inline />
+      <script is:inline>
+        (function () {
+          var ICONS = {
+            yes: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+            tight: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+            no: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+          };
+          var FG = { yes: "var(--verdict-yes-fg)", tight: "var(--verdict-tight-fg)", no: "var(--verdict-no-fg)" };
+          function render(kind, word, note) {
+            var stamp = document.getElementById("bc-stamp");
+            if (!stamp) return;
+            stamp.setAttribute("data-v", kind);
+            stamp.style.color = FG[kind];
+            var icon = document.getElementById("bc-icon");
+            if (icon) icon.innerHTML = ICONS[kind];
+            var wordEl = document.getElementById("bc-word");
+            if (wordEl) wordEl.textContent = word;
+            var noteEl = document.getElementById("bc-note");
+            if (noteEl) noteEl.textContent = note;
+            stamp.classList.remove("hidden");
+            var loading = document.getElementById("bc-loading");
+            if (loading) loading.classList.add("hidden");
+          }
+          async function check() {
+            var blob = document.getElementById("bc-data");
+            var data = blob ? JSON.parse(blob.textContent || "{}") : {};
+            if (typeof WebAssembly === "undefined") {
+              render("no", "Can't run here", "Neither WebGPU nor WebAssembly is available in this browser.");
+              return;
+            }
+            if (navigator.gpu) {
+              try {
+                var adapter = await navigator.gpu.requestAdapter();
+                if (adapter) {
+                  render("yes", "WebGPU available", "Downloads " + data.webgpuLabel + ".");
+                  return;
+                }
+              } catch (e) {
+                /* fall through to WASM */
+              }
+            }
+            render("tight", "Falls back to WASM", "No WebGPU adapter found; downloads " + data.wasmLabel + " instead, slower.");
+          }
+          check();
+        })();
+      </script>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">All measured variants</h2>
+      <div class="panel overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Quant</span>
+          <span class="panel-label">Download size</span>
+        </div>
+        <table class="w-full text-sm">
+          <thead class="sr-only">
+            <tr>
+              <th scope="col">Variant</th>
+              <th scope="col">Size</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {variantRows.map((v) => (
+              <tr class={v.isWebgpu || v.isWasm ? "bg-[color-mix(in_oklch,var(--color-brand)_10%,transparent)]" : ""}>
+                <td class="px-4 py-2 font-medium">
+                  {v.variant}
+                  {v.isWebgpu && <span class="tag ml-2">WebGPU pick</span>}
+                  {v.isWasm && <span class="tag ml-2">WASM pick</span>}
+                </td>
+                <td class="px-4 py-2 text-right text-muted-foreground"><span class="num">{formatBytes(v.bytes)}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Sizes measured from the HuggingFace API file tree for <code class="rounded bg-card px-1 py-0.5">{model.hf_repo}</code>, not estimated.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Use it with Transformers.js</h2>
+      <div class="group relative">
+        <div class="relative rounded-[4px] border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] p-4 font-mono text-xs shadow-[inset_0_1px_0_0_var(--lite-specular)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-[1px] before:bg-[var(--color-brand)] before:content-['']">
+          <pre class="overflow-x-auto whitespace-pre pr-16 leading-relaxed"><code>{snippet}</code></pre>
+          <button
+            type="button"
+            class="copy-btn absolute right-3 top-3 shrink-0 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground opacity-0 transition hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            data-copy={snippet}
+            aria-label="Copy code"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">
+        Requires <code class="rounded bg-card px-1 py-0.5">npm install @huggingface/transformers</code> (or the CDN build). {!model.pipeline_task && "This model needs the lower-level API shown above, not pipeline() (see the note below)."}
+      </p>
+    </section>
+
+    {model.notes && <p class="mt-8 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">{model.notes}</p>}
+
+    <Sources urls={model.sources.map((s) => s.url)} />
+
+    {(smaller || bigger) && (
+      <section class="mt-10">
+        <h2 class="text-lg font-semibold">Same job, different size</h2>
+        <p class="mt-2 text-sm text-muted-foreground">Pick by download budget: step down for a lighter page load, or step up for more capability.</p>
+        <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {smaller && (
+            <a href={`/browser/${smaller.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+              <span class="flex min-w-0 flex-col">
+                <span class="section-label">Smaller download</span>
+                <span class="truncate text-sm">{smaller.name}</span>
+              </span>
+              <span class="shrink-0 text-xs text-muted-foreground">{formatBytes(smaller.headline.webgpu.bytes)}</span>
+            </a>
+          )}
+          {bigger && (
+            <a href={`/browser/${bigger.id}`} class="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+              <span class="flex min-w-0 flex-col">
+                <span class="section-label">Bigger download</span>
+                <span class="truncate text-sm">{bigger.name}</span>
+              </span>
+              <span class="shrink-0 text-xs text-muted-foreground">{formatBytes(bigger.headline.webgpu.bytes)}</span>
+            </a>
+          )}
+        </div>
+      </section>
+    )}
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">FAQ</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Sizes measured 2026-08-01 from the HuggingFace API. Last validated {meta.updated}. See <a href="/browser" class="underline">all browser models</a> or the <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>
