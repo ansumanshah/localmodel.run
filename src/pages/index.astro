@@ -80,7 +80,7 @@ const description = truncate(
 const faqs: FaqItem[] = [
   {
     q: "Can I run AI models in my browser without installing anything?",
-    a: `Yes. ${browserModels.length} models in the catalog run entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. Whisper Tiny transcribes speech after a ${heroDemos[0].size} download, SmolLM2-135M chats after ${heroDemos[1].size}, Kokoro speaks after ${heroDemos[2].size}. Six pages run them live with one click; every download size is measured from the HuggingFace file tree, not estimated.`,
+    a: `Yes. ${browserModels.length} models in the catalog run entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. ${heroDemos[0].model.name} transcribes speech after a ${heroDemos[0].size} download, ${heroDemos[1].model.name} chats after ${heroDemos[1].size}, ${heroDemos[2].model.name} speaks after ${heroDemos[2].size}. Six pages run them live with one click; every download size is measured from the HuggingFace file tree, not estimated.`,
   },
   {
     q: "How do I know if my computer can run a local AI model?",
@@ -162,14 +162,16 @@ const jsonLd = [
           <span class="panel-status"><span class="status-dot"></span>LIVE</span>
         </div>
         <div class="p-5">
-          <p class="text-sm text-muted-foreground" id="hbc-loading">Checking for WebGPU&hellip;</p>
-          <span class="verdict-stamp hidden" id="hbc-stamp">
-            <svg id="hbc-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
-            <span id="hbc-word"></span>
-          </span>
-          <p class="mt-2 text-sm text-muted-foreground" id="hbc-note"></p>
+          <div aria-live="polite" aria-atomic="true">
+            <p class="text-sm text-muted-foreground" id="hbc-loading">Checking for WebGPU&hellip;</p>
+            <span class="verdict-stamp hidden" id="hbc-stamp">
+              <svg id="hbc-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+              <span id="hbc-word"></span>
+            </span>
+            <p class="mt-2 text-sm text-muted-foreground" id="hbc-note"></p>
+          </div>
           <noscript>
-            <p class="text-sm text-muted-foreground">Enable JavaScript to check this browser for WebGPU. The demos below work either way, falling back to WebAssembly on CPU.</p>
+            <p class="text-sm text-muted-foreground">The demos below need JavaScript to run; enable it and this panel also checks the browser for WebGPU (they fall back to WebAssembly without it).</p>
           </noscript>
           <div class="mt-4 divide-y divide-border border-t border-border">
             {heroDemos.map((d) => (
@@ -192,9 +194,13 @@ const jsonLd = [
   </section>
 
   <!-- Hero H1 rotator (CLS-safe crossfade; static under reduced-motion; the
-       sr-only "AI models" carries meaning) + the live browser check -->
+       sr-only "AI models" carries meaning) + the live browser check. Both run
+       from astro:page-load: the ClientRouter executes an identical inline
+       script only ONCE per SPA session, so immediate IIFEs freeze on any
+       revisit to the homepage; the event fires on initial load AND on every
+       swap (same pattern as interactions.ts and play.astro). -->
   <script is:inline>
-    (function () {
+    function lmHeroRotInit() {
       if (window.__heroRotInt) {
         clearInterval(window.__heroRotInt);
         window.__heroRotInt = null;
@@ -220,8 +226,8 @@ const jsonLd = [
           word.classList.remove("hr-out");
         }, 360);
       }, 2400);
-    })();
-    (function () {
+    }
+    function lmBrowserCheckInit() {
       var ICONS = {
         yes: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
         tight: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
@@ -262,7 +268,11 @@ const jsonLd = [
         render("tight", "Falls back to WASM", "No WebGPU adapter found; the demos below run on CPU instead, slower.");
       }
       check();
-    })();
+    }
+    document.addEventListener("astro:page-load", function () {
+      lmHeroRotInit();
+      lmBrowserCheckInit();
+    });
   </script>
 
   <!-- Coverage marquee: same single-line scrolling band as "Runs with" below, so the
