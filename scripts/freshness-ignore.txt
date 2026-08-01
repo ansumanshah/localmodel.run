@@ -17,8 +17,27 @@ medgemma   # medical domain model, out of catalog scope
 medgemma1.5   # medical domain model, out of catalog scope
 mistral-medium-3.5   # gated/API-only (HF 401), no open weights
 glm-5.1   # same 744B-A40B footprint as GLM-5.2 (in catalog)
-# nemotron3 (NVIDIA Nemotron 3, Dec 2025+) is NOW open + addable (rechecked 2026-07-07):
-# Nano-4B (dense, Q4_K_M 2.84GB), Nano-30B-A3B (MoE 30B/3.5B, Q4_K_M 24.66GB),
-# Super-120B-A12B, Ultra-550B-A55B. Distinct from the 2024-25 nemotron-nano/super/ultra
-# rows already in the catalog. Pending a verify-first add (not skipped anymore).
 minimax-m2.7   # cloud-only on Ollama; M3 (in catalog) is the current open release
+# nemotron3 family added (2026-08-01, issue #3): nemotron-3-nano-4b (dense),
+# nemotron-3-nano-30b-a3b, nemotron-3-super-120b-a12b, nemotron-3-ultra-550b-a55b (MoE,
+# cloud-only on Ollama, sized from unsloth GGUF), and nemotron-cascade-2-30b-a3b (a distinct
+# post-trained checkpoint on the Nano-30B-A3B base, not a duplicate). Distinct from the
+# 2024-25 nemotron-nano/super/ultra rows already in the catalog.
+nemotron3   # resolved above; the Ollama slug itself is Nano Omni (multimodal), out of scope
+nemotron-3-nano   # in catalog as nemotron-3-nano-4b + nemotron-3-nano-30b-a3b
+nemotron-3-super   # in catalog as nemotron-3-super-120b-a12b
+nemotron-3-ultra   # in catalog as nemotron-3-ultra-550b-a55b (cloud-only, unsloth GGUF)
+nemotron-cascade-2   # in catalog as nemotron-cascade-2-30b-a3b
+lfm2   # in catalog (2026-08-01) as lfm2-24b-a2b, the new largest LFM2 size
+lfm2.5-thinking   # in catalog (2026-08-01) as lfm2.5-1.2b-thinking
+glm-4.7-flash   # in catalog (2026-08-01), 30B-A3B MoE, MIT
+olmo-3.1   # in catalog (2026-08-01) as olmo-3.1-32b-instruct; -Think variant deferred (budget)
+laguna-s-2.1   # in catalog (2026-08-01), Poolside AI's 118B-A8B coding-agent flagship, OpenMDW-1.1
+qwen3.5   # real (multimodal family, 0.8b-397b-cloud) but Qwen3.6 already represents this
+          # generation in the catalog; deferred to a follow-up pass given the CF file budget
+minimax-m2.5   # cloud-only on Ollama; superseded by minimax-m3 (already in catalog)
+kimi-k2.5   # cloud-only on Ollama; superseded by kimi-k2.6 (already in catalog)
+glm-ocr   # OCR-specialized encoder-decoder, out of catalog scope (same class as medgemma)
+translategemma   # translation-specialized Gemma 3 fine-tune, out of catalog scope
+functiongemma   # function-calling-specialized Gemma 3 270M fine-tune, out of catalog scope
+gemini-3-flash-preview   # Google, cloud-only preview listing, no open weights
