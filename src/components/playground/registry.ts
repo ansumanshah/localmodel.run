@@ -25,6 +25,6 @@ export const PLAYGROUND_RUN_OVERRIDES: Record<
   },
   "kokoro-82m": {
     webgpu: "fp32",
-    note: "The q4f16 build produces audibly degraded speech over WebGPU (verified by ear in Chrome on Apple silicon, 2026-08-01), and kokoro-js itself recommends fp32 there. The live run loads the fp32 build over WebGPU: big, but it is the one that sounds right. The WebAssembly fallback keeps the small q8 build.",
+    note: "The live run loads the bigger fp32 build over WebGPU rather than the catalog's q4f16 pick, which sounds audibly degraded there (details in the reading above). The WebAssembly fallback keeps the small q8 build.",
   },
 };
