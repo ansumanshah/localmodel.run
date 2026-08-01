@@ -24,6 +24,30 @@
   Cache-Control: public, max-age=0, s-maxage=86400, stale-while-revalidate=86400
   Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt", </.well-known/agent.json>; rel="alternate"; type="application/json"; title="agent-card", </.well-known/api-catalog>; rel="api-catalog", </sitemap-index.xml>; rel="sitemap"
 
+# /browser pages run models IN the tab (the playground), which the global
+# policy above forbids. This rule detaches and replaces exactly two headers,
+# scoped to /browser/*; everything else keeps the strict global policy.
+#   CSP deltas vs global (each one load-bearing, verified against a live run):
+#   - connect-src + huggingface.co / *.huggingface.co / *.hf.co: model weights
+#     (HF 302s resolve/ downloads to regional CDN hosts under hf.co, e.g.
+#     us.aws.cdn.hf.co; CSP checks every hop of the redirect chain)
+#   - connect-src + script-src cdn.jsdelivr.net, script-src blob:, worker-src
+#     blob:: onnxruntime-web fetches its WASM runtime from jsdelivr and
+#     bridges the module through blob: URLs
+#   - script-src 'wasm-unsafe-eval': WebAssembly compilation is blocked by any
+#     CSP without it
+#   - img-src blob: (cut-out PNGs, picked images), media-src blob: (Kokoro's
+#     synthesized WAV in <audio>)
+#   - connect-src https://localmodel.run: same-origin on prod anyway; listed
+#     explicitly so localfit's refresh() also works on *.pages.dev previews
+#   Permissions-Policy: microphone=(self) so the Whisper page can record;
+#   everything else stays denied.
+/browser/*
+  ! Content-Security-Policy
+  ! Permissions-Policy
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://localmodel.run https://cloudflareinsights.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
+  Permissions-Policy: interest-cohort=(), camera=(), microphone=(self), geolocation=(), payment=(), usb=()
+
 # Hashed assets are immutable
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
