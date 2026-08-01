@@ -38,12 +38,14 @@
 #     CSP without it
 #   - img-src blob: (cut-out PNGs, picked images), media-src blob: (Kokoro's
 #     synthesized WAV in <audio>)
+#   - connect-src https://localmodel.run: same-origin on prod anyway; listed
+#     explicitly so localfit's refresh() also works on *.pages.dev previews
 #   Permissions-Policy: microphone=(self) so the Whisper page can record;
 #   everything else stays denied.
 /browser/*
   ! Content-Security-Policy
   ! Permissions-Policy
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://cloudflareinsights.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://localmodel.run https://cloudflareinsights.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
   Permissions-Policy: interest-cohort=(), camera=(), microphone=(self), geolocation=(), payment=(), usb=()
 
 # Hashed assets are immutable
