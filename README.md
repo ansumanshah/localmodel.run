@@ -36,6 +36,29 @@ verdict honest: a 12B image model has no local runtime on a phone or CPU-only
 laptop, so those pairs are not emitted. Audio models report peak memory and
 whether they run on CPU.
 
+## Open dataset
+
+The catalog is a standalone dataset, not just page content: 153 models (125 text
+LLMs with measured GGUF quant sizes, 6 image, 11 video, 11 audio) across 40
+devices, plus 54 in-browser WebGPU/WASM models with per-variant measured
+download bytes. Every row carries a `sources[]` array pointing at the primary
+source.
+
+- **License:** code is MIT ([LICENSE](LICENSE)); the dataset is CC BY 4.0 ([LICENSE-DATA](LICENSE-DATA)).
+- **Raw files (GitHub):** `src/data/{models,image-models,video-models,audio-models,devices,browser-models}.json`, e.g. `https://raw.githubusercontent.com/ansumanshah/localmodel.run/main/src/data/models.json`.
+- **Live API:** [`/api/models.json`](https://localmodel.run/api/models.json), [`/api/devices.json`](https://localmodel.run/api/devices.json), [`/api/browser-models.json`](https://localmodel.run/api/browser-models.json), full spec at [`/api/openapi.json`](https://localmodel.run/api/openapi.json).
+- **HuggingFace mirror:** [local-ai-model-memory-requirements](https://huggingface.co/datasets/ansumanshah/local-ai-model-memory-requirements).
+
+Every size is measured from the HuggingFace or Ollama file tree, never
+estimated from a formula. A weekly cron (`freshness-check.yml`) diffs the
+catalog against upstream and opens an issue on drift.
+
+If you use this data, please credit it:
+
+```md
+Data: [localmodel.run](https://localmodel.run) (CC BY 4.0)
+```
+
 ## Stack
 
 - **Astro 7** (Rolldown), static output, near-zero JS on content pages for Core Web Vitals and crawlability.
@@ -111,15 +134,7 @@ Optional build-time env vars (Cloudflare Pages → Settings → Environment vari
 
 ## License and reusing the data
 
-- **Code:** MIT ([LICENSE](LICENSE)).
-- **Data:** the dataset under `src/data/` (every row carries its `sources[]`) is
-  also available under CC BY 4.0 ([LICENSE-DATA](LICENSE-DATA)), and mirrored as a
-  [HuggingFace dataset](https://huggingface.co/datasets/ansumanshah/local-ai-model-memory-requirements).
-  Use it in your app, benchmark, paper or README; credit it with a link:
-
-  ```md
-  Data: [localmodel.run](https://localmodel.run) (CC BY 4.0)
-  ```
+License and data-access details are in [Open dataset](#open-dataset) above.
 
 - **Badges:** every `model × device` pair has an embeddable SVG badge for GGUF
   model cards and project READMEs:
