@@ -9,6 +9,8 @@ import {
   tools,
   platformLabel,
   meta,
+  browserModels,
+  formatBytes,
 } from "@/lib/data";
 import { modalityNeed } from "@/lib/compute-mm";
 
@@ -56,6 +58,14 @@ export const GET: APIRoute = ({ site }) => {
     lines.push("");
   }
 
+  lines.push("## Browser models (run in-tab via Transformers.js, WebGPU/WASM)");
+  for (const m of browserModels) {
+    lines.push(
+      `- [${m.name}](${origin}/browser/${m.id}): ${formatBytes(m.headline.webgpu.bytes)} over WebGPU (${m.headline.webgpu.variant}), ${formatBytes(m.headline.wasm.bytes)} over WASM (${m.headline.wasm.variant}).`,
+    );
+  }
+  lines.push("");
+
   lines.push("## Devices");
   for (const d of devices) {
     lines.push(
@@ -76,6 +86,9 @@ export const GET: APIRoute = ({ site }) => {
   lines.push(`- [How we calculate](${origin}/methodology)`);
   lines.push(`- [All models](${origin}/can-i-run)`);
   lines.push(`- [All devices](${origin}/best-llm-for)`);
+  lines.push(
+    `- [Browser models](${origin}/browser): ${browserModels.length} models that run in-tab via Transformers.js, no install.`,
+  );
   lines.push(
     `- [Tools guide](${origin}/tools): Compare local LLM runtimes (Ollama, LM Studio, llama.cpp, etc.) by platform and use-case.`,
   );
