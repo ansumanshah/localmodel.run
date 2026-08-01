@@ -19,7 +19,7 @@ const endpoints = [
   { m: "GET", url: "/api/index.json", d: "API catalog and discovery links" },
   { m: "GET", url: "/api/models.json", d: `All ${allModels.length} models with quant sizes` },
   { m: "GET", url: "/api/devices.json", d: `All ${devices.length} devices with usable memory` },
-  { m: "GET", url: "/api/can-i-run/{model}/{device}.json", d: "Verdict, quant, memory, command for a pair" },
+  { m: "GET", url: "/api/can-i-run/{model}.json", d: "Verdict, quant, memory, command for every device" },
 ];
 const agentFiles = [
   { url: "/llms.txt", d: "Concise site map for LLMs" },
@@ -61,7 +61,7 @@ const agentFiles = [
         </table>
       </div>
       <div class="mt-3">
-        <Command code="curl https://localmodel.run/api/can-i-run/llama-3.1-8b/apple-m4-16gb.json" label="Example" />
+        <Command code="curl https://localmodel.run/api/can-i-run/llama-3.1-8b.json" label="Example" />
       </div>
     </section>
 

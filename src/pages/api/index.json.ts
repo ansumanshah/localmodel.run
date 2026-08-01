@@ -20,8 +20,8 @@ export const GET: APIRoute = ({ site }) => {
       models: `${origin}/api/models.json`,
       devices: `${origin}/api/devices.json`,
       browser_models: `${origin}/api/browser-models.json`,
-      can_i_run: `${origin}/api/can-i-run/{model}/{device}.json`,
-      example: `${origin}/api/can-i-run/llama-3.1-8b/apple-m4-16gb.json`,
+      can_i_run: `${origin}/api/can-i-run/{model}.json`,
+      example: `${origin}/api/can-i-run/llama-3.1-8b.json`,
       openapi: `${origin}/api/openapi.json`,
     },
     discovery: {

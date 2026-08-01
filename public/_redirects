@@ -10,3 +10,8 @@
 /model                /can-i-run            301
 /llms-full            /llms-full.txt        301
 /llms                 /llms.txt             301
+
+# API consolidation 2026-08: the per-pair can-i-run JSON endpoint moved into
+# the per-model file (one file per model, not one per model x device pair).
+# Placeholders stop at "." same as "/", so :device matches up to ".json".
+/api/can-i-run/:model/:device.json  /api/can-i-run/:model.json  301

@@ -8,7 +8,6 @@ import { json } from "@/lib/api";
 export const GET: APIRoute = ({ site }) => {
   const origin = (site ?? new URL("https://localmodel.run")).origin;
   const exampleModel = allModels[0]?.id ?? "llama-3.1-8b";
-  const exampleDevice = devices[0]?.id ?? "apple-m4-16gb";
 
   return json({
     openapi: "3.1.0",
@@ -54,10 +53,12 @@ export const GET: APIRoute = ({ site }) => {
           responses: { "200": { description: "Array of browser model objects" } },
         },
       },
-      "/api/can-i-run/{model}/{device}.json": {
+      "/api/can-i-run/{model}.json": {
         get: {
           operationId: "canRun",
-          summary: "Verdict: can this device run this model, and at what memory",
+          summary: "Verdict: can every tracked device run this model, and at what memory",
+          description:
+            "Consolidated 2026-08: per-device JSON moved into the per-model file (one file per model instead of one per model x device pair). Old per-pair URLs (/api/can-i-run/{model}/{device}.json) 301 here.",
           parameters: [
             {
               name: "model",
@@ -66,29 +67,23 @@ export const GET: APIRoute = ({ site }) => {
               description: "Model id (see /api/models.json)",
               schema: { type: "string", example: exampleModel },
             },
-            {
-              name: "device",
-              in: "path",
-              required: true,
-              description: "Device id (see /api/devices.json)",
-              schema: { type: "string", example: exampleDevice },
-            },
           ],
           responses: {
             "200": {
-              description: "Run verdict with memory math and the recommended tool/command",
+              description:
+                "Run verdicts for every tracked device, keyed by device id, with memory math and the recommended tool/command",
               content: {
-                "application/json": { schema: { $ref: "#/components/schemas/RunVerdict" } },
+                "application/json": { schema: { $ref: "#/components/schemas/RunVerdictSet" } },
               },
             },
-            "404": { description: "Unknown model or device id" },
+            "404": { description: "Unknown model id" },
           },
         },
       },
     },
     components: {
       schemas: {
-        RunVerdict: {
+        RunVerdictSet: {
           type: "object",
           properties: {
             updated: { type: "string", description: "ISO date the data was last validated" },
@@ -104,29 +99,42 @@ export const GET: APIRoute = ({ site }) => {
                 q4_k_m_gb: { type: ["number", "null"] },
               },
             },
-            device: {
+            devices: {
               type: "object",
-              properties: {
-                id: { type: "string" },
-                name: { type: "string" },
-                memory_gb: { type: "number" },
-                memory_type: { type: "string", enum: ["unified", "vram", "ram"] },
-                usable_gb: { type: "number" },
+              description: `Keyed by device id (see /api/devices.json), one entry per tracked device (${devices.length} currently)`,
+              additionalProperties: {
+                type: "object",
+                properties: {
+                  device: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      memory_gb: { type: "number" },
+                      memory_type: { type: "string", enum: ["unified", "vram", "ram"] },
+                      usable_gb: { type: "number" },
+                    },
+                  },
+                  result: {
+                    type: "object",
+                    properties: {
+                      verdict: { type: "string", enum: ["yes", "tight", "no"] },
+                      recommended_quant: { type: ["string", "null"] },
+                      needed_gb: { type: ["number", "null"] },
+                      headroom_gb: { type: "number" },
+                      speed: { type: "string", enum: ["fast", "ok", "slow", "none"] },
+                      reason: { type: "string" },
+                    },
+                  },
+                  best_tool: { type: ["string", "null"] },
+                  platform: { type: "string", enum: ["mac", "windows", "linux", "ios", "android"] },
+                  command: {
+                    type: ["string", "null"],
+                    description: "Ready-to-run command when it fits",
+                  },
+                },
               },
             },
-            result: {
-              type: "object",
-              properties: {
-                verdict: { type: "string", enum: ["yes", "tight", "no"] },
-                recommended_quant: { type: ["string", "null"] },
-                needed_gb: { type: ["number", "null"] },
-                headroom_gb: { type: "number" },
-                speed: { type: "string", enum: ["fast", "ok", "slow", "none"] },
-                reason: { type: "string" },
-              },
-            },
-            best_tool: { type: ["string", "null"] },
-            command: { type: ["string", "null"], description: "Ready-to-run command when it fits" },
             sources: { type: "array", items: { type: "string" } },
           },
         },
