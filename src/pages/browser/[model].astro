@@ -14,6 +14,8 @@ import {
   meta,
 } from "@/lib/data";
 import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+import Playground from "@/components/playground/Playground";
+import { PLAYGROUND_RUN_OVERRIDES, PLAYGROUND_TASKS } from "@/components/playground/registry";
 
 export function getStaticPaths() {
   return browserModels.map((model) => ({ params: { model: model.id }, props: { model } }));
@@ -100,6 +102,30 @@ const fitData = {
   webgpuLabel: `${webgpuSize} (${model.headline.webgpu.variant})`,
   wasmLabel: `${wasmSize} (${model.headline.wasm.variant})`,
 };
+
+// The six flagship pages carry a live "Run it" island (the only client JS on
+// /browser); it subsumes the static WebGPU live-check below.
+const playgroundTask = PLAYGROUND_TASKS[model.id];
+// What the live run loads per backend: the headline pick unless an override
+// names a different (in-browser-verified) variant; bytes always come from the
+// measured variants table, never restated by hand.
+const playgroundOverride = PLAYGROUND_RUN_OVERRIDES[model.id];
+const runPick = (backend: "webgpu" | "wasm") => {
+  const variant = playgroundOverride?.[backend] ?? model.headline[backend].variant;
+  const bytes = model.variants[variant];
+  if (bytes == null) throw new Error(`Playground override variant "${variant}" not measured for ${model.id}`);
+  return { variant, bytes };
+};
+const playgroundModel = playgroundTask
+  ? {
+      id: model.id,
+      name: model.name,
+      hf_repo: model.hf_repo,
+      headline: model.headline,
+      run: { webgpu: runPick("webgpu"), wasm: runPick("wasm") },
+      ...(playgroundOverride?.note ? { runNote: playgroundOverride.note } : {}),
+    }
+  : null;
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} ogType="article" articleModified={meta.updated}>
@@ -158,6 +184,25 @@ const fitData = {
       </section>
     )}
 
+    {playgroundTask && playgroundModel && (
+      <section class="mt-8">
+        <h2 class="sr-only">Run it in your browser</h2>
+        <div class="panel-hero" id="playground">
+          <div class="panel-head">
+            <span class="panel-label">Live run</span>
+            <span class="panel-label">this browser</span>
+          </div>
+          <div class="p-5">
+            <Playground client:idle model={playgroundModel} task={playgroundTask} />
+            <noscript>
+              <p class="text-sm text-muted-foreground">Enable JavaScript to run {model.name} live in this tab. The numbers above stand either way.</p>
+            </noscript>
+          </div>
+        </div>
+      </section>
+    )}
+
+    {!playgroundTask && (
     <section class="mt-8">
       <h2 class="sr-only">Will it run in your browser?</h2>
       <div class="panel-hero" id="browser-check">
@@ -225,6 +270,7 @@ const fitData = {
         })();
       </script>
     </section>
+    )}
 
     <section class="mt-8">
       <h2 class="mb-3 text-lg font-semibold">All measured variants</h2>

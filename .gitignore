@@ -25,3 +25,4 @@ node_modules/
 # generated artifacts (workflow / local runs, not committed)
 freshness-report.md
 playwright-failures/
+.playwright-mcp/

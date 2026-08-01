@@ -432,7 +432,14 @@ const METADATA = [
     name: "RMBG-1.4",
     repo: "briaai/RMBG-1.4",
     task: "vision",
-    pipelineTask: "background-removal",
+    // NOT pipeline()-drivable: the repo's config declares the nonstandard
+    // model_type "SegformerForSemanticSegmentation", which no transformers.js
+    // auto-class maps to; pipeline("background-removal") throws on it
+    // (verified in-browser 2026-08-01). The snippet below is the flow the
+    // official Xenova remove-background-web demo uses.
+    pipelineTask: null,
+    notes:
+      "The repo's config declares a custom architecture, so there is no working pipeline() call for this model; use the AutoModel flow shown in the snippet (the same one the official remove-background demo ships).",
     params_m: 44.1,
   },
   {
@@ -564,6 +571,36 @@ const METADATA = [
 // pipeline_task:null row NOT listed here gets no code block on the page
 // (notes + a link to the HF card only), rather than an unverifiable guess.
 const CODE_SNIPPETS = {
+  // Verified against the official Xenova remove-background-web Space's
+  // bundled source (fetched 2026-08-01) and run in-browser here: RMBG-1.4's
+  // config declares the nonstandard model_type
+  // "SegformerForSemanticSegmentation", so pipeline("background-removal")
+  // rejects it; the demo loads it as a custom AutoModel instead.
+  "rmbg-1.4": (repo, head) => `import { AutoModel, AutoProcessor, RawImage } from "@huggingface/transformers";
+
+// RMBG-1.4's config uses a custom architecture string, so pipeline() rejects
+// it; load it as a custom model with an explicit processor config instead
+// (this mirrors the official remove-background-web demo).
+const model = await AutoModel.from_pretrained("${repo}", {
+  config: { model_type: "custom" },
+  device: "webgpu", // or "wasm"
+  dtype: "${head.webgpu.variant}", // use "${head.wasm.variant}" for the WASM build
+});
+const processor = await AutoProcessor.from_pretrained("${repo}", {
+  config: {
+    do_normalize: true, do_pad: false, do_rescale: true, do_resize: true,
+    image_mean: [0.5, 0.5, 0.5], image_std: [1, 1, 1],
+    feature_extractor_type: "ImageFeatureExtractor",
+    resample: 2, rescale_factor: 1 / 255, size: { width: 1024, height: 1024 },
+  },
+});
+
+const image = await RawImage.fromURL("https://your-image-url.jpg");
+const { pixel_values } = await processor(image);
+const { output } = await model({ input: pixel_values });
+// output[0] is the alpha mask; resize it to the source and composite.
+const mask = await RawImage.fromTensor(output[0].mul(255).to("uint8"))
+  .resize(image.width, image.height);`,
   // Verified against Xenova/slimsam-77-uniform's own README (raw fetched
   // 2026-08-01): https://huggingface.co/Xenova/slimsam-77-uniform
   "slimsam-77": (repo, head) => `import { SamModel, AutoProcessor, RawImage } from "@huggingface/transformers";
@@ -611,12 +648,17 @@ const masks = await processor.post_process_masks(
 );`,
   // Verified against the official smolvlm-webgpu example's worker.js:
   // https://github.com/huggingface/transformers.js-examples/blob/main/smolvlm-webgpu/src/worker.js
+  // dtype is fp32 on purpose, matching that demo: the q4f16 and fp16 builds
+  // both generate garbled text over WebGPU (verified in-browser 2026-08-01
+  // on this site's playground; see PLAYGROUND_RUN_OVERRIDES).
   "smolvlm-256m-instruct": (repo, head) => `import { AutoProcessor, AutoModelForVision2Seq, load_image } from "@huggingface/transformers";
 
 const processor = await AutoProcessor.from_pretrained("${repo}");
 const model = await AutoModelForVision2Seq.from_pretrained("${repo}", {
   device: "webgpu",
-  dtype: "${head.webgpu.variant}", // use "${head.wasm.variant}" for the WASM build
+  // fp32 on purpose: the q4f16 and fp16 builds generate garbled text over
+  // WebGPU today (the official demo ships fp32 for the same reason).
+  dtype: "fp32", // use "${head.wasm.variant}" for the WASM build
 });
 
 const image = await load_image("https://your-image-url.jpg");

@@ -267,70 +267,63 @@
   },
   "onnx-community/Florence-2-base-ft": {
     "bnb4": {
-      "bytes": 373270176,
+      "bytes": 319312207,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "fp16": {
-      "bytes": 723967244,
+      "bytes": 544004842,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "fp32": {
-      "bytes": 1445577323,
+      "bytes": 1085912345,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "q4": {
-      "bytes": 392765234,
+      "bytes": 333249173,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "q4f16": {
-      "bytes": 275572080,
+      "bytes": 223446634,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "q8": {
-      "bytes": 731070050,
+      "bytes": 549932264,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "uint8": {
-      "bytes": 365535084,
+      "bytes": 274966162,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
@@ -339,208 +332,183 @@
   },
   "onnx-community/whisper-tiny": {
     "bnb4": {
-      "bytes": 179961562,
+      "bytes": 94702865,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp16": {
-      "bytes": 133075065,
+      "bytes": 76113088,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp32": {
-      "bytes": 265097817,
+      "bytes": 151458819,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4": {
-      "bytes": 181508962,
+      "bytes": 95734369,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q8": {
-      "bytes": 140129401,
+      "bytes": 81688449,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "uint8": {
-      "bytes": 70064760,
+      "bytes": 40844261,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     }
   },
   "onnx-community/whisper-base": {
     "bnb4": {
-      "bytes": 259584515,
+      "bytes": 139623558,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp16": {
-      "bytes": 244095639,
+      "bytes": 146060430,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp32": {
-      "bytes": 486637100,
+      "bytes": 290989606,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4": {
-      "bytes": 263711699,
+      "bytes": 142374870,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q8": {
-      "bytes": 253939513,
+      "bytes": 153789241,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "uint8": {
-      "bytes": 126969816,
+      "bytes": 76894657,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     }
   },
   "onnx-community/whisper-small": {
     "bnb4": {
-      "bytes": 504456859,
+      "bytes": 286947383,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp16": {
-      "bytes": 764668995,
+      "bytes": 485190832,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp32": {
-      "bytes": 1526268085,
+      "bytes": 968150171,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4": {
-      "bytes": 523033363,
+      "bytes": 299331431,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q8": {
-      "bytes": 781459393,
+      "bytes": 498153977,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "uint8": {
-      "bytes": 390729822,
+      "bytes": 249077066,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     }
   },
   "onnx-community/moonshine-base-ONNX": {
     "bnb4": {
-      "bytes": 163752247,
+      "bytes": 94770106,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp16": {
-      "bytes": 278661449,
+      "bytes": 201203834,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp32": {
-      "bytes": 401665040,
+      "bytes": 247030126,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4": {
-      "bytes": 168076857,
+      "bytes": 97537620,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4f16": {
-      "bytes": 143372082,
+      "bytes": 101727600,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q8": {
-      "bytes": 204051333,
+      "bytes": 125927995,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "uint8": {
-      "bytes": 101977848,
+      "bytes": 62916138,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     }
@@ -947,18 +915,16 @@
       ]
     },
     "fp32": {
-      "bytes": 400583431,
+      "bytes": 246543658,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q8": {
-      "bytes": 102506435,
+      "bytes": 63610553,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     }
@@ -1526,70 +1492,63 @@
   },
   "onnx-community/Florence-2-large-ft": {
     "bnb4": {
-      "bytes": 878572190,
+      "bytes": 744202849,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "fp16": {
-      "bytes": 2109209960,
+      "bytes": 1648741163,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "fp32": {
-      "bytes": 4215069940,
+      "bytes": 3294625906,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "q4": {
-      "bytes": 939233135,
+      "bytes": 790572038,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "q4f16": {
-      "bytes": 713986906,
+      "bytes": 582232182,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "q8": {
-      "bytes": 2121786031,
+      "bytes": 1658995841,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
       ]
     },
     "uint8": {
-      "bytes": 1060893077,
+      "bytes": 829497938,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "embed_tokens",
         "encoder_model",
         "vision_encoder"
@@ -1598,116 +1557,102 @@
   },
   "onnx-community/whisper-large-v3-turbo": {
     "bnb4": {
-      "bytes": 1033192175,
+      "bytes": 713216977,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp16": {
-      "bytes": 1936341699,
+      "bytes": 1618569942,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp32": {
-      "bytes": 3871708520,
+      "bytes": 3236346357,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4": {
-      "bytes": 1084799335,
+      "bytes": 759089997,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4f16": {
-      "bytes": 749364426,
+      "bytes": 563479095,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q8": {
-      "bytes": 3022598891,
+      "bytes": 2169517721,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "uint8": {
-      "bytes": 1511299506,
+      "bytes": 1084758905,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     }
   },
   "onnx-community/moonshine-tiny-ONNX": {
     "bnb4": {
-      "bytes": 97471229,
+      "bytes": 54388824,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp16": {
-      "bytes": 128811026,
+      "bytes": 91770581,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "fp32": {
-      "bytes": 182977775,
+      "bytes": 109109881,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4": {
-      "bytes": 99024857,
+      "bytes": 55382958,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q4f16": {
-      "bytes": 80194709,
+      "bytes": 56024215,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "q8": {
-      "bytes": 93777778,
+      "bytes": 56290294,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     },
     "uint8": {
-      "bytes": 46853167,
+      "bytes": 28109400,
       "files": [
         "decoder_model_merged",
-        "decoder_with_past_model",
         "encoder_model"
       ]
     }
