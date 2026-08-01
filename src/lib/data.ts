@@ -275,3 +275,269 @@ export function browserSizeNeighbors(model: BrowserModelRow): {
   const bigger = ladder.find((m) => m.headline.webgpu.bytes > model.headline.webgpu.bytes);
   return { smaller, bigger };
 }
+
+/** "37.8" -> "37.8M", "1543.71" -> "1.54B". Shared by the model page and hub cards. */
+export function formatParamsM(paramsM: number): string {
+  return paramsM >= 1000 ? `${(paramsM / 1000).toFixed(2)}B` : `${paramsM}M`;
+}
+
+// ── Browser "Reading" panel: computed, per-model observations ──────────────
+//
+// Every bullet is built ONLY from the row's own measured fields (headline
+// bytes, variants, params_m) or the catalog it is compared against. No copy
+// is invented; a detector returns null when its condition does not hold, and
+// the page renders only the bullets that actually fire. `num` parts render
+// mono (JetBrains Mono numerals); plain strings render in body copy, per the
+// "mono never prose, body never a measured value" rule.
+
+export type BrowserBulletPart = string | { num: string };
+
+/** Bytes-per-million-params "density" for a browser model's WebGPU headline. */
+function browserDensity(model: BrowserModelRow): number | null {
+  if (model.params_m == null) return null;
+  return model.headline.webgpu.bytes / 1024 / 1024 / model.params_m;
+}
+
+/**
+ * The WASM (CPU-fallback) build downloads smaller than the WebGPU build.
+ * Fires whenever the measured bytes say so; no claim about how common this
+ * is across the catalog, since it varies a lot by task (see browser-insights
+ * tests / the audit that shaped this).
+ */
+export function browserWasmInversion(model: BrowserModelRow): BrowserBulletPart[] | null {
+  const { webgpu, wasm } = model.headline;
+  if (wasm.bytes >= webgpu.bytes) return null;
+  return [
+    "The WASM build downloads smaller here: ",
+    { num: `${formatBytes(wasm.bytes)} (${wasm.variant})` },
+    " against ",
+    { num: `${formatBytes(webgpu.bytes)} (${webgpu.variant})` },
+    " for WebGPU. The CPU-fallback quant compresses tighter than the GPU pick for this model.",
+  ];
+}
+
+/** Ratio between the largest and smallest measured variant, when it is at least 3x. */
+export function browserQuantSpread(model: BrowserModelRow): BrowserBulletPart[] | null {
+  const entries = Object.entries(model.variants);
+  if (entries.length < 2) return null;
+  let min = entries[0]!;
+  let max = entries[0]!;
+  for (const entry of entries) {
+    if (entry[1] < min[1]) min = entry;
+    if (entry[1] > max[1]) max = entry;
+  }
+  const ratio = max[1] / min[1];
+  if (ratio < 3) return null;
+  return [
+    "The quant ladder spans ",
+    { num: `${ratio.toFixed(1)}x` },
+    ": ",
+    { num: `${formatBytes(min[1])} (${min[0]})` },
+    " to ",
+    { num: `${formatBytes(max[1])} (${max[0]})` },
+    ".",
+  ];
+}
+
+/**
+ * Rank within the same task group by WebGPU headline size, when the model is
+ * the smallest, second-smallest, largest, or second-largest. Only fires for
+ * groups of 4+ (below that, "second-smallest" and "second-largest" collide
+ * on the same row, which is not an informative rank).
+ */
+export function browserCatalogRankBullet(
+  model: BrowserModelRow,
+  catalog: BrowserModelRow[] = browserModels,
+): BrowserBulletPart[] | null {
+  const group = catalog.filter((m) => m.task === model.task);
+  if (group.length < 4) return null;
+  const sorted = [...group].sort((a, b) => a.headline.webgpu.bytes - b.headline.webgpu.bytes);
+  const idx = sorted.findIndex((m) => m.id === model.id);
+  if (idx < 0) return null;
+  const n = sorted.length;
+  const label =
+    idx === 0
+      ? "smallest"
+      : idx === 1
+        ? "second-smallest"
+        : idx === n - 1
+          ? "largest"
+          : idx === n - 2
+            ? "second-largest"
+            : null;
+  if (!label) return null;
+  const taskLabel = (BROWSER_TASK_LABEL[model.task] ?? model.task).toLowerCase();
+  return [
+    `The ${label} ${taskLabel} download in the catalog (`,
+    { num: formatBytes(model.headline.webgpu.bytes) },
+    ").",
+  ];
+}
+
+/**
+ * Bytes-per-million-params vs. the task group's median, when off by more than
+ * 25%. Framed as size density, never speed. Requires at least 3 models in the
+ * group with a known params_m, so "median" means something.
+ */
+export function browserSizePerParamBullet(
+  model: BrowserModelRow,
+  catalog: BrowserModelRow[] = browserModels,
+): BrowserBulletPart[] | null {
+  const own = browserDensity(model);
+  if (own == null) return null;
+  const group = catalog.filter(
+    (m) => m.task === model.task && m.id !== model.id && m.params_m != null,
+  );
+  const values = group
+    .map((m) => browserDensity(m))
+    .filter((v): v is number => v != null)
+    .concat(own)
+    .sort((a, b) => a - b);
+  if (values.length < 3) return null;
+  const mid = Math.floor(values.length / 2);
+  const median = values.length % 2 ? values[mid]! : (values[mid - 1]! + values[mid]!) / 2;
+  const dev = own / median - 1;
+  if (Math.abs(dev) <= 0.25) return null;
+  const taskLabel = (BROWSER_TASK_LABEL[model.task] ?? model.task).toLowerCase();
+  return [
+    { num: `${own.toFixed(2)} MB/M` },
+    " params against a ",
+    { num: `${median.toFixed(2)} MB/M` },
+    ` ${taskLabel} median: `,
+    dev > 0 ? "dense" : "light",
+    " for its parameter count.",
+  ];
+}
+
+const NOTE_COVERS_SIZE_RE = /\bGB\b|gigabyte/i;
+
+/**
+ * A plain multi-gigabyte reality check, when the larger build clears 1 GB.
+ * Skipped when the model's own hand-authored `notes` already say so (several
+ * do, verbatim), so the panel never repeats itself.
+ */
+export function browserLargeDownloadBullet(model: BrowserModelRow): BrowserBulletPart[] | null {
+  const maxBytes = Math.max(model.headline.webgpu.bytes, model.headline.wasm.bytes);
+  if (maxBytes < 1024 ** 3) return null;
+  if (model.notes && NOTE_COVERS_SIZE_RE.test(model.notes)) return null;
+  return [
+    "The larger build here clears ",
+    { num: "1 GB" },
+    " (",
+    { num: formatBytes(maxBytes) },
+    "); browser cache and memory limits make this a real download to budget for, not an instant load.",
+  ];
+}
+
+/** All computed (non-notes) insights that fire for a model, in priority order. */
+function browserComputedInsights(
+  model: BrowserModelRow,
+  catalog: BrowserModelRow[],
+): BrowserBulletPart[][] {
+  const candidates = [
+    browserWasmInversion(model),
+    browserCatalogRankBullet(model, catalog),
+    browserSizePerParamBullet(model, catalog),
+    browserLargeDownloadBullet(model),
+    browserQuantSpread(model),
+  ];
+  return candidates.filter((b): b is BrowserBulletPart[] => b != null);
+}
+
+/**
+ * The full Reading panel for a model page: the hand-authored `notes` first
+ * (when present), then up to 3 more computed insights, capped at 4 bullets
+ * total. Only what actually fires renders; a plain model can end up with 1.
+ */
+export function browserReadingBullets(
+  model: BrowserModelRow,
+  catalog: BrowserModelRow[] = browserModels,
+): BrowserBulletPart[][] {
+  const bullets: BrowserBulletPart[][] = [];
+  if (model.notes) bullets.push([model.notes]);
+  for (const insight of browserComputedInsights(model, catalog)) {
+    if (bullets.length >= 4) break;
+    bullets.push(insight);
+  }
+  return bullets;
+}
+
+/** The single most notable *computed* insight (notes excluded), for the hub card annotation. */
+export function browserTopComputedInsight(
+  model: BrowserModelRow,
+  catalog: BrowserModelRow[] = browserModels,
+): BrowserBulletPart[] | null {
+  return browserComputedInsights(model, catalog)[0] ?? null;
+}
+
+// ── Browser lede + FAQ copy: per-task/per-pipeline shapes ──────────────────
+
+/** transformers.js pipeline() task -> what it actually does, in plain words. */
+const PIPELINE_ACTION: Record<string, string> = {
+  "text-generation": "generate text",
+  "automatic-speech-recognition": "transcribe speech to text",
+  "text-to-speech": "turn text into a spoken voice",
+  "background-removal": "strip backgrounds from images",
+  "depth-estimation": "estimate depth from a single image",
+  "feature-extraction": "turn text into vectors for search and comparison",
+  "image-feature-extraction": "turn images into vectors for search and comparison",
+  "zero-shot-image-classification": "classify images against your own text labels",
+  "zero-shot-object-detection": "find objects in an image from a text prompt",
+};
+
+/** Per-model overrides for jobs a shared pipeline_task label hides (several
+ *  token/text-classification models, or models with no pipeline_task at all). */
+const MODEL_ACTION: Record<string, string> = {
+  "punctuate-all": "restore punctuation and capitalization to raw text",
+  "gliner-small-v2.1": "pull named entities out of text for label types you choose",
+  "piiranha-v1": "find personally identifiable information in text",
+  "bge-reranker-v2-m3": "score how well a passage answers a query",
+  "slimsam-77": "cut a precise mask around an object you point at",
+  "sam2.1-hiera-tiny": "cut a precise mask around an object you point at",
+  "janus-pro-1b": "both understand and generate images from one checkpoint",
+  "florence-2-base-ft": "caption, detect, or segment an image using task-prompt tokens",
+  "florence-2-large-ft": "caption, detect, or segment an image using task-prompt tokens",
+  "granite-docling-258m": "convert scanned documents into structured text",
+};
+
+/** Task-level fallback, for models whose pipeline_task is null and are not in MODEL_ACTION. */
+const TASK_ACTION: Record<string, string> = {
+  "text-generation": "generate text",
+  "speech-to-text": "transcribe speech to text",
+  "speaker-diarization": "work out who is speaking and when, from raw audio",
+  "text-to-speech": "turn text into a spoken voice",
+  embeddings: "turn text into vectors for search and comparison",
+  reranker: "score how well a passage answers a query",
+  vision: "process an image",
+  "vision-language": "read an image and answer questions about it in text",
+  multimodal: "handle text, image, and audio from one checkpoint",
+  utility: "analyze text",
+};
+
+/** What the model actually does in the tab, for the lede's trailing clause. */
+export function browserLedeAction(model: BrowserModelRow): string {
+  return (
+    MODEL_ACTION[model.id] ??
+    (model.pipeline_task ? PIPELINE_ACTION[model.pipeline_task] : undefined) ??
+    TASK_ACTION[model.task] ??
+    "run"
+  );
+}
+
+/** Quant/variant code -> a plain-words explanation of the precision trade-off. */
+const QUANT_PLAIN_WORDS: Record<string, string> = {
+  fp32: "full 32-bit floating point, the uncompressed original weights",
+  fp16: "16-bit floating point (half precision): smaller than fp32 with effectively no quality loss",
+  bnb4: "4-bit bitsandbytes quantization: a big size cut with a small, usually hard-to-notice quality trade",
+  q4: "4-bit weights: a big size cut with a small, usually hard-to-notice quality trade",
+  q4f16:
+    "4-bit weights with some layers kept at 16-bit for stability: WebGPU's usual smallest clean build",
+  q8: "8-bit integers: about a quarter the size of fp32, with a smaller quality trade than 4-bit",
+  uint8:
+    "8-bit integers: about a quarter the size of fp32, with a smaller quality trade than 4-bit",
+};
+
+/** Plain-words explanation for a variant code; a safe fallback for any future addition. */
+export function browserQuantPlainWords(variant: string): string {
+  return QUANT_PLAIN_WORDS[variant] ?? `the ${variant} build`;
+}
