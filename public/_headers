@@ -53,7 +53,12 @@
 # Not immutable: the filenames are version-less, so a dependency bump changes
 # the bytes behind the same URL. One day matches /og; purge-on-deploy handles
 # the edge, browsers revalidate daily.
+# ! Cache-Control first: CF Pages merges the /* block into every specific
+# block, and a merged duplicate ("max-age=0 ..., max-age=86400") makes
+# browsers honor the FIRST max-age=0 (the exact bug /_astro hit before its
+# zone rule). Detaching keeps only the value below.
 /ort/*
+  ! Cache-Control
   Cache-Control: public, max-age=86400
 
 # Hashed assets are immutable

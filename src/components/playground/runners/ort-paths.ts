@@ -19,16 +19,13 @@ function isSafari(): boolean {
   return isAppleVendor && notOtherBrowser;
 }
 
-// transformers.js assigns its jsdelivr default at module load, so "only set
-// when unset" would never fire; overwrite once instead.
-let applied = false;
-
-/** Call before the first transformers.js v4 model load (chat/asr/rmbg/embed/vlm). */
+/** Call before every transformers.js v4 model load (chat/asr/rmbg/embed/vlm). */
 export function useSelfHostedOrt(device: "webgpu" | "wasm"): void {
-  if (applied) return;
-  applied = true;
   const wasm = env.backends.onnx?.wasm;
   if (!wasm) return; // non-browser build context; nothing to point anywhere
+  // Overwrites, not set-if-unset: transformers.js assigns its jsdelivr
+  // default at module load, so an unset check would never fire. Assigning
+  // the same paths again on later calls is harmless.
   const base = "/ort/v4/";
   wasm.wasmPaths = isSafari()
     ? { mjs: `${base}ort-wasm-simd-threaded.mjs`, wasm: `${base}ort-wasm-simd-threaded.wasm` }
@@ -38,8 +35,10 @@ export function useSelfHostedOrt(device: "webgpu" | "wasm"): void {
       };
   // On the WASM fallback, run inference in ORT's own worker so a long forward
   // pass cannot freeze the page. transformers.js defaults this to false
-  // because it is unnecessary for WebGPU (and proxy+WebGPU has known issues),
-  // so it is only switched on when the resolved backend really is wasm.
+  // because it is unnecessary for WebGPU (and proxy+WebGPU has known issues).
+  // Per-call, NOT once-only: ClientRouter soft navigations keep this module
+  // alive across playground pages, and the next page's resolved backend can
+  // differ, so the flag must track the load actually being made.
   // (kokoro-js's bundled transformers 3.x does not expose this flag; its
   // WASM fallback stays on the main thread.)
   wasm.proxy = device === "wasm";
