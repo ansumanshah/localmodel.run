@@ -1,7 +1,9 @@
 import type { ChatApi, LoadOpts } from "../types";
+import { useSelfHostedOrt } from "./ort-paths";
 import { adaptProgress, makeStreamMeter, asDtype } from "./util";
 
 export async function load(opts: LoadOpts): Promise<ChatApi> {
+  useSelfHostedOrt(opts.device);
   const { pipeline, TextStreamer } = await import("@huggingface/transformers");
   const pipe = await pipeline("text-generation", opts.hfRepo, {
     device: opts.device,

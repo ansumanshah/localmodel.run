@@ -26,3 +26,6 @@ node_modules/
 freshness-report.md
 playwright-failures/
 .playwright-mcp/
+
+# ORT wasm runtimes, copied from node_modules by scripts/copy-ort-wasm.mjs
+public/ort/

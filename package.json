@@ -1,7 +1,7 @@
 {
   "name": "localmodel-run",
   "type": "module",
-  "version": "0.1.50",
+  "version": "0.1.52",
   "description": "Can I run this AI model locally? Per-platform compatibility checker for local AI models (text, image, video, audio) on Mac, Windows, Linux, iOS and Android.",
   "license": "MIT",
   "author": "Ansuman Shah (https://github.com/ansumanshah)",
@@ -12,8 +12,8 @@
   },
   "keywords": ["local-llm", "local-ai", "vram-calculator", "ollama", "gguf", "astro"],
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/copy-ort-wasm.mjs && astro dev",
+    "build": "node scripts/copy-ort-wasm.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
