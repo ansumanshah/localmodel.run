@@ -521,11 +521,9 @@
       ]
     },
     "fp32": {
-      "bytes": 525775043,
+      "bytes": 325532232,
       "files": [
-        "model",
-        "model_q8f16",
-        "model_uint8f16"
+        "model"
       ]
     },
     "q4": {
@@ -546,8 +544,20 @@
         "model"
       ]
     },
+    "q8f16": {
+      "bytes": 86033585,
+      "files": [
+        "model"
+      ]
+    },
     "uint8": {
       "bytes": 177464632,
+      "files": [
+        "model"
+      ]
+    },
+    "uint8f16": {
+      "bytes": 114209226,
       "files": [
         "model"
       ]

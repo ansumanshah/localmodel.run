@@ -185,6 +185,14 @@ export default function Playground({ model, task }: PlaygroundProps) {
                   {plan.reasons.map((r) => (
                     <li key={r}>{r}</li>
                   ))}
+                  {dtype !== model.headline[backend].variant && (
+                    <li>
+                      localfit scored the catalog&apos;s {model.headline[backend].variant} build (
+                      {formatBytes(model.headline[backend].bytes)}). This page&apos;s live run loads{" "}
+                      {dtype} ({formatBytes(promisedBytes)}) instead, for the reason noted above, so
+                      the sizing here understates the actual download.
+                    </li>
+                  )}
                 </ul>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Decision by{" "}

@@ -994,6 +994,7 @@
     },
     "variants": {
       "fp16": 163234740,
+      "fp32": 325532232,
       "q4": 305215966,
       "q4f16": 154586422,
       "q8": 92361116,
@@ -1010,7 +1011,7 @@
         "url": "https://huggingface.co/hexgrad/Kokoro-82M"
       }
     ],
-    "notes": "Sizes are not monotonic by quant here: q8 (about 92 MB) is smaller than q4f16 (about 155 MB) and is the community-standard build most demos ship. In practice Kokoro is usually driven through the dedicated kokoro-js package rather than a generic pipeline() call."
+    "notes": "Sizes are not monotonic by quant here: q8 (about 88 MB) is smaller than q4f16 (about 147 MB) and is the community-standard build most demos ship. In practice Kokoro is usually driven through the dedicated kokoro-js package rather than a generic pipeline() call, and kokoro-js recommends the fp32 build on WebGPU: the q4f16 build produces audibly degraded audio there (verified in Chrome on Apple silicon, 2026-08-01)."
   },
   {
     "id": "supertonic-tts-2",
