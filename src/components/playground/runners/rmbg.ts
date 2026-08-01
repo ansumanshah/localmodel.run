@@ -1,4 +1,5 @@
 import type { LoadOpts, RmbgApi } from "../types";
+import { useSelfHostedOrt } from "./ort-paths";
 import { adaptProgress, asDtype } from "./util";
 
 // RMBG-1.4's config declares a custom architecture string that no
@@ -20,6 +21,7 @@ const PROCESSOR_CONFIG = {
 };
 
 export async function load(opts: LoadOpts): Promise<RmbgApi> {
+  useSelfHostedOrt(opts.device);
   const { AutoModel, AutoProcessor, RawImage } = await import("@huggingface/transformers");
   const model = await AutoModel.from_pretrained(opts.hfRepo, {
     // The library accepts a partial config override at runtime (this exact

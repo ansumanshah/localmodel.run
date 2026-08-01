@@ -1,7 +1,9 @@
 import type { AsrApi, LoadOpts } from "../types";
+import { useSelfHostedOrt } from "./ort-paths";
 import { adaptProgress, asDtype } from "./util";
 
 export async function load(opts: LoadOpts): Promise<AsrApi> {
+  useSelfHostedOrt(opts.device);
   const { pipeline } = await import("@huggingface/transformers");
   const pipe = await pipeline("automatic-speech-recognition", opts.hfRepo, {
     device: opts.device,

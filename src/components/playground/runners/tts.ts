@@ -1,4 +1,5 @@
 import type { LoadOpts, TtsApi } from "../types";
+import { KOKORO_ORT_PREFIX } from "./ort-paths";
 import { adaptProgress } from "./util";
 
 // Kokoro is driven through the dedicated kokoro-js package (the
@@ -25,7 +26,13 @@ function asKokoroDtype(d: string): KokoroDtype {
 }
 
 export async function load(opts: LoadOpts): Promise<TtsApi> {
-  const { KokoroTTS } = await import("kokoro-js");
+  const { KokoroTTS, env } = await import("kokoro-js");
+  // Self-hosted ORT runtime for kokoro-js's bundled transformers 3.x, which
+  // assigns its cdn.jsdelivr.net default at module load, so this overwrite
+  // must be unconditional (see scripts/copy-ort-wasm.mjs). Prefix form: its
+  // runtime appends its own jsep filenames. The ORT wasm itself loads lazily
+  // at session creation, safely after this line.
+  env.wasmPaths = KOKORO_ORT_PREFIX;
   const tts = await KokoroTTS.from_pretrained(opts.hfRepo, {
     dtype: asKokoroDtype(opts.dtype),
     device: opts.device,

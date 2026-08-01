@@ -31,9 +31,10 @@
 #   - connect-src + huggingface.co / *.huggingface.co / *.hf.co: model weights
 #     (HF 302s resolve/ downloads to regional CDN hosts under hf.co, e.g.
 #     us.aws.cdn.hf.co; CSP checks every hop of the redirect chain)
-#   - connect-src + script-src cdn.jsdelivr.net, script-src blob:, worker-src
-#     blob:: onnxruntime-web fetches its WASM runtime from jsdelivr and
-#     bridges the module through blob: URLs
+#   - script-src blob: + worker-src blob:: onnxruntime-web bridges its WASM
+#     module through blob: URLs (the runtimes themselves are self-hosted
+#     under /ort/, copied by scripts/copy-ort-wasm.mjs; jsdelivr was dropped
+#     from this policy when that landed)
 #   - script-src 'wasm-unsafe-eval': WebAssembly compilation is blocked by any
 #     CSP without it
 #   - img-src blob: (cut-out PNGs, picked images), media-src blob: (Kokoro's
@@ -45,8 +46,15 @@
 /browser/*
   ! Content-Security-Policy
   ! Permissions-Policy
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://localmodel.run https://cloudflareinsights.com https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://localmodel.run https://cloudflareinsights.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
   Permissions-Policy: interest-cohort=(), camera=(), microphone=(self), geolocation=(), payment=(), usb=()
+
+# Self-hosted onnxruntime WASM runtimes (see scripts/copy-ort-wasm.mjs).
+# Not immutable: the filenames are version-less, so a dependency bump changes
+# the bytes behind the same URL. One day matches /og; purge-on-deploy handles
+# the edge, browsers revalidate daily.
+/ort/*
+  Cache-Control: public, max-age=86400
 
 # Hashed assets are immutable
 /_astro/*

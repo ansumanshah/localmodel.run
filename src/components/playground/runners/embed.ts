@@ -1,7 +1,9 @@
 import type { EmbedApi, LoadOpts } from "../types";
+import { useSelfHostedOrt } from "./ort-paths";
 import { adaptProgress, asDtype } from "./util";
 
 export async function load(opts: LoadOpts): Promise<EmbedApi> {
+  useSelfHostedOrt(opts.device);
   const { pipeline } = await import("@huggingface/transformers");
   const pipe = await pipeline("feature-extraction", opts.hfRepo, {
     device: opts.device,
