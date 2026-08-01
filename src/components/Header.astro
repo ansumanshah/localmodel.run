@@ -10,13 +10,15 @@ const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 // Nav targets are English canonical pages (only the homepage is translated so
 // far); labels are localized. Logo + switcher are locale-aware.
+// Browser leads: it is the site's launch surface (models you can run in the
+// tab right now); the GGUF catalog follows as the reference layer.
 const links = [
+  { href: "/browser", label: t("nav.browser") },
   { href: "/can-i-run", label: t("nav.models") },
   { href: "/best-llm-for", label: t("nav.devices") },
   { href: "/leaderboard", label: t("nav.leaderboard") },
   { href: "/compare", label: t("nav.compare") },
   { href: "/tools", label: t("nav.tools") },
-  { href: "/browser", label: t("nav.browser") },
   { href: "/guides", label: t("nav.guides") },
   { href: "/rig", label: t("nav.rig") },
   { href: "/methodology", label: t("nav.methodology") },

@@ -85,20 +85,27 @@ const shell = (inner: string) => `
   ${inner}
 </div>`;
 
+// The home card's demo figure comes from the catalog like every other number
+// on the site; the weekly data refresh keeps it honest.
+import { browserModels, formatBytes as fmtBytes } from "./data";
+const ogWhisper = browserModels.find((m) => m.id === "whisper-tiny");
+if (!ogWhisper) throw new Error("og.ts homeCard: whisper-tiny not found in browser catalog");
+const ogWhisperSize = fmtBytes(ogWhisper.headline.webgpu.bytes);
+
 export function homeCard(): string {
   return shell(`
   <div style="display:flex;align-items:center;gap:52px;margin-top:auto">
     <div style="display:flex;flex-direction:column;flex:1">
-      <div style="display:flex;font-size:58px;font-weight:700;line-height:1.05">Can I run this AI</div>
-      <div style="display:flex;font-size:58px;font-weight:700;line-height:1.05">model <span style="color:${C.brand};margin-left:16px">locally?</span></div>
-      <div style="display:flex;font-size:26px;color:${C.muted};margin-top:22px">Mac · Windows · Linux · iOS · Android</div>
+      <div style="display:flex;font-size:58px;font-weight:700;line-height:1.05">Run AI models</div>
+      <div style="display:flex;font-size:58px;font-weight:700;line-height:1.05">in your <span style="color:${C.brand};margin-left:16px">browser.</span></div>
+      <div style="display:flex;font-size:26px;color:${C.muted};margin-top:22px">Plus the fit math for every local model</div>
     </div>
     <div style="display:flex;flex-direction:column;width:430px;padding:30px;border-radius:14px;background:${C.bg2};border:1px solid ${C.border};gap:14px">
-      <div style="display:flex;font-size:16px;font-weight:600;letter-spacing:0.08em;color:${C.muted}">COMPATIBILITY VERDICT</div>
-      <div style="display:flex;align-self:flex-start;border:2px solid ${C.green};border-radius:4px;padding:8px 18px;font-size:29px;font-weight:700;color:${C.green}">YES, IT RUNS</div>
-      <div style="display:flex;font-size:34px;font-weight:700;margin-top:6px">Llama 3.1 8B</div>
-      <div style="display:flex;font-size:20px;color:${C.muted}">on Apple M4 (16GB)</div>
-      <div style="display:flex;font-size:19px">needs ~6.4 GB · ~10.5 GB usable</div>
+      <div style="display:flex;font-size:16px;font-weight:600;letter-spacing:0.08em;color:${C.muted}">LIVE IN THE TAB</div>
+      <div style="display:flex;align-self:flex-start;border:2px solid ${C.green};border-radius:4px;padding:8px 18px;font-size:29px;font-weight:700;color:${C.green}">RUNS HERE</div>
+      <div style="display:flex;font-size:34px;font-weight:700;margin-top:6px">Whisper Tiny</div>
+      <div style="display:flex;font-size:20px;color:${C.muted}">${ogWhisperSize} over WebGPU, measured</div>
+      <div style="display:flex;font-size:19px">no install · no server · no upload</div>
     </div>
   </div>`);
 }

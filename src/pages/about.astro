@@ -1,7 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
-import { meta } from "@/lib/data";
+import { browserModels, meta } from "@/lib/data";
 import { breadcrumbLd, techArticleLd, truncate, type JsonLd } from "@/lib/seo";
 
 const path = "/about";
@@ -51,6 +51,9 @@ const jsonLd = [
       </p>
       <p>
         The site covers Mac, Windows, Linux, iOS, and Android. It recommends the right tool per platform because the wrong one cuts your throughput in half.
+      </p>
+      <p>
+        The browser became a real target in 2026, so the site now measures it the same way: {browserModels.length} models that run in the tab over WebGPU with Transformers.js, every download size read from the HuggingFace file tree, and six pages where you can <a href="/browser" class="underline">run them live</a> with one click. Nothing downloads until you press Run, and nothing you type, say, or drop in ever leaves the tab.
       </p>
     </div>
 

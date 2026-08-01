@@ -10,7 +10,9 @@ import {
   platformLabel,
   models,
   allModels,
+  browserModels,
   devices,
+  formatBytes,
   meta,
 } from "@/lib/data";
 import { canRun, usableGb, estimateMemory } from "@/lib/compute";
@@ -54,15 +56,32 @@ const extremes = [
   };
 });
 
+// Hero "browser check" rows: flagship playground pages a visitor can run
+// with one click. Sizes come from the catalog (the same measured bytes the
+// pages promise); fails the build if a slug leaves the catalog.
+const heroDemos = [
+  { id: "whisper-tiny", action: "Transcribe speech" },
+  { id: "smollm2-135m-instruct", action: "Chat with an LLM" },
+  { id: "kokoro-82m", action: "Synthesize a voice" },
+].map(({ id, action }) => {
+  const m = browserModels.find((x) => x.id === id);
+  if (!m) throw new Error(`index.astro heroDemos: browser model ${id} not found`);
+  return { model: m, action, size: formatBytes(m.headline.webgpu.bytes) };
+});
+
 const path = "/";
 // Homepage only: brand-first (the homepage IS the brand page). pSEO/content
 // pages deliberately keep their keyword-first titles for SERP CTR.
-const title = "LocalModel.run | Can I run any AI model locally?";
+const title = "LocalModel.run | Run AI models in your browser, or check any device";
 const description = truncate(
-  `Instantly check if your computer or phone can run a local AI model, from text LLMs like Llama, Qwen and DeepSeek to image, video and audio models, and which tool to use on Mac, Windows, Linux, iOS or Android. Free, no signup. ${allModels.length} models across text, image, video and audio, ${devices.length} devices, validated data.`,
+  `Run Whisper, SmolLM2 and Kokoro live in your browser tab, no install: ${browserModels.length} browser models with download sizes measured to the byte. Underneath, the reference layer: can-my-device-run-it math for ${allModels.length} local AI models across text, image, video and audio on Mac, Windows, Linux, iOS and Android. Free, no signup.`,
 );
 
 const faqs: FaqItem[] = [
+  {
+    q: "Can I run AI models in my browser without installing anything?",
+    a: `Yes. ${browserModels.length} models in the catalog run entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. ${heroDemos[0].model.name} transcribes speech after a ${heroDemos[0].size} download, ${heroDemos[1].model.name} chats after ${heroDemos[1].size}, ${heroDemos[2].model.name} speaks after ${heroDemos[2].size}. Six pages run them live with one click; every download size is measured from the HuggingFace file tree, not estimated.`,
+  },
   {
     q: "How do I know if my computer can run a local AI model?",
     a: `Compare the model's memory needs to your usable memory. A 7-8B text model at Q4_K_M needs about 6-7 GB, so it runs on a 16 GB Mac or a 12 GB GPU. Image and video diffusion models typically need 4-12 GB of GPU or Apple Silicon VRAM. Audio models (Whisper, Kokoro) run on CPU and need 1-4 GB. localmodel.run does this math for ${allModels.length} models across ${devices.length} devices.`,
@@ -89,69 +108,99 @@ const jsonLd = [
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]}>
-  <!-- Hero: the live detector IS the instrument; the page frames it cleanly
-       on the bare panel, ink plus one calibration-blue accent. -->
+  <!-- Hero: browser-first. The story is "models run in the tab now"; the
+       panel is a live check of THIS browser plus one-click demo rows. The
+       GGUF fit-check (the reference layer) follows right below. -->
   <section class="hero">
     <div class="hero-inner">
       <!-- Copy column -->
       <div class="hero-copy">
         <p class="eyebrow stagger" style="--delay:0ms">
           <span class="dot" aria-hidden="true"></span>
-          VRAM and RAM, calculated
+          No install, no server
         </p>
         <h1 class="hero-title stagger" style="--delay:80ms">
           {/* Two fixed lines: the rotating name ENDS line 1, so its width can
               change without ever reflowing the headline (the sizer reserves the
               widest name once; leftover space hides at line end). The rotator is
               aria-hidden + select-none, so screen readers and copy/paste both
-              get exactly "Can I run any AI model locally?" */}
+              get exactly "Run AI models in your browser." */}
           <span class="block">
-            Can I run{" "}
+            Run{" "}
             <span class="hero-rot" id="hero-rot" aria-hidden="true">
-              <span class="hero-rot-sizer">DeepSeek R1</span>
-              <span class="hero-rot-word accent">Llama 3.3</span>
+              <span class="hero-rot-sizer">SmolVLM</span>
+              <span class="hero-rot-word accent">Whisper</span>
             </span>
           </span>
-          <span class="sr-only"> any AI model </span>
-          <span class="block">locally?</span>
+          <span class="sr-only"> AI models </span>
+          <span class="block">in your browser.</span>
         </h1>
         <p class="hero-sub stagger" style="--delay:180ms">
-          Pick a model and your device. Get a <strong>yes</strong>, <strong>tight</strong>,
-          or <strong>no</strong>, plus the command to run it.
+          Live demos one click away, download sizes measured to the byte.
+          The fit math for every local model sits right below.
         </p>
         <div class="stats stagger" style="--delay:280ms">
           <div class="wire" aria-hidden="true"></div>
           <dl class="stat-grid">
-            <div class="stat"><dt class="stat-label">Models</dt><dd class="stat-val">{allModels.length}</dd></div>
+            <div class="stat"><dt class="stat-label">In-browser</dt><dd class="stat-val">{browserModels.length}</dd></div>
+            <div class="stat"><dt class="stat-label">Local models</dt><dd class="stat-val">{allModels.length}</dd></div>
             <div class="stat"><dt class="stat-label">Devices</dt><dd class="stat-val">{devices.length}</dd></div>
-            <div class="stat"><dt class="stat-label">Model types</dt><dd class="stat-val">4</dd></div>
             <div class="stat"><dt class="stat-label">Free</dt><dd class="stat-val stat-yes">Always</dd></div>
           </dl>
           <div class="cta">
-            <a href="/can-i-run" class="cta-link">Browse all models →</a>
+            <a href="/browser" class="cta-link">All browser models →</a>
             <a href="/play" class="cta-link">Play the daily quiz →</a>
             <a href="/methodology" class="cta-link cta-link--muted">How we calculate →</a>
           </div>
         </div>
       </div>
 
-      <!-- Instrument panel -->
+      <!-- Instrument panel: this browser, checked live; then one-click demos -->
       <div class="panel-hero stagger" style="--delay:120ms">
-        <div class="panel-head" aria-hidden="true">
-          <span class="panel-label">VRAM threshold engine</span>
+        <div class="panel-head">
+          <span class="panel-label">Browser check</span>
           <span class="panel-status"><span class="status-dot"></span>LIVE</span>
         </div>
-        <div class="det-wrap">
-          <Detector client:load />
+        <div class="p-5">
+          <div aria-live="polite" aria-atomic="true">
+            <p class="text-sm text-muted-foreground" id="hbc-loading">Checking for WebGPU&hellip;</p>
+            <span class="verdict-stamp hidden" id="hbc-stamp">
+              <svg id="hbc-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+              <span id="hbc-word"></span>
+            </span>
+            <p class="mt-2 text-sm text-muted-foreground" id="hbc-note"></p>
+          </div>
+          <noscript>
+            <p class="text-sm text-muted-foreground">The demos below need JavaScript to run; enable it and this panel also checks the browser for WebGPU (they fall back to WebAssembly without it).</p>
+          </noscript>
+          <div class="mt-4 divide-y divide-border border-t border-border">
+            {heroDemos.map((d) => (
+              <a href={`/browser/${d.model.id}`} class="group flex items-center justify-between gap-3 py-2.5 text-sm transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
+                <span class="min-w-0">
+                  <span class="block truncate font-semibold">{d.action}</span>
+                  <span class="text-xs text-muted-foreground">{d.model.name}</span>
+                </span>
+                <span class="flex shrink-0 items-center gap-3">
+                  <span class="num text-xs text-muted-foreground">{d.size}</span>
+                  <span class="text-[var(--brand-ink)] group-hover:underline">Run it →</span>
+                </span>
+              </a>
+            ))}
+          </div>
+          <p class="mt-3 text-xs text-muted-foreground">Nothing downloads until you press Run on the model's page.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Hero H1: cycle real model names through the headline (CLS-safe crossfade;
-       static under reduced-motion; the sr-only "any AI model" carries meaning) -->
+  <!-- Hero H1 rotator (CLS-safe crossfade; static under reduced-motion; the
+       sr-only "AI models" carries meaning) + the live browser check. Both run
+       from astro:page-load: the ClientRouter executes an identical inline
+       script only ONCE per SPA session, so immediate IIFEs freeze on any
+       revisit to the homepage; the event fires on initial load AND on every
+       swap (same pattern as interactions.ts and play.astro). -->
   <script is:inline>
-    (function () {
+    function lmHeroRotInit() {
       if (window.__heroRotInt) {
         clearInterval(window.__heroRotInt);
         window.__heroRotInt = null;
@@ -160,10 +209,9 @@ const jsonLd = [
       if (!el) return;
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       var word = el.querySelector(".hero-rot-word");
-      // The sizer stays pinned to the WIDEST name ("DeepSeek R1") so the slot
-      // never changes width: no reflow, no line-count jump. Leftover space after
-      // short names sits at the end of its own line, where it is invisible.
-      var models = ["Llama 3.3", "Qwen 3", "DeepSeek R1", "Gemma 3", "Mistral", "Phi-4"];
+      // The sizer stays pinned to the WIDEST name so the slot never changes
+      // width: no reflow, no line-count jump.
+      var models = ["Whisper", "SmolLM2", "Kokoro", "RMBG", "MiniLM", "SmolVLM"];
       var i = 0;
       window.__heroRotInt = setInterval(function () {
         if (!document.body.contains(word)) {
@@ -178,7 +226,53 @@ const jsonLd = [
           word.classList.remove("hr-out");
         }, 360);
       }, 2400);
-    })();
+    }
+    function lmBrowserCheckInit() {
+      var ICONS = {
+        yes: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+        tight: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+        no: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+      };
+      var FG = { yes: "var(--verdict-yes-fg)", tight: "var(--verdict-tight-fg)", no: "var(--verdict-no-fg)" };
+      function render(kind, word, note) {
+        var stamp = document.getElementById("hbc-stamp");
+        if (!stamp) return;
+        stamp.setAttribute("data-v", kind);
+        stamp.style.color = FG[kind];
+        var icon = document.getElementById("hbc-icon");
+        if (icon) icon.innerHTML = ICONS[kind];
+        var wordEl = document.getElementById("hbc-word");
+        if (wordEl) wordEl.textContent = word;
+        var noteEl = document.getElementById("hbc-note");
+        if (noteEl) noteEl.textContent = note;
+        stamp.classList.remove("hidden");
+        var loading = document.getElementById("hbc-loading");
+        if (loading) loading.classList.add("hidden");
+      }
+      async function check() {
+        if (typeof WebAssembly === "undefined") {
+          render("no", "Can't run here", "Neither WebGPU nor WebAssembly is available in this browser.");
+          return;
+        }
+        if (navigator.gpu) {
+          try {
+            var adapter = await navigator.gpu.requestAdapter();
+            if (adapter) {
+              render("yes", "WebGPU available", "This browser runs models on the GPU. Pick a demo below.");
+              return;
+            }
+          } catch (e) {
+            /* fall through to WASM */
+          }
+        }
+        render("tight", "Falls back to WASM", "No WebGPU adapter found; the demos below run on CPU instead, slower.");
+      }
+      check();
+    }
+    document.addEventListener("astro:page-load", function () {
+      lmHeroRotInit();
+      lmBrowserCheckInit();
+    });
   </script>
 
   <!-- Coverage marquee: same single-line scrolling band as "Runs with" below, so the
@@ -193,12 +287,14 @@ const jsonLd = [
             { l: "Image models", c: "var(--modality-image)" },
             { l: "Video models", c: "var(--modality-video)" },
             { l: "Audio models", c: "var(--modality-audio)" },
+            { l: "In the browser", c: "" },
             { l: "Apple Silicon", c: "" },
             { l: "NVIDIA / AMD", c: "" },
             { l: "Text generation", c: "var(--modality-text)" },
             { l: "Image models", c: "var(--modality-image)" },
             { l: "Video models", c: "var(--modality-video)" },
             { l: "Audio models", c: "var(--modality-audio)" },
+            { l: "In the browser", c: "" },
             { l: "Apple Silicon", c: "" },
             { l: "NVIDIA / AMD", c: "" },
           ].map((it) => (
@@ -215,13 +311,40 @@ const jsonLd = [
       <span class="shrink-0 font-mono text-[10px] uppercase tracking-widest text-[var(--brand-ink)]">Runs with</span>
       <div class="marquee min-w-0 flex-1">
         <div class="marquee-track">
-          {["Ollama", "LM Studio", "llama.cpp", "MLX", "vLLM", "Jan", "KoboldCpp", "GPT4All", "Ollama", "LM Studio", "llama.cpp", "MLX", "vLLM", "Jan", "KoboldCpp", "GPT4All"].map((t) => (
+          {["Transformers.js", "Ollama", "LM Studio", "llama.cpp", "MLX", "WebLLM", "vLLM", "Jan", "KoboldCpp", "GPT4All", "Transformers.js", "Ollama", "LM Studio", "llama.cpp", "MLX", "WebLLM", "vLLM", "Jan", "KoboldCpp", "GPT4All"].map((t) => (
             <span class="marquee-item"><span class="mq-dot" aria-hidden="true"></span>{t}</span>
           ))}
         </div>
       </div>
     </div>
   </div>
+
+  <!-- The reference layer: the original fit-check instrument. The browser
+       demos above are the launch surface; this is the catalog's core math. -->
+  <section class="mx-auto max-w-5xl px-4 py-16">
+    <div class="grid items-start gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <div>
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>The reference layer</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Can I run any AI model locally?</h2>
+        <p class="mt-3 text-muted-foreground">
+          Pick a model and your device. Get a <strong class="text-foreground">yes</strong>, <strong class="text-foreground">tight</strong>,
+          or <strong class="text-foreground">no</strong>, plus the command to run it. {allModels.length} models, {devices.length} devices, every size measured.
+        </p>
+        <div class="cta mt-5">
+          <a href="/can-i-run" class="cta-link">Browse all models →</a>
+        </div>
+      </div>
+      <div class="panel-hero">
+        <div class="panel-head" aria-hidden="true">
+          <span class="panel-label">VRAM threshold engine</span>
+          <span class="panel-status"><span class="status-dot"></span>LIVE</span>
+        </div>
+        <div class="det-wrap">
+          <Detector client:load />
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- How it works: the memory math, in three steps (animated line-draw) -->
   <section class="mx-auto max-w-5xl px-4 py-16">
