@@ -167,6 +167,12 @@ for (const { repo } of CANDIDATES) {
         const plain = n.slice(0, -"_merged".length);
         drop.add(plain);
         drop.add(`${plain}_with_past`);
+        // HF enc-dec repos name the split-decoder part "decoder_with_past_model"
+        // (with_past BEFORE model), which the guess above missed: transformers.js
+        // fetches only the merged decoder, so the split pair must not count.
+        if (plain.endsWith("_model")) {
+          drop.add(`${plain.slice(0, -"_model".length)}_with_past_model`);
+        }
       }
       const altBase = alternateBaseOf(n);
       if (altBase && names.includes(altBase)) {
