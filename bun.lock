@@ -18,7 +18,7 @@
         "astro": "^7.0.3",
         "astro-icon": "^1.1.5",
         "kokoro-js": "^1.2.1",
-        "localfit": "^0.1.0",
+        "localfit": "^0.1.2",
         "react": "19.2.8",
         "react-dom": "19.2.8",
         "satori": "^0.29.0",
@@ -862,7 +862,7 @@
 
     "local-pkg": ["local-pkg@1.2.1", "", { "dependencies": { "mlly": "^1.7.4", "pkg-types": "^2.3.0", "quansync": "^0.2.11" } }, "sha512-++gUqRDEvcnN6Zhqrr+y/CkVEHhlrR96vZn3nZZPYzMcBUyBtTKzB9NadClFIsIVSsu+3i9tfk/erqy9kAmt7Q=="],
 
-    "localfit": ["localfit@0.1.0", "", {}, "sha512-KPD1ngg8RoOJEMHpv8h1VXRyOOph9ER4Eu9XQAP5O6c6uHgZ3SrK0mjTHBUL5fGEfOAu59VpjwcwyOIitae4og=="],
+    "localfit": ["localfit@0.1.2", "", {}, "sha512-MucI3sf8N9Taz/tCQevq1bP9wlEc2oFyaNjn3VJYpgXV4LLsdHdxgD5eCTsIFZuphixh2pm9yduKje2PXcuRaQ=="],
 
     "long": ["long@5.3.2", "", {}, "sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA=="],
 
