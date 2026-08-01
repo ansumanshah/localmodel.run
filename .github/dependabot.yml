@@ -13,6 +13,20 @@ updates:
       # One PR for the routine minor/patch bumps; majors come through on their own.
       minor-and-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # TypeScript 7.x breaks `astro check` (package.json script "check"):
+      # @astrojs/language-server 2.16.13 (pulled in by @astrojs/check 0.9.10,
+      # both latest as of 2026-08-01) still declares
+      # `peerDependencies.typescript: "^5.0.0 || ^6.0.0"`. With TS 7.0.2
+      # installed, `astro check` crashes in AstroCheck.getTsconfig
+      # (node_modules/@astrojs/language-server/dist/check.js) with
+      # "Cannot read properties of undefined (reading 'fileExists')".
+      # Reproduced on PR #16 (dependabot/npm_and_yarn/typescript-7.0.2), closed.
+      # Revisit when @astrojs/check / @astrojs/language-server ship TS7 support
+      # (watch https://github.com/withastro/language-tools releases), then
+      # remove this ignore and let dependabot re-open the major bump.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   # Keep the GitHub Actions themselves current.
   - package-ecosystem: github-actions
