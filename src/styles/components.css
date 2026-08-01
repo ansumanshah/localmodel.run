@@ -1562,3 +1562,126 @@
 .verdict-hero .tok {
   align-self: baseline;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PLAYGROUND — the six "Run it" pages. Same instrument: fields are wells,
+   outputs are readouts, the only motion is caused by the user's own run.
+   ══════════════════════════════════════════════════════════════════════════ */
+.pg-input {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  border-radius: 3px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--foreground);
+  background: var(--well);
+  border: 1px solid color-mix(in oklch, var(--foreground) 22%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color var(--t-fast);
+}
+.dark .pg-input {
+  border-color: color-mix(in oklch, white 20%, transparent);
+}
+.pg-input:hover,
+.pg-input:focus-visible {
+  border-color: var(--color-brand);
+  outline: none;
+}
+.pg-output {
+  border-radius: 3px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  max-height: 16rem;
+  overflow-y: auto;
+  background: var(--well);
+  border: 1px solid color-mix(in oklch, var(--foreground) 14%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.pg-preset {
+  cursor: pointer;
+  color: var(--muted-foreground);
+  border-color: color-mix(in oklch, var(--foreground) 25%, transparent);
+  transition: color var(--t-fast), border-color var(--t-fast);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.pg-preset:hover:not(:disabled) {
+  color: var(--brand-ink);
+  border-color: var(--color-brand);
+}
+.pg-preset:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+/* Recording state: a steady red dot. An indicator that pulses at rest would
+   violate the no-ambient-motion rule; steady ink is the honest signal. */
+.pg-rec {
+  border-color: color-mix(in oklch, var(--color-verdict-no) 55%, transparent);
+  color: var(--verdict-no-fg);
+}
+.pg-rec-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-verdict-no);
+  flex: none;
+}
+.pg-drop {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  border: 1.5px dashed color-mix(in oklch, var(--foreground) 30%, transparent);
+  border-radius: 4px;
+  padding: 22px 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  background: var(--well);
+  text-align: center;
+  transition: border-color var(--t-fast), background-color var(--t-fast);
+}
+.pg-drop:hover:not(:disabled),
+.pg-drop--over {
+  border-color: var(--color-brand);
+  background: color-mix(in oklch, var(--color-brand) 5%, var(--well));
+}
+.pg-drop:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.pg-img {
+  width: 100%;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.pg-img--sm {
+  max-width: 14rem;
+}
+/* Checkerboard behind the cut-out PNG so the transparency reads as such. */
+.pg-img--checker {
+  background:
+    repeating-conic-gradient(color-mix(in oklch, var(--foreground) 12%, transparent) 0% 25%, transparent 0% 50%)
+    0 0 / 16px 16px;
+}
+.pg-unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  letter-spacing: 0;
+}
+.pg-why summary {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.pg-why summary:hover {
+  color: var(--brand-ink);
+}
