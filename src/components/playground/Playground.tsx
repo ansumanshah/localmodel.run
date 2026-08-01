@@ -95,6 +95,12 @@ export default function Playground({ model, task }: PlaygroundProps) {
         const first = await fit(model.id, { env });
         const runVariant = model.run[first.backend].variant;
         if (runVariant === model.headline[first.backend].variant) return first;
+        // Coupling: this rescore only lands if localfit's variants table
+        // (live refresh, else its bundled snapshot) contains runVariant. A
+        // new PLAYGROUND_RUN_OVERRIDES entry whose variant is missing from
+        // the pinned localfit's snapshot degrades, with refresh() offline,
+        // to reasons scored on the headline build (localfit says so in the
+        // reasons); the promise line above is page-props and stays correct.
         return fit(model.id, { env, variant: runVariant });
       })
       .then(
