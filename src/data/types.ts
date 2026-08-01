@@ -180,3 +180,41 @@ export interface DataMeta {
 }
 
 export type Verdict = "yes" | "tight" | "no" | "unknown";
+
+// A single measured download variant for a browser/ONNX model: `bytes` is an
+// exact byte count copied from scripts/browser-model-sizes.json (measured off
+// the HuggingFace API file tree), never estimated.
+export interface BrowserVariant {
+  variant: string; // "q4f16" | "fp16" | "q8" | "uint8" | "q4" | "bnb4" | "fp32"
+  bytes: number;
+}
+
+export interface BrowserModelSource {
+  label: string;
+  url: string;
+}
+
+// A model that runs in-browser via Transformers.js (ONNX Runtime Web,
+// WebGPU/WASM), as opposed to the GGUF catalog (native runtimes). Separate
+// array from ModelRow: different provenance (HF API byte measurements, not
+// GGUF quant sizes) and a different memory model (a page-load download, not
+// weights+KV on a device).
+export interface BrowserModelRow {
+  id: string; // slug, e.g. "smollm2-135m-instruct"
+  name: string;
+  hf_repo: string; // e.g. "onnx-community/Qwen2.5-0.5B-Instruct"
+  task: string; // hub grouping key, e.g. "text-generation", "embeddings", "vision"
+  params_m: number | null; // total parameters, millions; null when unverifiable
+  // webgpu = q4f16 if published else fp16; wasm = smaller of q8/uint8 if
+  // published else whichever exists; falls back to the smallest clean variant
+  // when neither backend's preferred quant exists, so a headline always renders.
+  headline: { webgpu: BrowserVariant; wasm: BrowserVariant };
+  variants: Record<string, number>; // ALL measured (post-exclusion) variants, bytes
+  pipeline_task: string | null; // transformers.js pipeline() task string; null = no stable pipeline yet (see notes)
+  sources: BrowserModelSource[];
+  notes?: string;
+  // Verified per-model snippet for models pipeline() cannot drive (SAM,
+  // Florence-2, SmolVLM). When both this and pipeline_task are absent, the
+  // page shows notes + a link to the HF card instead of guessed code.
+  code_snippet?: string;
+}
