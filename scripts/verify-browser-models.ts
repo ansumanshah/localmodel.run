@@ -116,6 +116,22 @@ async function fetchTree(repo: string): Promise<TreeEntry[] | null> {
 
 const mb = (n: number) => (n / 1024 / 1024).toFixed(1);
 
+// Alternate-build markers: a part whose name contains one of these is an
+// alternate export of the base part with the marker removed (same logical
+// component, different internal implementation, e.g. embeddinggemma's
+// "model_no_gather" vs "model"), not an additional required file. Only
+// dropped when the base part exists alongside it in the same variant, so a
+// repo that ships ONLY the alternate build still counts it.
+const ALTERNATE_MARKERS = ["_no_gather"];
+
+function alternateBaseOf(name: string): string | null {
+  for (const marker of ALTERNATE_MARKERS) {
+    const idx = name.indexOf(marker);
+    if (idx !== -1) return name.slice(0, idx) + name.slice(idx + marker.length);
+  }
+  return null;
+}
+
 const out: Record<string, Record<string, { bytes: number; files: string[] }>> = {};
 
 for (const { repo } of CANDIDATES) {
@@ -151,6 +167,12 @@ for (const { repo } of CANDIDATES) {
         const plain = n.slice(0, -"_merged".length);
         drop.add(plain);
         drop.add(`${plain}_with_past`);
+      }
+      const altBase = alternateBaseOf(n);
+      if (altBase && names.includes(altBase)) {
+        // n is an alternate export of altBase (same component, different
+        // internal build), not a distinct required part; keep the base.
+        drop.add(n);
       }
     }
     let total = 0;

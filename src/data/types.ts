@@ -213,4 +213,8 @@ export interface BrowserModelRow {
   pipeline_task: string | null; // transformers.js pipeline() task string; null = no stable pipeline yet (see notes)
   sources: BrowserModelSource[];
   notes?: string;
+  // Verified per-model snippet for models pipeline() cannot drive (SAM,
+  // Florence-2, SmolVLM). When both this and pipeline_task are absent, the
+  // page shows notes + a link to the HF card instead of guessed code.
+  code_snippet?: string;
 }

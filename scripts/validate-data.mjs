@@ -116,6 +116,17 @@ for (const m of browserModels) {
     if (!h.variant || variants[h.variant] !== h.bytes)
       errors.push(`${m.id}: headline.${backend} (${h.variant}: ${h.bytes}) does not match a measured variant in variants{}`);
   }
+
+  // Cross-variant sanity: a lower-precision quant should never be LARGER than
+  // a higher-precision one of the same base weights. Catches summing bugs
+  // like counting an alternate export alongside its base file (e.g. the
+  // embeddinggemma-300m "model_no_gather" + "model" double-count). Warning,
+  // not an error, since a handful of repos legitimately ship non-monotonic
+  // sizes (see e.g. kokoro-82m's notes).
+  if (variants.q4 != null && variants.q8 != null && variants.q4 > variants.q8)
+    warnings.push(`${m.id}: q4 larger than q8 (suspicious)`);
+  if (variants.q4f16 != null && variants.fp16 != null && variants.q4f16 > variants.fp16)
+    warnings.push(`${m.id}: q4f16 larger than fp16 (suspicious)`);
 }
 
 warnings.forEach((w) => console.warn("WARN:", w));

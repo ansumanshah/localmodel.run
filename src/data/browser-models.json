@@ -558,7 +558,8 @@
         "url": "https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct"
       }
     ],
-    "notes": "No stable transformers.js pipeline() task for image+text chat yet; use AutoModelForVision2Seq and AutoProcessor directly (see the official SmolVLM-WebGPU demo)."
+    "notes": "No stable transformers.js pipeline() task for image+text chat yet; use AutoModelForVision2Seq and AutoProcessor directly (see the official SmolVLM-WebGPU demo).",
+    "code_snippet": "import { AutoProcessor, AutoModelForVision2Seq, load_image } from \"@huggingface/transformers\";\n\nconst processor = await AutoProcessor.from_pretrained(\"HuggingFaceTB/SmolVLM-256M-Instruct\");\nconst model = await AutoModelForVision2Seq.from_pretrained(\"HuggingFaceTB/SmolVLM-256M-Instruct\", {\n  device: \"webgpu\",\n  dtype: \"q4f16\", // use \"uint8\" for the WASM build\n});\n\nconst image = await load_image(\"https://your-image-url.jpg\");\nconst messages = [\n  { role: \"user\", content: [{ type: \"image\" }, { type: \"text\", text: \"Describe this image.\" }] },\n];\nconst text = processor.apply_chat_template(messages, { add_generation_prompt: true });\nconst inputs = await processor(text, [image]);\n\nconst output = await model.generate({ ...inputs, max_new_tokens: 256 });\nconst result = processor.batch_decode(output, { skip_special_tokens: true });"
   },
   {
     "id": "florence-2-base-ft",
@@ -596,7 +597,8 @@
         "url": "https://huggingface.co/microsoft/Florence-2-base-ft"
       }
     ],
-    "notes": "Florence-2 uses task-prompt tokens (for example <OD>, <CAPTION>) via raw AutoModelForCausalLM and AutoProcessor, not a pipeline() call."
+    "notes": "Florence-2 uses task-prompt tokens (for example <OD>, <CAPTION>) via Florence2ForConditionalGeneration and AutoProcessor, not a pipeline() call.",
+    "code_snippet": "import { Florence2ForConditionalGeneration, AutoProcessor, AutoTokenizer } from \"@huggingface/transformers\";\n\nconst model = await Florence2ForConditionalGeneration.from_pretrained(\"onnx-community/Florence-2-base-ft\", {\n  device: \"webgpu\",\n  // Per-module dtype map: keep the language-model parts in fp16/fp32 for\n  // quality, quantize the (much larger) vision encoder/decoder to q4.\n  dtype: {\n    embed_tokens: \"fp16\", // or \"fp32\" where WebGPU fp16 (shader-f16) isn't supported\n    vision_encoder: \"fp16\", // or \"fp32\" where WebGPU fp16 isn't supported\n    encoder_model: \"q4\",\n    decoder_model_merged: \"q4\",\n  },\n});\nconst processor = await AutoProcessor.from_pretrained(\"onnx-community/Florence-2-base-ft\");\nconst tokenizer = await AutoTokenizer.from_pretrained(\"onnx-community/Florence-2-base-ft\");\n\nconst prompt = \"<MORE_DETAILED_CAPTION>\"; // task-prompt token, not free text\n// const inputs = await processor(image, prompt);\n// const generated = await model.generate({ ...inputs, max_new_tokens: 100 });\n// const result = processor.batch_decode(generated, { skip_special_tokens: false });"
   },
   {
     "id": "qwen3.5-0.8b",
@@ -694,7 +696,8 @@
         "url": "https://huggingface.co/onnx-community/Florence-2-large-ft"
       }
     ],
-    "notes": "Same task-prompt-token usage as Florence-2-base (see that model); no pipeline() call, use AutoModelForCausalLM and AutoProcessor directly."
+    "notes": "Same task-prompt-token usage as Florence-2-base (see that model); no pipeline() call, use Florence2ForConditionalGeneration and AutoProcessor directly.",
+    "code_snippet": "import { Florence2ForConditionalGeneration, AutoProcessor, AutoTokenizer } from \"@huggingface/transformers\";\n\nconst model = await Florence2ForConditionalGeneration.from_pretrained(\"onnx-community/Florence-2-large-ft\", {\n  device: \"webgpu\",\n  // Per-module dtype map: keep the language-model parts in fp16/fp32 for\n  // quality, quantize the (much larger) vision encoder/decoder to q4.\n  dtype: {\n    embed_tokens: \"fp16\", // or \"fp32\" where WebGPU fp16 (shader-f16) isn't supported\n    vision_encoder: \"fp16\", // or \"fp32\" where WebGPU fp16 isn't supported\n    encoder_model: \"q4\",\n    decoder_model_merged: \"q4\",\n  },\n});\nconst processor = await AutoProcessor.from_pretrained(\"onnx-community/Florence-2-large-ft\");\nconst tokenizer = await AutoTokenizer.from_pretrained(\"onnx-community/Florence-2-large-ft\");\n\nconst prompt = \"<MORE_DETAILED_CAPTION>\"; // task-prompt token, not free text\n// const inputs = await processor(image, prompt);\n// const generated = await model.generate({ ...inputs, max_new_tokens: 100 });\n// const result = processor.batch_decode(generated, { skip_special_tokens: false });"
   },
   {
     "id": "whisper-tiny",
@@ -1130,7 +1133,7 @@
     "variants": {
       "fp16": 618089375,
       "fp32": 1235001020,
-      "q4": 392403166,
+      "q4": 197245082,
       "q4f16": 176115397,
       "q8": 309458498
     },
@@ -1483,7 +1486,8 @@
         "url": "https://huggingface.co/Zigeng/SlimSAM-uniform-77"
       }
     ],
-    "notes": "transformers.js has no mask-generation pipeline() task; SAM-family models are driven with the raw SamModel/SamProcessor classes plus a click or box prompt."
+    "notes": "transformers.js has no mask-generation pipeline() task; SAM-family models are driven with the raw SamModel and AutoProcessor classes plus a click or box prompt.",
+    "code_snippet": "import { SamModel, AutoProcessor, RawImage } from \"@huggingface/transformers\";\n\nconst model = await SamModel.from_pretrained(\"Xenova/slimsam-77-uniform\", {\n  device: \"webgpu\",\n  dtype: \"fp16\", // use \"q8\" for the WASM build\n});\nconst processor = await AutoProcessor.from_pretrained(\"Xenova/slimsam-77-uniform\");\n\nconst image = await RawImage.read(\"https://your-image-url.jpg\");\nconst input_points = [[[340, 250]]]; // one (x, y) click point on the object to mask\nconst inputs = await processor(image, { input_points });\nconst outputs = await model(inputs);\n\nconst masks = await processor.post_process_masks(\n  outputs.pred_masks,\n  inputs.original_sizes,\n  inputs.reshaped_input_sizes,\n);"
   },
   {
     "id": "siglip2-base-patch16-224",
@@ -1613,7 +1617,8 @@
         "url": "https://huggingface.co/onnx-community/sam2.1-hiera-tiny-ONNX"
       }
     ],
-    "notes": "Same as SlimSAM: transformers.js has no mask-generation pipeline() task, so use SamModel/SamProcessor with a point or box prompt."
+    "notes": "Same as SlimSAM: transformers.js has no mask-generation pipeline() task. SAM 2 is a distinct architecture from SAM 1, so it uses the Sam2Model and Sam2Processor classes (not SamModel/SamProcessor) with a point or box prompt.",
+    "code_snippet": "import { Sam2Model, Sam2Processor, RawImage } from \"@huggingface/transformers\";\n\nconst model = await Sam2Model.from_pretrained(\"onnx-community/sam2.1-hiera-tiny-ONNX\", {\n  device: \"webgpu\",\n  dtype: \"q4f16\", // use \"uint8\" for the WASM build\n});\nconst processor = await Sam2Processor.from_pretrained(\"onnx-community/sam2.1-hiera-tiny-ONNX\");\n\nconst image = await RawImage.read(\"https://your-image-url.jpg\");\nconst input_points = [[[340, 250]]]; // one (x, y) click point on the object to mask\nconst inputs = await processor(image, { input_points });\nconst outputs = await model(inputs);\n\nconst masks = await processor.post_process_masks(\n  outputs.pred_masks,\n  inputs.original_sizes,\n  inputs.reshaped_input_sizes,\n);"
   },
   {
     "id": "birefnet-lite",

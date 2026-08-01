@@ -28,25 +28,20 @@ const variantRows = Object.entries(model.variants)
   }));
 
 // A real pipeline() call when a stable transformers.js task exists for this
-// model; otherwise an honest lower-level AutoModel snippet (see model.notes
-// for why pipeline() doesn't cover it yet).
+// model; otherwise a verified per-model low-level snippet (model.code_snippet,
+// checked against the model's own card or the official transformers.js
+// examples repo) when one exists; otherwise no code block at all (see below,
+// notes + a link to the HF card instead of guessing unverifiable code).
 const snippet = model.pipeline_task
   ? `import { pipeline } from "@huggingface/transformers";
 
 const pipe = await pipeline("${model.pipeline_task}", "${model.hf_repo}", {
-  device: "webgpu", // falls back to "wasm" automatically if unavailable
+  device: "webgpu", // usually falls back to "wasm"; wrap in try/catch for production
   dtype: "${model.headline.webgpu.variant}", // use "${model.headline.wasm.variant}" for the WASM build
 });
 
 const result = await pipe(/* your input */);`
-  : `// No stable transformers.js pipeline() task for this model yet, see the note below.
-import { AutoModel, AutoProcessor } from "@huggingface/transformers";
-
-const model = await AutoModel.from_pretrained("${model.hf_repo}", {
-  device: "webgpu",
-  dtype: "${model.headline.webgpu.variant}",
-});
-const processor = await AutoProcessor.from_pretrained("${model.hf_repo}");`;
+  : (model.code_snippet ?? null);
 
 const title = `${model.name}: browser download size (WebGPU/WASM) · localmodel.run`;
 const description = truncate(
@@ -232,22 +227,30 @@ const fitData = {
 
     <section class="mt-8">
       <h2 class="mb-3 text-lg font-semibold">Use it with Transformers.js</h2>
-      <div class="group relative">
-        <div class="relative rounded-[4px] border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] p-4 font-mono text-xs shadow-[inset_0_1px_0_0_var(--lite-specular)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-[1px] before:bg-[var(--color-brand)] before:content-['']">
-          <pre class="overflow-x-auto whitespace-pre pr-16 leading-relaxed"><code>{snippet}</code></pre>
-          <button
-            type="button"
-            class="copy-btn absolute right-3 top-3 shrink-0 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground opacity-0 transition hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            data-copy={snippet}
-            aria-label="Copy code"
-          >
-            Copy
-          </button>
-        </div>
-      </div>
-      <p class="mt-2 text-xs text-muted-foreground">
-        Requires <code class="rounded bg-card px-1 py-0.5">npm install @huggingface/transformers</code> (or the CDN build). {!model.pipeline_task && "This model needs the lower-level API shown above, not pipeline() (see the note below)."}
-      </p>
+      {snippet ? (
+        <>
+          <div class="group relative">
+            <div class="relative rounded-[4px] border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] p-4 font-mono text-xs shadow-[inset_0_1px_0_0_var(--lite-specular)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-[1px] before:bg-[var(--color-brand)] before:content-['']">
+              <pre class="overflow-x-auto whitespace-pre pr-16 leading-relaxed"><code>{snippet}</code></pre>
+              <button
+                type="button"
+                class="copy-btn absolute right-3 top-3 shrink-0 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground opacity-0 transition hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                data-copy={snippet}
+                aria-label="Copy code"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+          <p class="mt-2 text-xs text-muted-foreground">
+            Requires <code class="rounded bg-card px-1 py-0.5">npm install @huggingface/transformers</code> (or the CDN build). {!model.pipeline_task && "This model needs the lower-level API shown above, not pipeline() (see the note below)."}
+          </p>
+        </>
+      ) : (
+        <p class="text-sm text-muted-foreground">
+          There is no stable transformers.js <code class="rounded bg-card px-1 py-0.5">pipeline()</code> call for this model yet, and no verified low-level snippet either (see the note below). Check the <a href={`https://huggingface.co/${model.hf_repo}`} rel="noopener nofollow" class="underline">model card on HuggingFace</a> for current usage examples.
+        </p>
+      )}
     </section>
 
     {model.notes && <p class="mt-8 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">{model.notes}</p>}

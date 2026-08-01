@@ -210,7 +210,7 @@ const METADATA = [
     params_m: 231.6,
     paramsSourceUrl: "https://huggingface.co/microsoft/Florence-2-base-ft",
     notes:
-      "Florence-2 uses task-prompt tokens (for example <OD>, <CAPTION>) via raw AutoModelForCausalLM and AutoProcessor, not a pipeline() call.",
+      "Florence-2 uses task-prompt tokens (for example <OD>, <CAPTION>) via Florence2ForConditionalGeneration and AutoProcessor, not a pipeline() call.",
   },
   {
     id: "qwen3.5-0.8b",
@@ -239,7 +239,7 @@ const METADATA = [
     pipelineTask: null,
     params_m: 770.43,
     notes:
-      "Same task-prompt-token usage as Florence-2-base (see that model); no pipeline() call, use AutoModelForCausalLM and AutoProcessor directly.",
+      "Same task-prompt-token usage as Florence-2-base (see that model); no pipeline() call, use Florence2ForConditionalGeneration and AutoProcessor directly.",
   },
 
   // ---- speech-to-text ----
@@ -463,7 +463,7 @@ const METADATA = [
     params_m: 9.7,
     paramsSourceUrl: "https://huggingface.co/Zigeng/SlimSAM-uniform-77",
     notes:
-      "transformers.js has no mask-generation pipeline() task; SAM-family models are driven with the raw SamModel/SamProcessor classes plus a click or box prompt.",
+      "transformers.js has no mask-generation pipeline() task; SAM-family models are driven with the raw SamModel and AutoProcessor classes plus a click or box prompt.",
   },
   {
     id: "siglip2-base-patch16-224",
@@ -498,7 +498,7 @@ const METADATA = [
     pipelineTask: null,
     params_m: 38.96,
     notes:
-      "Same as SlimSAM: transformers.js has no mask-generation pipeline() task, so use SamModel/SamProcessor with a point or box prompt.",
+      "Same as SlimSAM: transformers.js has no mask-generation pipeline() task. SAM 2 is a distinct architecture from SAM 1, so it uses the Sam2Model and Sam2Processor classes (not SamModel/SamProcessor) with a point or box prompt.",
   },
   {
     id: "birefnet-lite",
@@ -556,6 +556,109 @@ const METADATA = [
     params_m: 278.23,
   },
 ];
+
+// Verified low-level (non-pipeline()) usage snippets for pipeline_task:null
+// rows. Each is checked against a real source (the model's own HF card, or
+// the official transformers.js-examples repo when the model card has none)
+// before being added here; rows.map cites the source in `sources[]`. Any
+// pipeline_task:null row NOT listed here gets no code block on the page
+// (notes + a link to the HF card only), rather than an unverifiable guess.
+const CODE_SNIPPETS = {
+  // Verified against Xenova/slimsam-77-uniform's own README (raw fetched
+  // 2026-08-01): https://huggingface.co/Xenova/slimsam-77-uniform
+  "slimsam-77": (repo, head) => `import { SamModel, AutoProcessor, RawImage } from "@huggingface/transformers";
+
+const model = await SamModel.from_pretrained("${repo}", {
+  device: "webgpu",
+  dtype: "${head.webgpu.variant}", // use "${head.wasm.variant}" for the WASM build
+});
+const processor = await AutoProcessor.from_pretrained("${repo}");
+
+const image = await RawImage.read("https://your-image-url.jpg");
+const input_points = [[[340, 250]]]; // one (x, y) click point on the object to mask
+const inputs = await processor(image, { input_points });
+const outputs = await model(inputs);
+
+const masks = await processor.post_process_masks(
+  outputs.pred_masks,
+  inputs.original_sizes,
+  inputs.reshaped_input_sizes,
+);`,
+  // onnx-community/sam2.1-hiera-tiny-ONNX ships no model card. SAM 2 is a
+  // distinct architecture from SAM 1 in transformers.js: registry maps
+  // model_type "sam2" to Sam2Model, and Sam2Processor extends SamProcessor
+  // (same call shape as SAM 1's AutoProcessor). Verified against the
+  // transformers.js source: packages/transformers/src/models/registry.js
+  // and packages/transformers/src/models/sam2/{modeling,processing}_sam2.js
+  // at https://github.com/huggingface/transformers.js
+  "sam2.1-hiera-tiny": (repo, head) => `import { Sam2Model, Sam2Processor, RawImage } from "@huggingface/transformers";
+
+const model = await Sam2Model.from_pretrained("${repo}", {
+  device: "webgpu",
+  dtype: "${head.webgpu.variant}", // use "${head.wasm.variant}" for the WASM build
+});
+const processor = await Sam2Processor.from_pretrained("${repo}");
+
+const image = await RawImage.read("https://your-image-url.jpg");
+const input_points = [[[340, 250]]]; // one (x, y) click point on the object to mask
+const inputs = await processor(image, { input_points });
+const outputs = await model(inputs);
+
+const masks = await processor.post_process_masks(
+  outputs.pred_masks,
+  inputs.original_sizes,
+  inputs.reshaped_input_sizes,
+);`,
+  // Verified against the official smolvlm-webgpu example's worker.js:
+  // https://github.com/huggingface/transformers.js-examples/blob/main/smolvlm-webgpu/src/worker.js
+  "smolvlm-256m-instruct": (repo, head) => `import { AutoProcessor, AutoModelForVision2Seq, load_image } from "@huggingface/transformers";
+
+const processor = await AutoProcessor.from_pretrained("${repo}");
+const model = await AutoModelForVision2Seq.from_pretrained("${repo}", {
+  device: "webgpu",
+  dtype: "${head.webgpu.variant}", // use "${head.wasm.variant}" for the WASM build
+});
+
+const image = await load_image("https://your-image-url.jpg");
+const messages = [
+  { role: "user", content: [{ type: "image" }, { type: "text", text: "Describe this image." }] },
+];
+const text = processor.apply_chat_template(messages, { add_generation_prompt: true });
+const inputs = await processor(text, [image]);
+
+const output = await model.generate({ ...inputs, max_new_tokens: 256 });
+const result = processor.batch_decode(output, { skip_special_tokens: true });`,
+  // Verified against the official florence2-webgpu example's worker.js
+  // (the canonical per-module dtype map for this architecture) and the
+  // onnx-community/Florence-2-base-ft model card's own snippet:
+  // https://github.com/huggingface/transformers.js-examples/blob/main/florence2-webgpu/src/worker.js
+  // https://huggingface.co/onnx-community/Florence-2-base-ft
+  "florence-2-base-ft": (repo) => florence2Snippet(repo),
+  "florence-2-large-ft": (repo) => florence2Snippet(repo),
+};
+
+function florence2Snippet(repo) {
+  return `import { Florence2ForConditionalGeneration, AutoProcessor, AutoTokenizer } from "@huggingface/transformers";
+
+const model = await Florence2ForConditionalGeneration.from_pretrained("${repo}", {
+  device: "webgpu",
+  // Per-module dtype map: keep the language-model parts in fp16/fp32 for
+  // quality, quantize the (much larger) vision encoder/decoder to q4.
+  dtype: {
+    embed_tokens: "fp16", // or "fp32" where WebGPU fp16 (shader-f16) isn't supported
+    vision_encoder: "fp16", // or "fp32" where WebGPU fp16 isn't supported
+    encoder_model: "q4",
+    decoder_model_merged: "q4",
+  },
+});
+const processor = await AutoProcessor.from_pretrained("${repo}");
+const tokenizer = await AutoTokenizer.from_pretrained("${repo}");
+
+const prompt = "<MORE_DETAILED_CAPTION>"; // task-prompt token, not free text
+// const inputs = await processor(image, prompt);
+// const generated = await model.generate({ ...inputs, max_new_tokens: 100 });
+// const result = processor.batch_decode(generated, { skip_special_tokens: false });`;
+}
 
 const sizes = JSON.parse(await readFile(SIZES_PATH, "utf8"));
 
@@ -623,6 +726,7 @@ const rows = METADATA.map((m) => {
   const head = headline(variants);
   const isLarge = head.webgpu.bytes >= LARGE_BYTES || head.wasm.bytes >= LARGE_BYTES;
   const notes = [m.notes, isLarge ? LARGE_NOTE : null].filter(Boolean).join(" ") || undefined;
+  const codeSnippet = m.pipelineTask ? null : (CODE_SNIPPETS[m.id]?.(m.repo, head) ?? null);
   const sources = [
     { label: `HuggingFace (sizes measured from HF API ${MEASURED_DATE})`, url: `https://huggingface.co/${m.repo}` },
     ...(m.paramsSourceUrl ? [{ label: "Parameter count source", url: m.paramsSourceUrl }] : []),
@@ -638,6 +742,7 @@ const rows = METADATA.map((m) => {
     pipeline_task: m.pipelineTask ?? null,
     sources,
     ...(notes ? { notes } : {}),
+    ...(codeSnippet ? { code_snippet: codeSnippet } : {}),
   };
 });
 

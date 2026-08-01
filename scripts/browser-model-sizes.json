@@ -687,9 +687,8 @@
       ]
     },
     "q4": {
-      "bytes": 392403166,
+      "bytes": 197245082,
       "files": [
-        "model_no_gather",
         "model"
       ]
     },
