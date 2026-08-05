@@ -2,7 +2,7 @@ import type { PlaygroundTask } from "./types";
 
 // The ONLY pages that ship a React island. Everything else on /browser stays
 // zero-client-JS. Each entry is a flagship model whose in-browser run is the
-// demo for its whole task family.
+// demo for one concrete use case (chat, transcribe, redact PII, ...).
 export const PLAYGROUND_TASKS: Record<string, PlaygroundTask> = {
   "smollm2-135m-instruct": "chat",
   "whisper-tiny": "asr",
@@ -10,6 +10,9 @@ export const PLAYGROUND_TASKS: Record<string, PlaygroundTask> = {
   "rmbg-1.4": "rmbg",
   "all-minilm-l6-v2": "embed",
   "smolvlm-256m-instruct": "vlm",
+  "piiranha-v1": "pii",
+  "depth-anything-v2-small": "depth",
+  "clip-vit-base-patch32": "clip",
 };
 
 // Per-backend variant the live run loads when the headline pick is

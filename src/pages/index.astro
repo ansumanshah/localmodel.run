@@ -63,6 +63,7 @@ const heroDemos = [
   { id: "whisper-tiny", action: "Transcribe speech" },
   { id: "smollm2-135m-instruct", action: "Chat with an LLM" },
   { id: "kokoro-82m", action: "Synthesize a voice" },
+  { id: "piiranha-v1", action: "Redact PII from text" },
 ].map(({ id, action }) => {
   const m = browserModels.find((x) => x.id === id);
   if (!m) throw new Error(`index.astro heroDemos: browser model ${id} not found`);
@@ -80,7 +81,7 @@ const description = truncate(
 const faqs: FaqItem[] = [
   {
     q: "Can I run AI models in my browser without installing anything?",
-    a: `Yes. ${browserModels.length} models in the catalog run entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. ${heroDemos[0].model.name} transcribes speech after a ${heroDemos[0].size} download, ${heroDemos[1].model.name} chats after ${heroDemos[1].size}, ${heroDemos[2].model.name} speaks after ${heroDemos[2].size}. Six pages run them live with one click; every download size is measured from the HuggingFace file tree, not estimated.`,
+    a: `Yes. ${browserModels.length} models in the catalog run entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. ${heroDemos[0].model.name} transcribes speech after a ${heroDemos[0].size} download, ${heroDemos[1].model.name} chats after ${heroDemos[1].size}, ${heroDemos[2].model.name} speaks after ${heroDemos[2].size}. Nine pages run them live with one click; every download size is measured from the HuggingFace file tree, not estimated.`,
   },
   {
     q: "How do I know if my computer can run a local AI model?",

@@ -10,6 +10,7 @@ import {
   meta,
 } from "@/lib/data";
 import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+import { PLAYGROUND_TASKS } from "@/components/playground/registry";
 
 const path = "/browser";
 const LARGE_BYTES = 1500 * 1024 * 1024;
@@ -115,7 +116,10 @@ const jsonLd = [
                     class="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]"
                   >
                     <span class="min-w-0">
-                      <span class="block truncate font-medium">{m.name}</span>
+                      <span class="flex min-w-0 items-center gap-2">
+                        <span class="truncate font-medium">{m.name}</span>
+                        {PLAYGROUND_TASKS[m.id] && <span class="tag shrink-0">Live run</span>}
+                      </span>
                       <span class="mt-0.5 block text-xs text-muted-foreground">
                         {m.params_m != null ? <>{formatParamsM(m.params_m)} params &middot; </> : null}
                         {m.pipeline_task ?? "custom setup"}

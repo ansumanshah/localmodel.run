@@ -1564,7 +1564,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   PLAYGROUND — the six "Run it" pages. Same instrument: fields are wells,
+   PLAYGROUND — the nine "Run it" pages. Same instrument: fields are wells,
    outputs are readouts, the only motion is caused by the user's own run.
    ══════════════════════════════════════════════════════════════════════════ */
 .pg-input {
@@ -1687,4 +1687,24 @@
 }
 .pg-why summary:hover {
   color: var(--brand-ink);
+}
+/* PII scan: detected spans read as inked-over findings, verdict-no tinted.
+   box-decoration-break so a span wrapping a line keeps its background on
+   both fragments. */
+.pg-pii-mark {
+  background: color-mix(in oklch, var(--color-verdict-no) 16%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 1px 2px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.pg-pii-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--verdict-no-fg);
+  margin-left: 3px;
+  user-select: none;
 }
