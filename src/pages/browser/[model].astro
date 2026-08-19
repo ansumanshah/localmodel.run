@@ -16,6 +16,7 @@ import {
 import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
 import Playground from "@/components/playground/Playground";
 import { PLAYGROUND_RUN_OVERRIDES, PLAYGROUND_TASKS } from "@/components/playground/registry";
+import BrowserBadgeEmbed from "@/components/BrowserBadgeEmbed.astro";
 
 export function getStaticPaths() {
   return browserModels.map((model) => ({ params: { model: model.id }, props: { model } }));
@@ -330,6 +331,8 @@ const playgroundModel = playgroundTask
         </p>
       )}
     </section>
+
+    <BrowserBadgeEmbed model={model} />
 
     <Sources urls={model.sources.map((s) => s.url)} />
 

@@ -1,4 +1,6 @@
 import type { RunResult } from "@/lib/compute";
+import type { BrowserModelRow } from "@/data/types";
+import { formatBytes } from "@/lib/data";
 
 /*
   Shields-style status badge as inline SVG, generated at build time from the run
@@ -53,4 +55,43 @@ export function badgeContent(r: RunResult): { value: string; color: string } {
   if (r.verdict === "yes") return { value: `runs · ${gb} GB`, color: BADGE_COLOR.yes };
   if (r.verdict === "tight") return { value: `tight · ${gb} GB`, color: BADGE_COLOR.tight };
   return { value: `needs ${gb} GB`, color: BADGE_COLOR.no };
+}
+
+// Browser badge colour ladder, bucketed by the measured WebGPU headline
+// download weight (bytes), reusing the yes/tight/no hexes above. Same three
+// colours as the compatibility badge; the meaning here is size, not fit:
+//   small  : < 150 MB    -> yes   (a download that barely registers)
+//   medium : 150 MB-1 GB -> tight (a real but ordinary tab download)
+//   heavy  : >= 1 GB     -> no    (matches formatBytes' own MB-to-GB cutover)
+// Locked in badge.test.ts so a future catalog addition can't silently shift
+// the ladder without a deliberate test update.
+export const BROWSER_BADGE_SMALL_MAX_BYTES = 150 * 1024 * 1024; // 150 MB
+export const BROWSER_BADGE_HEAVY_MIN_BYTES = 1024 * 1024 * 1024; // 1 GB
+
+export type BrowserBadgeWeight = "small" | "medium" | "heavy";
+
+export function browserBadgeWeight(bytes: number): BrowserBadgeWeight {
+  if (bytes < BROWSER_BADGE_SMALL_MAX_BYTES) return "small";
+  if (bytes < BROWSER_BADGE_HEAVY_MIN_BYTES) return "medium";
+  return "heavy";
+}
+
+const BROWSER_BADGE_WEIGHT_COLOR: Record<BrowserBadgeWeight, string> = {
+  small: BADGE_COLOR.yes,
+  medium: BADGE_COLOR.tight,
+  heavy: BADGE_COLOR.no,
+};
+
+/**
+ * Map a browser (ONNX / Transformers.js) model row to the badge's
+ * right-segment text + colour. The value is always the measured WebGPU
+ * headline download, formatted with the same formatBytes() the model page
+ * itself uses, so the badge and the page it links to can never disagree.
+ */
+export function browserBadgeContent(model: BrowserModelRow): { value: string; color: string } {
+  const bytes = model.headline.webgpu.bytes;
+  return {
+    value: formatBytes(bytes),
+    color: BROWSER_BADGE_WEIGHT_COLOR[browserBadgeWeight(bytes)],
+  };
 }
