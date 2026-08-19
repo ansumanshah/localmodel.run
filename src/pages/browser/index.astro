@@ -9,6 +9,7 @@ import {
   formatParamsM,
   meta,
 } from "@/lib/data";
+import { browserTaskGroups } from "@/lib/browser-tasks";
 import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
 
 const path = "/browser";
@@ -23,6 +24,11 @@ const groups = browserModelsByTask().map((g) => ({
   ...g,
   rows: g.models.map((m) => ({ model: m, topInsight: browserTopComputedInsight(m) })),
 }));
+
+// Tasks that earn their own hub page under /browser/task (2+ models). The set
+// comes from the same helper the hub route uses, so a heading never links to a
+// page that was not generated.
+const hubTasks = new Set(browserTaskGroups().map((g) => g.task));
 
 const title = `${browserModels.length} AI models that run in your browser · localmodel.run`;
 const description = truncate(
@@ -105,7 +111,13 @@ const jsonLd = [
           <div class="panel overflow-hidden">
             <div class="panel-head">
               <span class="panel-label">{g.label}</span>
-              <span class="panel-label opacity-60">{g.models.length} model{g.models.length === 1 ? "" : "s"}</span>
+              {hubTasks.has(g.task) ? (
+                <a href={`/browser/task/${g.task}`} class="panel-label text-[var(--brand-ink)] underline">
+                  {g.models.length} model{g.models.length === 1 ? "" : "s"}, compared &rarr;
+                </a>
+              ) : (
+                <span class="panel-label opacity-60">{g.models.length} model{g.models.length === 1 ? "" : "s"}</span>
+              )}
             </div>
             <ul class="divide-y divide-border">
               {g.rows.map(({ model: m, topInsight }) => (

@@ -1,0 +1,244 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import {
+  browserGroupNotableModels,
+  browserGroupReadingBullets,
+  browserGroupSizeStats,
+  browserGroupSnippet,
+  browserGroupTotalBytes,
+  browserGroupVariantUniformity,
+  browserTaskGroups,
+  browserTaskH1,
+} from "@/lib/browser-tasks";
+import { formatBytes, formatParamsM, meta } from "@/lib/data";
+import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return browserTaskGroups().map((g) => ({ params: { task: g.task }, props: { group: g } }));
+}
+
+const { group } = Astro.props;
+const path = `/browser/task/${group.task}`;
+const label = group.label;
+// Strip a trailing parenthetical (only "Multimodal (any-to-any)" has one)
+// before lowercasing for inline prose; the full label still shows verbatim
+// in headings and the eyebrow.
+const labelLower = label.replace(/\s*\([^)]*\)\s*$/, "").toLowerCase();
+const stats = browserGroupSizeStats(group.models);
+const readingBullets = browserGroupReadingBullets(group.models);
+const notable = browserGroupNotableModels(group.models);
+const snippet = browserGroupSnippet(group);
+const variantUniformity = browserGroupVariantUniformity(group.models);
+const totalBytes = browserGroupTotalBytes(group.models);
+const h1 = browserTaskH1(group.task);
+const otherGroups = browserTaskGroups().filter((g) => g.task !== group.task);
+// browserGroupReadingBullets always returns the 3 guaranteed bullets (size
+// ratio, WASM inversion, under-100MB) plus a 4th density-spread bullet only
+// when its own guard fires (>=3 known params_m, >=1.5x spread).
+const hasDensityBullet = readingBullets.length > 3;
+
+const title = `${h1} · localmodel.run`;
+const description = truncate(
+  `${stats.count} ${labelLower} models run in the browser: ${formatBytes(stats.smallestBytes)} (${stats.smallest.name}) to ${formatBytes(stats.largestBytes)} (${stats.largest.name}) over WebGPU. Measured download sizes for every model, ranked, with a copy-paste Transformers.js snippet.`,
+);
+
+// Exactly 2 FAQs, both facts not stated on the page anywhere else: the
+// quant-uniformity breakdown (the ranked table shows per-row variants but
+// never the group-wide count) and the total download if you fetched every
+// model in the group (the lede states only the smallest/largest/median).
+const faqs: FaqItem[] = [
+  {
+    q: `Do all ${labelLower} models here use the same WebGPU quant?`,
+    a: variantUniformity.uniform
+      ? `Yes: all ${stats.count} models here use the ${variantUniformity.variant} WebGPU build.`
+      : `No. ${variantUniformity.counts.map((c) => `${c.count} use ${c.variant}`).join(", ")}. ${variantUniformity.counts[0]!.variant} is the most common pick.`,
+  },
+  {
+    q: `What would it cost to download every ${labelLower} model here?`,
+    a: `${formatBytes(totalBytes)} total over WebGPU across all ${stats.count} models, if you tried every one back to back. Most projects only need the single model that fits the job, not the whole set.`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Browser", url: "/browser" },
+      { name: label, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: h1,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    speakableSelector: [".verdict-text"],
+  }),
+  faqLd(faqs),
+  itemListLd({
+    name: `${label} models that run in the browser`,
+    items: group.models.map((m) => ({ name: m.name, url: `/browser/${m.id}` })),
+    origin: Astro.site!.href,
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogType="article" articleModified={meta.updated}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Browser", url: "/browser" }, { name: label, url: path }]} />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>{stats.count} models &middot; {label} &middot; Transformers.js</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">{h1}</h1>
+    <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+      <strong>{stats.count} models</strong> handle {labelLower} in the browser today, from <strong>{formatBytes(stats.smallestBytes)}</strong> ({stats.smallest.name}) to <strong>{formatBytes(stats.largestBytes)}</strong> ({stats.largest.name}), a {formatBytes(stats.medianBytes)} download at the midpoint. Every one runs with <a href="https://huggingface.co/docs/transformers.js" rel="noopener nofollow" class="underline">Transformers.js</a> over WebGPU or WebAssembly: no server, no install, no account.
+    </p>
+
+    <div class="wire mt-5" aria-hidden="true"></div>
+
+    <dl class="stat-grid mt-4">
+      <div class="stat">
+        <dt class="stat-label">Models</dt>
+        <dd class="stat-val"><span class="num">{stats.count}</span></dd>
+      </div>
+      <div class="stat">
+        <dt class="stat-label">Smallest</dt>
+        <dd class="stat-val"><span class="num">{formatBytes(stats.smallestBytes)}</span></dd>
+      </div>
+      <div class="stat">
+        <dt class="stat-label">Median</dt>
+        <dd class="stat-val"><span class="num">{formatBytes(stats.medianBytes)}</span></dd>
+      </div>
+      <div class="stat">
+        <dt class="stat-label">Largest</dt>
+        <dd class="stat-val"><span class="num">{formatBytes(stats.largestBytes)}</span></dd>
+      </div>
+    </dl>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Every {labelLower} model, ranked by WebGPU size</h2>
+      <div class="panel overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Model</span>
+          <span class="panel-label">WebGPU &middot; WASM</span>
+        </div>
+        <table class="w-full text-sm">
+          <thead class="sr-only">
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">WebGPU download</th>
+              <th scope="col">WASM download</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {group.models.map((m) => (
+              <tr>
+                <td class="px-4 py-2.5">
+                  <a href={`/browser/${m.id}`} class="font-medium hover:underline">{m.name}</a>
+                  {m.params_m != null && (
+                    <span class="block text-xs text-muted-foreground">{formatParamsM(m.params_m)} params</span>
+                  )}
+                </td>
+                <td class="px-4 py-2.5 text-right">
+                  <span class="num block">{formatBytes(m.headline.webgpu.bytes)}</span>
+                  <span class="block font-mono text-[10px] uppercase tracking-wide text-muted-foreground">{m.headline.webgpu.variant}</span>
+                </td>
+                <td class="px-4 py-2.5 text-right text-muted-foreground">
+                  <span class="num block">{formatBytes(m.headline.wasm.bytes)}</span>
+                  <span class="block font-mono text-[10px] uppercase tracking-wide">{m.headline.wasm.variant}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Sizes measured from the HuggingFace API file tree for each model's repo, not estimated. Sorted smallest to largest by the WebGPU headline pick.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Size ladder</h2>
+      <div class="panel divide-y divide-border">
+        {readingBullets.map((parts) => (
+          <p class="p-4 text-sm text-muted-foreground">
+            {parts.map((part) => (typeof part === "string" ? part : <span class="num">{part.num}</span>))}
+          </p>
+        ))}
+      </div>
+      {!hasDensityBullet && (
+        <p class="mt-2 text-xs text-muted-foreground">A bytes-per-parameter comparison needs at least 3 models with a verified parameter count and a real spread between them; this group does not clear that bar yet.</p>
+      )}
+    </section>
+
+    {snippet && (
+      <section class="mt-8">
+        <h2 class="mb-3 text-lg font-semibold">Use it with Transformers.js</h2>
+        <p class="mb-3 text-sm text-muted-foreground">Every {labelLower} model here shares the same pipeline() task, so one snippet covers the group. This one loads {stats.smallest.name}, the smallest download; swap the repo string for any other row in the table above.</p>
+        <div class="group relative">
+          <div class="relative rounded-[4px] border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] p-4 font-mono text-xs shadow-[inset_0_1px_0_0_var(--lite-specular)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-[1px] before:bg-[var(--color-brand)] before:content-['']">
+            <pre class="overflow-x-auto whitespace-pre pr-16 leading-relaxed"><code>{snippet}</code></pre>
+            <button
+              type="button"
+              class="copy-btn absolute right-3 top-3 shrink-0 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground opacity-0 transition hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              data-copy={snippet}
+              aria-label="Copy code"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground">Requires <code class="rounded bg-card px-1 py-0.5">npm install @huggingface/transformers</code> (or the CDN build).</p>
+      </section>
+    )}
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">Notable {labelLower} models</h2>
+      <div class="mt-3 divide-y divide-border rounded-lg border border-border">
+        {notable.map((m) => (
+          <a href={`/browser/${m.id}`} class="flex items-center justify-between gap-3 px-3 py-2 text-sm transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
+            <span class="truncate">
+              {m.id === stats.smallest.id && "Smallest: "}
+              {m.id === stats.largest.id && "Largest: "}
+              {m.id !== stats.smallest.id && m.id !== stats.largest.id && "Typical size: "}
+              {m.name}
+            </span>
+            <span class="num shrink-0 text-muted-foreground">{formatBytes(m.headline.webgpu.bytes)}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <p class="eyebrow mb-3"><span class="dot" aria-hidden="true"></span>Other tasks</p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {otherGroups.map((g) => (
+          <a href={`/browser/task/${g.task}`} class="panel card-seam group flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+            <span class="font-semibold">{g.label}</span>
+            <span class="tag">{g.models.length}</span>
+          </a>
+        ))}
+      </div>
+      <p class="mt-4 text-sm text-muted-foreground">
+        Or see <a href="/browser" class="underline">every browser model</a> grouped by task, or the <a href="/can-i-run" class="underline">main GGUF catalog</a> for native runtimes outside the browser.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">FAQ</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Sizes measured 2026-08-01 from the HuggingFace API. Last validated {meta.updated}. See <a href="/browser" class="underline">all browser models</a> or the <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>
