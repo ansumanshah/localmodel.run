@@ -15,7 +15,7 @@ import {
 } from "@/lib/data";
 import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
 import Playground from "@/components/playground/Playground";
-import { PLAYGROUND_RUN_OVERRIDES, PLAYGROUND_TASKS } from "@/components/playground/registry";
+import { PLAYGROUND_RUN_OVERRIDES, playgroundTaskFor } from "@/components/playground/registry";
 import BrowserBadgeEmbed from "@/components/BrowserBadgeEmbed.astro";
 
 export function getStaticPaths() {
@@ -104,9 +104,11 @@ const fitData = {
   wasmLabel: `${wasmSize} (${model.headline.wasm.variant})`,
 };
 
-// The six flagship pages carry a live "Run it" island (the only client JS on
-// /browser); it subsumes the static WebGPU live-check below.
-const playgroundTask = PLAYGROUND_TASKS[model.id];
+// Every model a runner can honestly drive carries a live "Run it" island
+// (the only client JS on /browser); it subsumes the static WebGPU live-check
+// below. See components/playground/registry.ts for the full enabled/denied
+// list and why each row landed where it did.
+const playgroundTask = playgroundTaskFor(model);
 // What the live run loads per backend: the headline pick unless an override
 // names a different (in-browser-verified) variant; bytes always come from the
 // measured variants table, never restated by hand.
