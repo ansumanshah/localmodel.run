@@ -1,14 +1,16 @@
 // Shared shapes for the "Run it" playground islands. The island ships on
-// exactly six /browser pages; everything heavy (transformers.js, kokoro-js)
-// lives behind dynamic imports in runners/ and loads only on user action.
+// every /browser model a runner can honestly drive, not a fixed set of pages
+// (see components/playground/registry.ts for the full enabled/denied list
+// and why); everything heavy (transformers.js, kokoro-js) lives behind
+// dynamic imports in runners/ and loads only on user action.
 
 export type PlaygroundTask =
-  | "chat" // smollm2-135m-instruct
-  | "asr" // whisper-tiny
-  | "tts" // kokoro-82m
-  | "rmbg" // rmbg-1.4
-  | "embed" // all-minilm-l6-v2
-  | "vlm"; // smolvlm-256m-instruct
+  | "chat" // pipeline("text-generation", ...): 13 catalog rows, SmolLM2-135M to Phi-3.5-mini
+  | "asr" // pipeline("automatic-speech-recognition", ...): the Whisper + Moonshine rows
+  | "tts" // kokoro-82m only, via the dedicated kokoro-js package
+  | "rmbg" // pipeline("background-removal", ...) for most rows; RMBG-1.4 is a bespoke custom-architecture exception
+  | "embed" // pipeline("feature-extraction", ...): the embeddings-task rows
+  | "vlm"; // smolvlm-256m-instruct only, no stable pipeline() task yet
 
 // Serializable subset of BrowserModelRow passed from the .astro page as
 // island props. Only what the client needs: identity + the promised numbers.

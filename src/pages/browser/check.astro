@@ -1,0 +1,138 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import BrowserCheck from "@/components/BrowserCheck";
+import { browserModels, formatBytes, meta } from "@/lib/data";
+import {
+  smallestCatalogDownload,
+  toCatalogEntries,
+  wasmFallbackCoverage,
+  wasmVsWebgpuCost,
+} from "@/lib/browser-check";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+// This route is a static file (check.astro) at the same level as the dynamic
+// [model].astro route. Astro resolves the static file first, but that only
+// matters if a catalog row could ever collide with the slug "check". Assert
+// it can't, at build time, rather than trusting that silently forever.
+if (browserModels.some((m) => m.id === "check")) {
+  throw new Error(
+    'A browser-models.json row has id "check", which collides with the static /browser/check route.',
+  );
+}
+
+const path = "/browser/check";
+const total = browserModels.length;
+
+// Every number below is computed from src/data/browser-models.json at build
+// time (see src/lib/browser-check.ts). Nothing here is typed in by hand.
+const wasmCoverage = wasmFallbackCoverage(browserModels);
+const smallest = smallestCatalogDownload(browserModels);
+const smallestSize = formatBytes(smallest.bytes);
+const smallestBackendLabel = smallest.backend === "webgpu" ? "WebGPU" : "WebAssembly";
+const cost = wasmVsWebgpuCost(browserModels);
+const catalogEntries = toCatalogEntries(browserModels);
+const pageUrl = new URL(path, Astro.site).href;
+
+const title = `WebGPU test: what can your browser actually run? · localmodel.run`;
+const description = truncate(
+  `A live capability report for this browser: WebGPU support, adapter info, WASM SIMD/threads, memory limits, and how many of ${total} in-browser AI models actually run here. Every value measured, not estimated.`,
+);
+
+// Exactly 2 questions, each answering something the static copy above states
+// but does not spell out in FAQ form, per the pSEO+FAQ house rule.
+const faqs: FaqItem[] = [
+  {
+    q: "Does WebGPU support depend on my operating system, or just my browser?",
+    a: "Both. WebGPU now ships by default in current Chrome, Edge, and Safari (26+); Firefox has it on Windows and Apple Silicon Macs but not everywhere yet. An older browser version, or Firefox on Linux, can lack it even when the browser family generally supports it. The live check on this page tells you which side of that line you're actually on, right now.",
+  },
+  {
+    q: "What does the WebAssembly fallback actually cost me?",
+    a: `Across this catalog, the WebAssembly build is a median ${cost.medianExtraPct}% larger than the WebGPU build for the same model (${cost.heavierCount} of ${total} models download bigger over WASM; ${cost.lighterCount} do not). It also runs on the CPU instead of the GPU, so it loads slower and infers slower, but it never blocks you outright: every model in this catalog ships a measured WASM build.`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Browser", url: "/browser" },
+      { name: "Browser check", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "Browser capability report: what can this browser run?",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    speakableSelector: [".verdict-text"],
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogType="article" articleModified={meta.updated}>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Browser", url: "/browser" }, { name: "Browser check", url: path }]} />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Browser capability report &middot; WebGPU + WASM</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      What can <span class="accent">your browser</span> actually run?
+    </h1>
+    <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+      <strong>{wasmCoverage} of {total} models</strong> in this catalog publish a measured WebAssembly build, so even a browser with no WebGPU support, the smallest common denominator, can still download and run every one of them, memory allowing. The lightest download in the whole catalog is <strong>{smallestSize}</strong> ({smallest.modelName}, {smallest.variant} over {smallestBackendLabel}). Run the live check below to see what this browser can do right now.
+    </p>
+    <p class="mt-2 text-pretty text-muted-foreground">
+      WebGPU adapter &middot; shader-f16 &middot; device limits &middot; WASM SIMD/threads &middot; memory &middot; storage quota, measured in-tab.
+    </p>
+
+    <section class="mt-8">
+      <h2 class="sr-only">Live browser capability check</h2>
+      {/* client:idle, not client:visible: the probe IS this page's main content,
+          so it should start as soon as the browser is free rather than waiting
+          for an intersection that may never fire (verified: the client:visible
+          build never hydrated at all in an automated Chrome, while the
+          playground island next door, on client:idle, hydrates every time). */}
+      <BrowserCheck client:idle catalog={catalogEntries} pageUrl={pageUrl} />
+      <noscript>
+        <p class="mt-3 text-sm text-muted-foreground">
+          Enable JavaScript to run the live capability check. Every model on this site still lists its measured download sizes either way; see <a href="/browser" class="underline">all {total} browser models</a>.
+        </p>
+      </noscript>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">What WebGPU support means in practice</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        <p class="p-4 text-sm text-muted-foreground">
+          WebGPU is the API that lets a browser tab run AI inference on your GPU instead of your CPU. It ships by default in current Chrome, Edge, and Safari (26+); Firefox has it on Windows and Apple Silicon Macs, with Linux support still catching up. Whether it is actually available to a given visitor depends on the browser version, the OS, and sometimes the GPU driver, not just "which browser": an old point release of an otherwise-supported browser can still lack it, and a locked-down enterprise build can disable it outright.
+        </p>
+        <p class="p-4 text-sm text-muted-foreground">
+          When WebGPU is not available, every model in this catalog falls back to a WebAssembly build that runs on the CPU. It is a real fallback, not a dead end: the model still downloads and still runs, just slower to load and slower to infer, and often (median <span class="num">{cost.medianExtraPct}%</span> across this catalog) as a larger download too, since the WASM-friendly int8 quant usually compresses less than the WebGPU q4f16 build. {cost.lighterCount} of {total} models buck that trend and download smaller over WASM.
+        </p>
+        <p class="p-4 text-sm text-muted-foreground">
+          Per-buffer limits are the trap worth knowing about even when WebGPU is available: <code class="rounded bg-card px-1.5 py-0.5 text-xs">maxBufferSize</code> caps a single buffer, not your total download or your GPU's total VRAM. A model's total weight file can still exceed it even on a GPU with memory to spare, because the runtime has to fit each individual weight tensor's buffer under that ceiling. The live check above reads your browser's actual reported value, not a guess.
+        </p>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold">FAQ</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Catalog sizes measured 2026-08-01 from the HuggingFace API. Last validated {meta.updated}. Every browser signal above is measured live in your own tab via <a href="https://github.com/ansumanshah/localfit" rel="noopener nofollow" class="underline">localfit</a> and the Web APIs it wraps (WebGPU, WebAssembly, Storage), never estimated. See <a href="/browser" class="underline">all {total} browser models</a> or try the <a href="/" class="underline">main hardware detector</a> for the native GGUF catalog.
+    </p>
+  </div>
+</Base>
