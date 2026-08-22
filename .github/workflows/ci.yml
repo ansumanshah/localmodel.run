@@ -36,7 +36,7 @@ jobs:
       # deliberately, together with the lockfile.
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.14
+          bun-version: 1.4.0
 
       # Cache the resolved package store so installs are near-instant after the first run.
       - name: Cache bun install
