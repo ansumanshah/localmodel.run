@@ -28,12 +28,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Pinned, not `latest`. A floating version means a bun release can change
-      # this build with zero commits, and local/CI disagreeing on bun is what
-      # makes bun.lock regeneration dangerous: bun 1.4.0 strips all 25
-      # @rollup/rollup-* optional platform entries (including the linux-x64-gnu
-      # this runner needs) while rollup@4.62.0 still declares them. Bump this
-      # deliberately, together with the lockfile.
+      # Pinned, not `latest`: a floating toolchain lets a bun release change this
+      # build with zero commits, on a repo that auto-deploys off main.
+      # Pinned to 1.4.0 to MATCH the local bun. That divergence is what made
+      # bun.lock regeneration dangerous, because 1.4.0 strips all 25
+      # @rollup/rollup-* optional platform entries when it rewrites a lockfile,
+      # including the linux-x64-gnu this runner needs, while rollup@4.62.0 still
+      # declares them. Verified on #50 that 1.4.0 INSTALLS the current lockfile
+      # cleanly under --frozen-lockfile and builds all 6,972 pages on Linux, so
+      # the stripping only bites on regeneration, not on install.
+      # Keep this in step with the bun that generates bun.lock.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
