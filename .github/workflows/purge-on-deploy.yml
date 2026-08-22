@@ -17,9 +17,13 @@ name: Purge CF cache after deploy
 # OLD build, and `stale-while-revalidate=86400` then serves it for a day. Both
 # times it happened the purge itself reported success, so the workflow looked
 # healthy while production was stale.
-# The site cannot be polled for readiness from here: Cloudflare blocks the
-# runner's datacenter IP, so a readiness check silently never matches. Purging
-# twice with a wait in between needs no network access to the site at all.
+# A readiness check ("poll the site until it serves the new build, then purge")
+# was tried in #45 and silently never matched: from a GitHub runner the fetch
+# comes back empty, while the identical command works from a laptop and the
+# site is demonstrably serving the new build. The cause is still unconfirmed,
+# so the purge deliberately does NOT depend on reading the site at all. The
+# diagnostic step below exists purely to identify it; once it does, a readiness
+# check can replace the fixed wait.
 
 on:
   check_run:
@@ -92,16 +96,28 @@ jobs:
           purge || { echo "Second purge failed." >&2; exit 1; }
           echo "✓ Edge cleared after promotion."
 
-      # Best-effort only, and it must never fail the job: this request is very
-      # likely blocked from a GitHub runner. It exists so the log records the
-      # HTTP status, which is how we find out if that ever changes.
-      - name: Report what the edge serves (diagnostic, never fatal)
+      # Diagnostic ONLY, never fatal. #45's readiness check read an empty value
+      # on every attempt from a runner while the site was demonstrably up, and
+      # the first guess (Cloudflare blocking datacenter IPs) was disproved: a
+      # datacenter-based fetcher retrieves this URL fine. The remaining
+      # suspicion is the request shape rather than the source, so probe both a
+      # bare curl and a browser-UA curl and record the HTTP status of each.
+      - name: Why can a runner not read the site? (diagnostic, never fatal)
         continue-on-error: true
         run: |
-          code=$(curl -s -o /tmp/v.json -w '%{http_code}' --max-time 20 https://localmodel.run/version.json || echo "000")
-          echo "GET /version.json -> HTTP $code"
-          if [ "$code" = "200" ]; then
-            echo "  served: $(jq -c '{version,commit}' /tmp/v.json 2>/dev/null)"
-          else
-            echo "  (no body; datacenter IPs are expected to be blocked here)"
-          fi
+          probe() {
+            label="$1"; shift
+            code=$(curl -s -o /tmp/v.json -w '%{http_code}' --max-time 20 "$@" \
+                     https://localmodel.run/version.json || echo "000")
+            echo "  $label -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "      body: $(head -c 120 /tmp/v.json | tr -d '\n')"
+            else
+              echo "      first bytes: $(head -c 160 /tmp/v.json | tr -d '\n')"
+            fi
+          }
+          echo "Probing localmodel.run/version.json from this runner:"
+          probe "bare curl (default UA)"
+          probe "browser UA" -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36"
+          probe "IPv4 forced" -4
+          echo "curl: $(curl --version | head -1)"
