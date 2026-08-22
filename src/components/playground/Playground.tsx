@@ -40,6 +40,11 @@ const RUNNERS: Record<PlaygroundTask, () => Promise<{ load(opts: LoadOpts): Prom
   clip: () => import("./runners/clip"),
 };
 
+// ~600 MB, in the same MiB-labeled-"MB" units formatBytes displays. Past
+// this, the idle state names the download as big in words before the click,
+// on top of (not instead of) the byte count already shown above it.
+const BIG_DOWNLOAD_BYTES = 600 * 1024 * 1024;
+
 const STAMP: Record<
   string,
   { word: string; fg: string; icon: "yes" | "tight" | "no" | "unknown" }
@@ -192,6 +197,13 @@ export default function Playground({ model, task }: PlaygroundProps) {
                 {backend === "webgpu" ? "on your GPU over WebGPU" : "on your CPU over WebAssembly"},
                 entirely in this tab. Nothing downloads until you press it.
               </p>
+              {promisedBytes > BIG_DOWNLOAD_BYTES && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  That is a big download for a browser tab. It can take several minutes on a
+                  typical connection, and the browser keeps the full model in memory once it
+                  loads.
+                </p>
+              )}
               {model.runNote && dtype !== model.headline[backend].variant && (
                 <p className="mt-2 text-xs text-muted-foreground">{model.runNote}</p>
               )}

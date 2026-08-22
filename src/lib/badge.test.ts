@@ -1,7 +1,17 @@
 import { describe, expect, test } from 'bun:test'
 
-import { badgeContent, badgeSvg, BADGE_COLOR } from './badge'
+import {
+  badgeContent,
+  badgeSvg,
+  browserBadgeContent,
+  browserBadgeWeight,
+  BADGE_COLOR,
+  BROWSER_BADGE_HEAVY_MIN_BYTES,
+  BROWSER_BADGE_SMALL_MAX_BYTES,
+} from './badge'
+import { browserModels, formatBytes } from './data'
 import type { RunResult } from './compute'
+import type { BrowserModelRow } from '@/data/types'
 
 // The /badge/[model]/[device].svg output is embedded in third-party HuggingFace
 // and GitHub READMEs. A regression here (unescaped XML, wrong verdict colour,
@@ -108,5 +118,97 @@ describe('badgeContent', () => {
       const { value, color } = badgeContent(run(v, 12.3))
       expect(badgeSvg('Runs on device', value, color)).not.toMatch(UNESCAPED_AMP)
     }
+  })
+})
+
+// /badge/browser/<model>/size.svg: the browser-catalog badge. Only
+// `headline.webgpu.bytes` feeds it; the rest is filler to satisfy the
+// BrowserModelRow shape.
+const MB = 1024 * 1024
+function browserModel(over: Partial<BrowserModelRow> = {}): BrowserModelRow {
+  return {
+    id: 't',
+    name: 'T',
+    hf_repo: 'onnx-community/t',
+    task: 'vision',
+    params_m: 100,
+    headline: {
+      webgpu: { variant: 'fp16', bytes: 100 * MB },
+      wasm: { variant: 'uint8', bytes: 50 * MB },
+    },
+    variants: { fp16: 100 * MB, uint8: 50 * MB },
+    pipeline_task: null,
+    sources: [],
+    ...over,
+  }
+}
+
+describe('browserBadgeContent', () => {
+  test('the value is exactly formatBytes() of the WebGPU headline, never a hand-rolled string', () => {
+    for (const bytes of [2_929_425, 50 * MB, 150 * MB, 1024 * MB, 4_366_542_985]) {
+      const m = browserModel({ headline: { webgpu: { variant: 'q4f16', bytes }, wasm: { variant: 'q8', bytes } } })
+      expect(browserBadgeContent(m).value).toBe(formatBytes(bytes))
+    }
+  })
+
+  test('every real browser model in the catalog produces a badge', () => {
+    expect(browserModels.length).toBeGreaterThan(0)
+    for (const m of browserModels) {
+      const { value, color } = browserBadgeContent(m)
+      expect(value).toBe(formatBytes(m.headline.webgpu.bytes))
+      expect(value.length).toBeGreaterThan(0)
+      expect([BADGE_COLOR.yes, BADGE_COLOR.tight, BADGE_COLOR.no]).toContain(color)
+      // Real catalog values (max measured is single-digit GB) must never clip
+      // the Verdana-11px segWidth() heuristic: sanity-check the rendered SVG.
+      const svg = badgeSvg('in browser', value, color)
+      expect(svg).not.toMatch(UNESCAPED_AMP)
+      const total = Number(svg.match(/^<svg[^>]*\swidth="(\d+)"/)![1])
+      expect(total).toBeGreaterThan(0)
+    }
+  })
+
+  // Threshold ladder, documented in badge.ts: small < 150 MB -> yes,
+  // medium 150 MB-1 GB -> tight, heavy >= 1 GB -> no. Locked here so a future
+  // edit to the ladder is a deliberate test change, not a silent drift.
+  describe('browserBadgeWeight threshold ladder', () => {
+    test('small: just under 150 MB', () => {
+      expect(browserBadgeWeight(BROWSER_BADGE_SMALL_MAX_BYTES - 1)).toBe('small')
+      expect(browserBadgeContent(browserModel({ headline: { webgpu: { variant: 'q4f16', bytes: 1 * MB }, wasm: { variant: 'q8', bytes: 1 * MB } } })).color).toBe(BADGE_COLOR.yes)
+    })
+
+    test('medium: at 150 MB up to just under 1 GB', () => {
+      expect(browserBadgeWeight(BROWSER_BADGE_SMALL_MAX_BYTES)).toBe('medium')
+      expect(browserBadgeWeight(BROWSER_BADGE_HEAVY_MIN_BYTES - 1)).toBe('medium')
+      expect(browserBadgeContent(browserModel({ headline: { webgpu: { variant: 'fp16', bytes: 500 * MB }, wasm: { variant: 'q8', bytes: 200 * MB } } })).color).toBe(BADGE_COLOR.tight)
+    })
+
+    test('heavy: at 1 GB and above', () => {
+      expect(browserBadgeWeight(BROWSER_BADGE_HEAVY_MIN_BYTES)).toBe('heavy')
+      expect(browserBadgeContent(browserModel({ headline: { webgpu: { variant: 'q4f16', bytes: 3 * 1024 * MB }, wasm: { variant: 'q8', bytes: 1024 * MB } } })).color).toBe(BADGE_COLOR.no)
+    })
+  })
+
+  test('escaping holds even if a model name or id carries XML-special characters', () => {
+    // browserBadgeContent never reads model.name/id today, but the fixture
+    // deliberately poisons them so this test still guards the contract if a
+    // future edit starts interpolating the model into the label: the value
+    // must still be a clean formatBytes() string and badgeSvg() must still
+    // escape cleanly end to end.
+    const dirty = browserModel({
+      id: 't&<>"',
+      name: 'A & B <script> "quoted"',
+      headline: { webgpu: { variant: 'q4f16', bytes: 250 * MB }, wasm: { variant: 'q8', bytes: 100 * MB } },
+    })
+    const { value, color } = browserBadgeContent(dirty)
+    expect(value).toBe(formatBytes(250 * MB))
+    expect(value).not.toMatch(UNESCAPED_AMP)
+    const svg = badgeSvg('in browser', value, color)
+    expect(svg).not.toMatch(UNESCAPED_AMP)
+    expect(svg).not.toContain('<script>')
+  })
+
+  test('the byte string always matches formatBytes exactly, MB and GB alike', () => {
+    expect(browserBadgeContent(browserModel({ headline: { webgpu: { variant: 'fp16', bytes: Math.round(112.2 * MB) }, wasm: { variant: 'q8', bytes: 1 } } })).value).toBe('112.2 MB')
+    expect(browserBadgeContent(browserModel({ headline: { webgpu: { variant: 'q4f16', bytes: Math.round(4.16 * 1024 * MB) }, wasm: { variant: 'q8', bytes: 1 } } })).value).toBe('4.16 GB')
   })
 })

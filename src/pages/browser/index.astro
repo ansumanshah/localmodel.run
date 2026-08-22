@@ -9,8 +9,9 @@ import {
   formatParamsM,
   meta,
 } from "@/lib/data";
+import { browserTaskGroups } from "@/lib/browser-tasks";
 import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
-import { PLAYGROUND_TASKS } from "@/components/playground/registry";
+import { playgroundTaskFor } from "@/components/playground/registry";
 
 const path = "/browser";
 const LARGE_BYTES = 1500 * 1024 * 1024;
@@ -24,6 +25,11 @@ const groups = browserModelsByTask().map((g) => ({
   ...g,
   rows: g.models.map((m) => ({ model: m, topInsight: browserTopComputedInsight(m) })),
 }));
+
+// Tasks that earn their own hub page under /browser/task (2+ models). The set
+// comes from the same helper the hub route uses, so a heading never links to a
+// page that was not generated.
+const hubTasks = new Set(browserTaskGroups().map((g) => g.task));
 
 const title = `${browserModels.length} AI models that run in your browser · localmodel.run`;
 const description = truncate(
@@ -81,6 +87,9 @@ const jsonLd = [
         {browserModels.length} models, one tab each: no install, no server, no Ollama. They run with <a href="https://huggingface.co/docs/transformers.js" rel="noopener nofollow" class="underline">Transformers.js</a> over WebGPU or WebAssembly, and every download size below is <strong class="text-foreground">measured from the HuggingFace API</strong>, not estimated.
       </p>
       <p class="mt-3 text-sm text-muted-foreground">
+        Not sure what this browser can handle? Run the <a href="/browser/check" class="text-[var(--brand-ink)] underline">browser capability check</a>: WebGPU support, adapter, memory limits, and how many of these {browserModels.length} models fit here.
+      </p>
+      <p class="mt-3 text-sm text-muted-foreground">
         Running models outside the browser? See the <a href="/can-i-run" class="text-[var(--brand-ink)] underline">main GGUF catalog</a> for native runtimes (Ollama, llama.cpp, LM Studio) across desktop and mobile hardware.
       </p>
 
@@ -106,7 +115,13 @@ const jsonLd = [
           <div class="panel overflow-hidden">
             <div class="panel-head">
               <span class="panel-label">{g.label}</span>
-              <span class="panel-label opacity-60">{g.models.length} model{g.models.length === 1 ? "" : "s"}</span>
+              {hubTasks.has(g.task) ? (
+                <a href={`/browser/task/${g.task}`} class="panel-label text-[var(--brand-ink)] underline">
+                  {g.models.length} model{g.models.length === 1 ? "" : "s"}, compared &rarr;
+                </a>
+              ) : (
+                <span class="panel-label opacity-60">{g.models.length} model{g.models.length === 1 ? "" : "s"}</span>
+              )}
             </div>
             <ul class="divide-y divide-border">
               {g.rows.map(({ model: m, topInsight }) => (
@@ -118,7 +133,7 @@ const jsonLd = [
                     <span class="min-w-0">
                       <span class="flex min-w-0 items-center gap-2">
                         <span class="truncate font-medium">{m.name}</span>
-                        {PLAYGROUND_TASKS[m.id] && <span class="tag shrink-0">Live run</span>}
+                        {playgroundTaskFor(m) && <span class="tag shrink-0">Live run</span>}
                       </span>
                       <span class="mt-0.5 block text-xs text-muted-foreground">
                         {m.params_m != null ? <>{formatParamsM(m.params_m)} params &middot; </> : null}

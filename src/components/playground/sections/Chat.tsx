@@ -9,7 +9,7 @@ interface SectionProps {
 const PRESETS = [
   "Write a haiku about running an LLM in a browser tab.",
   "Explain WebGPU to a five-year-old in two sentences.",
-  "List three uses for a 135M-parameter model.",
+  "List three uses for a language model small enough to run in a browser tab.",
 ];
 
 export default function ChatSection({ api, onMetrics }: SectionProps) {

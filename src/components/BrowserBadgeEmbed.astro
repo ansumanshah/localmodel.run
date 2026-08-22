@@ -1,0 +1,37 @@
+---
+// Self-contained "Embed this" panel for a /browser model page: renders the
+// live badge from /badge/browser/[model]/size.svg, plus copy-ready Markdown
+// and HTML embed snippets. Modeled on the GGUF pair page's own "Embed this"
+// panel (src/pages/can-i-run/[model]/[device].astro) so the two read as one
+// system. Takes the model row as its only prop; the caller does not own this
+// component's markup.
+import type { BrowserModelRow } from "@/data/types";
+import { formatBytes } from "@/lib/data";
+import Command from "@/components/Command.astro";
+
+interface Props {
+  model: BrowserModelRow;
+}
+
+const { model } = Astro.props;
+const badgeSrc = `/badge/browser/${model.id}/size.svg`;
+const badgeUrl = `https://localmodel.run${badgeSrc}`;
+const pageUrl = `https://localmodel.run/browser/${model.id}`;
+const size = formatBytes(model.headline.webgpu.bytes);
+---
+
+<section class="mt-10">
+  <p class="eyebrow mb-3"><span class="dot" aria-hidden="true"></span>Embed this</p>
+  <div class="panel p-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <img src={badgeSrc} alt={`${model.name} in-browser download size badge`} class="h-5 w-auto" loading="lazy" />
+      <span class="text-sm text-muted-foreground">A live badge for your model card or README: <span class="num">{size}</span> over WebGPU, updated as the data is.</span>
+    </div>
+    <div class="mt-3">
+      <Command code={`[![${model.name} in browser](${badgeUrl})](${pageUrl})`} label="Markdown" />
+    </div>
+    <div class="mt-3">
+      <Command code={`<a href="${pageUrl}"><img src="${badgeUrl}" alt="${model.name} in browser" /></a>`} label="HTML" />
+    </div>
+  </div>
+</section>
