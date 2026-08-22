@@ -10,20 +10,35 @@ name: Purge CF cache after deploy
 # small set. Everything-purge is simpler, correct, and the edge re-warms in
 # seconds. workflow_dispatch is kept for manual purges / testing.
 #
-# WHY THE DOUBLE PURGE BELOW EXISTS (load-bearing, twice bitten):
-# the check run goes green when Cloudflare finishes BUILDING, which is not the
-# same moment the new deployment is promoted to the live domain. Purging in that
+# ── THE RACE THIS EXISTS TO PREVENT (twice bitten) ─────────────────────────
+# The check run goes green when Cloudflare finishes BUILDING, which is NOT the
+# moment the new deployment is promoted to the live domain. Purging inside that
 # window is worse than not purging at all: the edge immediately re-caches the
 # OLD build, and `stale-while-revalidate=86400` then serves it for a day. Both
 # times it happened the purge itself reported success, so the workflow looked
 # healthy while production was stale.
-# A readiness check ("poll the site until it serves the new build, then purge")
-# was tried in #45 and silently never matched: from a GitHub runner the fetch
-# comes back empty, while the identical command works from a laptop and the
-# site is demonstrably serving the new build. The cause is still unconfirmed,
-# so the purge deliberately does NOT depend on reading the site at all. The
-# diagnostic step below exists purely to identify it; once it does, a readiness
-# check can replace the fixed wait.
+#
+# ── WHY WE POLL pages.dev AND NOT THE REAL DOMAIN ──────────────────────────
+# The obvious readiness check is "poll the site until it serves the new build".
+# Polling localmodel.run does NOT work from Actions, and fails silently, which
+# is how #45 shipped a check that could never match. Confirmed by probing from
+# a runner: every request to localmodel.run returns
+#     HTTP 403  <title>Just a moment...</title>
+# which is Cloudflare's Bot Fight Mode interstitial. It fires for bare curl, for
+# a browser User-Agent, and over forced IPv4 alike, so it is the zone's bot
+# protection and not the request shape. Bot Fight Mode stays ON deliberately
+# (it turns away roughly 600 bots a day); the same block is why IndexNow
+# submits from a local dist/ rather than from CI.
+#
+# localmodel-run.pages.dev serves the SAME deployment but lives on Cloudflare's
+# own pages.dev domain, outside this zone, so the zone's Bot Fight Mode does not
+# apply to it. That gives CI a readable promotion signal without weakening any
+# security setting. /version.json is served `no-store`, so it always reflects
+# the origin rather than an edge cache.
+#
+# If that ever stops being readable, the job does NOT get stuck or silently
+# no-op: it falls back to the blind purge-wait-purge that this workflow used
+# before, and says so in the log.
 
 on:
   check_run:
@@ -37,6 +52,10 @@ concurrency:
   group: purge-cf
   cancel-in-progress: false
 
+env:
+  # Same deployment as localmodel.run, but outside the zone's Bot Fight Mode.
+  READINESS_HOST: https://localmodel-run.pages.dev
+
 jobs:
   purge:
     # Only on a successful PRODUCTION (main) Cloudflare Pages deploy, or a manual run.
@@ -47,24 +66,40 @@ jobs:
        github.event.check_run.check_suite.head_branch == 'main')
     runs-on: ubuntu-latest
     steps:
-      # WHY A BLIND DOUBLE PURGE AND NOT A READINESS CHECK:
-      # the obvious fix is "poll the site until it serves the new version, then
-      # purge". That was tried and it does not work from CI. Cloudflare blocks
-      # the runner's datacenter IP, so every request from here comes back empty
-      # and the wait can never observe the promotion. (Same reason IndexNow
-      # submits from a local dist/ rather than from Actions.) The run still went
-      # green because it fell through to its own warning path, which is exactly
-      # the kind of "successful" workflow that hid this bug twice already.
-      #
-      # So: purge once now, wait past the promotion window, purge again. The
-      # second purge is the one that matters. It evicts anything the edge
-      # re-cached from the old build during the swap. Purges are free and
-      # unlimited on Cloudflare, so a redundant one costs nothing, and unlike a
-      # readiness check this cannot silently no-op.
-      - name: Purge, wait past the promotion window, purge again
+      # Checked out only to read the expected version out of package.json.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.check_run.head_sha || github.sha }}
+
+      - name: Wait for the deployment to be promoted
+        id: wait
+        run: |
+          expected=$(jq -r .version package.json)
+          echo "expected=$expected" >> "$GITHUB_OUTPUT"
+          echo "Waiting for $READINESS_HOST to serve version $expected"
+          for a in $(seq 1 20); do
+            code=$(curl -s -o /tmp/v.json -w '%{http_code}' --max-time 20 \
+                     "$READINESS_HOST/version.json" || echo "000")
+            got=$(jq -r '.version // "?"' /tmp/v.json 2>/dev/null || echo "?")
+            if [ "$code" = "200" ] && [ "$got" = "$expected" ]; then
+              echo "promoted=true" >> "$GITHUB_OUTPUT"
+              echo "✓ promoted: $READINESS_HOST serves $expected (after $a check(s))"
+              exit 0
+            fi
+            echo "  attempt $a: HTTP $code, version '$got', want '$expected'"
+            sleep 15
+          done
+          # Never fatal. A manual dispatch has no new deploy to wait for, and if
+          # the readiness host stops being readable we still want the purge to
+          # happen; the next step just falls back to the blind double purge.
+          echo "promoted=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Could not confirm promotion via $READINESS_HOST; falling back to a blind double purge."
+
+      - name: Purge the edge
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          PROMOTED: ${{ steps.wait.outputs.promoted }}
         run: |
           api="https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache"
           purge() {
@@ -83,41 +118,33 @@ jobs:
             return 1
           }
 
-          echo "Purge 1 of 2 (immediate):"
-          purge || { echo "First purge failed." >&2; exit 1; }
+          if [ "$PROMOTED" = "true" ]; then
+            # Promotion is confirmed, so a single purge lands after the swap and
+            # there is nothing left to race against.
+            echo "Promotion confirmed. Purging once:"
+            purge || { echo "Purge failed." >&2; exit 1; }
+          else
+            # Unconfirmed: purge, wait past the promotion window, purge again.
+            # The second purge is the load-bearing one, evicting anything the
+            # edge re-cached from the old build during the swap.
+            echo "Promotion unconfirmed. Purge 1 of 2 (immediate):"
+            purge || { echo "First purge failed." >&2; exit 1; }
+            echo "Waiting 150s for the deployment to be promoted..."
+            sleep 150
+            echo "Purge 2 of 2 (post-promotion, the load-bearing one):"
+            purge || { echo "Second purge failed." >&2; exit 1; }
+          fi
+          echo "✓ Edge cleared."
 
-          # Long enough to clear the gap between the Pages check going green and
-          # the new deployment actually serving. Observed at roughly a minute;
-          # 150s leaves real headroom without holding the runner long.
-          echo "Waiting 150s for the deployment to be promoted..."
-          sleep 150
-
-          echo "Purge 2 of 2 (post-promotion, the load-bearing one):"
-          purge || { echo "Second purge failed." >&2; exit 1; }
-          echo "✓ Edge cleared after promotion."
-
-      # Diagnostic ONLY, never fatal. #45's readiness check read an empty value
-      # on every attempt from a runner while the site was demonstrably up, and
-      # the first guess (Cloudflare blocking datacenter IPs) was disproved: a
-      # datacenter-based fetcher retrieves this URL fine. The remaining
-      # suspicion is the request shape rather than the source, so probe both a
-      # bare curl and a browser-UA curl and record the HTTP status of each.
-      - name: Why can a runner not read the site? (diagnostic, never fatal)
+      # Records what each host returns so a future change in either one is
+      # visible in the log rather than being rediscovered the hard way.
+      # localmodel.run is expected to 403 here; that is Bot Fight Mode working.
+      - name: Host readability (diagnostic, never fatal)
         continue-on-error: true
         run: |
           probe() {
-            label="$1"; shift
-            code=$(curl -s -o /tmp/v.json -w '%{http_code}' --max-time 20 "$@" \
-                     https://localmodel.run/version.json || echo "000")
-            echo "  $label -> HTTP $code"
-            if [ "$code" = "200" ]; then
-              echo "      body: $(head -c 120 /tmp/v.json | tr -d '\n')"
-            else
-              echo "      first bytes: $(head -c 160 /tmp/v.json | tr -d '\n')"
-            fi
+            code=$(curl -s -o /tmp/p.json -w '%{http_code}' --max-time 20 "$1/version.json" || echo "000")
+            printf '  %-34s HTTP %s  %s\n' "$1" "$code" "$(head -c 90 /tmp/p.json | tr -d '\n')"
           }
-          echo "Probing localmodel.run/version.json from this runner:"
-          probe "bare curl (default UA)"
-          probe "browser UA" -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36"
-          probe "IPv4 forced" -4
-          echo "curl: $(curl --version | head -1)"
+          probe "$READINESS_HOST"
+          probe "https://localmodel.run"
