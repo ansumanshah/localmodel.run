@@ -20,14 +20,15 @@ import type { PlaygroundTask } from "./types";
 //     below instead, because its config forces a bespoke path within the
 //     same runner file.
 //   depth (runners/depth.ts) pipeline("depth-estimation", ...)
-//   clip  (runners/clip.ts)  pipeline("zero-shot-image-classification", ...)
+// NOT here: zero-shot-image-classification. The clip runner drives that call
+// generically, but the catalog's other row for it (SigLIP2) throws at runtime,
+// so clip-vit-base-patch32 is enabled per-model in PLAYGROUND_EXTRA instead.
 export const PIPELINE_TASK_RUNNER: Record<string, PlaygroundTask> = {
   "text-generation": "chat",
   "automatic-speech-recognition": "asr",
   "feature-extraction": "embed",
   "background-removal": "rmbg",
   "depth-estimation": "depth",
-  "zero-shot-image-classification": "clip",
 };
 
 // Models with a verified bespoke runner that bypasses the generic
@@ -44,6 +45,12 @@ export const PLAYGROUND_EXTRA: Record<string, PlaygroundTask> = {
   // redacted text" output would be nonsense for them. The runner reads
   // piiranha's PII label set specifically.
   "piiranha-v1": "pii",
+  // pipeline_task IS "zero-shot-image-classification" and the clip runner
+  // makes that exact generic call, but this is per-model on purpose: the only
+  // other row with that task (siglip2-base-patch16-224) throws at runtime, so
+  // mapping the task would ship a broken button. Verified working in Chrome on
+  // Apple silicon 2026-08-22.
+  "clip-vit-base-patch32": "clip",
   // pipeline_task is null: the config declares a custom architecture string
   // no auto-class maps to. AutoModel + a hand-supplied processor config
   // (runners/rmbg.ts, the same flow the official remove-background-web demo
@@ -83,6 +90,8 @@ export const PLAYGROUND_DENY: Record<string, string> = {
     "The q4f16 decoder export onnxruntime loads for this model is rejected as an invalid graph (subgraph output returned directly from outer scope), verified live in Chrome on Apple silicon 2026-08-20. Whisper covers the same task here and runs.",
   "moonshine-base":
     "Same invalid-graph rejection as moonshine-tiny, verified live in Chrome on Apple silicon 2026-08-20, so the fault is the ONNX export rather than the device. Whisper covers the same task here and runs.",
+  "siglip2-base-patch16-224":
+    "The clip runner's pipeline(\"zero-shot-image-classification\", ...) call loads this repo but throws \"Invalid array length\" at inference, verified by pressing Run in Chrome on Apple silicon 2026-08-22. CLIP ViT-B/32 covers the same task here and runs. Worth retrying against a non-q4f16 build before re-enabling.",
   "bge-reranker-v2-m3":
     "Rerankers score a (query, passage) pair, not a single string. The catalog's own pipeline_task for this row is text-classification, not feature-extraction, so the embed runner's single-text cosine-similarity flow does not apply.",
 };
