@@ -3,15 +3,16 @@
 // (see components/playground/registry.ts for the full enabled/denied list
 // and why); everything heavy (transformers.js, kokoro-js) lives behind
 // dynamic imports in runners/ and loads only on user action.
-
 export type PlaygroundTask =
   | "chat" // pipeline("text-generation", ...): 13 catalog rows, SmolLM2-135M to Phi-3.5-mini
-  | "asr" // pipeline("automatic-speech-recognition", ...): the Whisper + Moonshine rows
+  | "asr" // pipeline("automatic-speech-recognition", ...): the Whisper rows (Moonshine is denied, see registry)
   | "tts" // kokoro-82m only, via the dedicated kokoro-js package
   | "rmbg" // pipeline("background-removal", ...) for most rows; RMBG-1.4 is a bespoke custom-architecture exception
   | "embed" // pipeline("feature-extraction", ...): the embeddings-task rows
-  | "vlm"; // smolvlm-256m-instruct only, no stable pipeline() task yet
-
+  | "vlm" // smolvlm-256m-instruct only, no stable pipeline() task yet
+  | "pii" // pipeline("token-classification", ...): piiranha-v1 only, its PII label set specifically
+  | "depth" // pipeline("depth-estimation", ...)
+  | "clip"; // pipeline("zero-shot-image-classification", ...)
 // Serializable subset of BrowserModelRow passed from the .astro page as
 // island props. Only what the client needs: identity + the promised numbers.
 export interface PlaygroundModel {
@@ -123,4 +124,41 @@ export interface VlmApi {
   ): Promise<GenerationResult>;
 }
 
-export type TaskApi = ChatApi | AsrApi | TtsApi | RmbgApi | EmbedApi | VlmApi;
+/** One detected PII span, with exact character offsets into the input text. */
+export interface PiiEntity {
+  start: number;
+  end: number;
+  /** Plain-words category tag: NAME, EMAIL, PHONE, CARD, SSN, ... */
+  tag: string;
+  text: string;
+  /** Mean model confidence across the span's tokens, 0..1. */
+  score: number;
+}
+
+export interface PiiApi {
+  detect(text: string): Promise<{ entities: PiiEntity[]; ms: number }>;
+}
+
+export interface DepthApi {
+  /** Returns an object URL of the colorized depth-map PNG (bright = near). */
+  estimate(imageUrl: string): Promise<{ url: string; ms: number; width: number; height: number }>;
+}
+
+export interface ClipApi {
+  /** Scores the image against the given labels; probabilities sum to 1. */
+  classify(
+    imageUrl: string,
+    labels: string[],
+  ): Promise<{ results: { label: string; score: number }[]; ms: number }>;
+}
+
+export type TaskApi =
+  | ChatApi
+  | AsrApi
+  | TtsApi
+  | RmbgApi
+  | EmbedApi
+  | VlmApi
+  | PiiApi
+  | DepthApi
+  | ClipApi;

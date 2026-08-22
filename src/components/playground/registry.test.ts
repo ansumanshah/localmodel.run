@@ -93,7 +93,12 @@ describe("playgroundTaskFor", () => {
   });
 
   test("a row with an unmapped pipeline_task and no override resolves to null", () => {
-    expect(playgroundTaskFor({ id: "not-a-real-model", pipeline_task: "depth-estimation" })).toBeNull();
+    // Must be a pipeline_task NO runner drives. depth-estimation used to sit
+    // here and silently stopped testing anything the moment the depth runner
+    // landed, so pick one that is genuinely out of scope.
+    expect(
+      playgroundTaskFor({ id: "not-a-real-model", pipeline_task: "zero-shot-object-detection" }),
+    ).toBeNull();
     expect(playgroundTaskFor({ id: "not-a-real-model", pipeline_task: null })).toBeNull();
   });
 

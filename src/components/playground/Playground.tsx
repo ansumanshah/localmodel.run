@@ -18,6 +18,9 @@ import TtsSection from "./sections/Tts";
 import RmbgSection from "./sections/Rmbg";
 import EmbedSection from "./sections/Embed";
 import VlmSection from "./sections/Vlm";
+import PiiSection from "./sections/Pii";
+import DepthSection from "./sections/Depth";
+import ClipSection from "./sections/Clip";
 
 interface PlaygroundProps {
   model: PlaygroundModel;
@@ -32,6 +35,9 @@ const RUNNERS: Record<PlaygroundTask, () => Promise<{ load(opts: LoadOpts): Prom
   rmbg: () => import("./runners/rmbg"),
   embed: () => import("./runners/embed"),
   vlm: () => import("./runners/vlm"),
+  pii: () => import("./runners/pii"),
+  depth: () => import("./runners/depth"),
+  clip: () => import("./runners/clip"),
 };
 
 // ~600 MB, in the same MiB-labeled-"MB" units formatBytes displays. Past
@@ -311,6 +317,9 @@ export default function Playground({ model, task }: PlaygroundProps) {
           {task === "rmbg" && <RmbgSection api={api as never} onMetrics={setMetrics} />}
           {task === "embed" && <EmbedSection api={api as never} onMetrics={setMetrics} />}
           {task === "vlm" && <VlmSection api={api as never} onMetrics={setMetrics} />}
+          {task === "pii" && <PiiSection api={api as never} onMetrics={setMetrics} />}
+          {task === "depth" && <DepthSection api={api as never} onMetrics={setMetrics} />}
+          {task === "clip" && <ClipSection api={api as never} onMetrics={setMetrics} />}
 
           {metrics.length > 0 && (
             <div className="mt-5">

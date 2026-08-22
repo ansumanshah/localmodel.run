@@ -21,8 +21,8 @@ recording (credited to the JFK Presidential Library & Museum) is marked
 ## portrait.jpg (101,619 bytes)
 
 Neil Armstrong's official NASA portrait (1969), a NASA photograph and
-therefore public domain. Used as the sample input for the background-removal
-and image-description demos.
+therefore public domain. Used as the sample input for the background-removal,
+image-description, depth-estimation, and zero-shot-classification demos.
 
 - Source: https://commons.wikimedia.org/wiki/File:Neil_Armstrong_pose.jpg
   (Wikimedia Commons copy of the NASA original, marked PD-USGov-NASA)

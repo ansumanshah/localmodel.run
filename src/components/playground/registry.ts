@@ -6,8 +6,8 @@ import type { PlaygroundTask } from "./types";
 // everything, then PLAYGROUND_EXTRA, then a PIPELINE_TASK_RUNNER match on
 // the catalog's own pipeline_task. Every one of the 54 catalog rows lands in
 // exactly one of these three buckets or falls through to null (out of scope:
-// no runner drives its task family at all, e.g. object detection or
-// token classification), so this file is the full audit trail.
+// no runner drives its task family at all, e.g. object detection or mask
+// generation), so this file is the full audit trail.
 
 // pipeline_task -> playground task, for rows whose runner drives them
 // through the real @huggingface/transformers `pipeline(task, hfRepo, ...)`
@@ -19,11 +19,16 @@ import type { PlaygroundTask } from "./types";
 //     row here; RMBG-1.4 itself reaches "rmbg" through PLAYGROUND_EXTRA
 //     below instead, because its config forces a bespoke path within the
 //     same runner file.
+//   depth (runners/depth.ts) pipeline("depth-estimation", ...)
+// NOT here: zero-shot-image-classification. The clip runner drives that call
+// generically, but the catalog's other row for it (SigLIP2) throws at runtime,
+// so clip-vit-base-patch32 is enabled per-model in PLAYGROUND_EXTRA instead.
 export const PIPELINE_TASK_RUNNER: Record<string, PlaygroundTask> = {
   "text-generation": "chat",
   "automatic-speech-recognition": "asr",
   "feature-extraction": "embed",
   "background-removal": "rmbg",
+  "depth-estimation": "depth",
 };
 
 // Models with a verified bespoke runner that bypasses the generic
@@ -33,6 +38,19 @@ export const PIPELINE_TASK_RUNNER: Record<string, PlaygroundTask> = {
 // pipeline() call. Each comment names the exact non-generic path; see the
 // runner file for the full reasoning.
 export const PLAYGROUND_EXTRA: Record<string, PlaygroundTask> = {
+  // pipeline_task IS "token-classification", but this one is deliberately
+  // per-model rather than a PIPELINE_TASK_RUNNER entry: the other two
+  // token-classification rows (punctuate-all, gliner-small-v2.1) emit
+  // punctuation and generic NER labels, so the PII runner's "here is your
+  // redacted text" output would be nonsense for them. The runner reads
+  // piiranha's PII label set specifically.
+  "piiranha-v1": "pii",
+  // pipeline_task IS "zero-shot-image-classification" and the clip runner
+  // makes that exact generic call, but this is per-model on purpose: the only
+  // other row with that task (siglip2-base-patch16-224) throws at runtime, so
+  // mapping the task would ship a broken button. Verified working in Chrome on
+  // Apple silicon 2026-08-22.
+  "clip-vit-base-patch32": "clip",
   // pipeline_task is null: the config declares a custom architecture string
   // no auto-class maps to. AutoModel + a hand-supplied processor config
   // (runners/rmbg.ts, the same flow the official remove-background-web demo
@@ -72,6 +90,8 @@ export const PLAYGROUND_DENY: Record<string, string> = {
     "The q4f16 decoder export onnxruntime loads for this model is rejected as an invalid graph (subgraph output returned directly from outer scope), verified live in Chrome on Apple silicon 2026-08-20. Whisper covers the same task here and runs.",
   "moonshine-base":
     "Same invalid-graph rejection as moonshine-tiny, verified live in Chrome on Apple silicon 2026-08-20, so the fault is the ONNX export rather than the device. Whisper covers the same task here and runs.",
+  "siglip2-base-patch16-224":
+    "The clip runner's pipeline(\"zero-shot-image-classification\", ...) call loads this repo but throws \"Invalid array length\" at inference, verified by pressing Run in Chrome on Apple silicon 2026-08-22. CLIP ViT-B/32 covers the same task here and runs. Worth retrying against a non-q4f16 build before re-enabling.",
   "bge-reranker-v2-m3":
     "Rerankers score a (query, passage) pair, not a single string. The catalog's own pipeline_task for this row is text-classification, not feature-extraction, so the embed runner's single-text cosine-similarity flow does not apply.",
 };
