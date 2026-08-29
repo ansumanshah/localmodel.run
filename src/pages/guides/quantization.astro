@@ -11,11 +11,14 @@ import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/li
 // the calculator uses (llama.cpp BPW table); no new unsourced figure is introduced.
 const example = getModel("llama-3.1-8b")!;
 const ladder = quantLadderSizes(example);
+const q4e = ladder.find((q) => q.label === "Q4_K_M")!;
+const q5e = ladder.find((q) => q.label === "Q5_K_M")!;
+const q5DeltaPct = Math.round((5.7 / 4.89 - 1) * 100); // BPW ratio from the llama.cpp table
 
 const path = "/guides/quantization";
 const title = "Quantization explained: Q4_K_M vs Q8_0 vs FP16 · localmodel.run";
 const description = truncate(
-  "What Q4_K_M, Q8_0 and FP16 actually mean for a local LLM, why Q4_K_M is the sane default, and how each one changes the memory a model needs. With a worked example.",
+  "What Q4_K_M, Q5_K_M, Q8_0 and FP16 actually mean for a local LLM, why Q4_K_M is the sane default, and how each one changes the memory a model needs. With a worked example.",
 );
 
 const SOURCES = [
@@ -32,6 +35,10 @@ const faqs: FaqItem[] = [
   {
     q: "Is Q4_K_M good enough, or should I use Q8_0?",
     a: "Q4_K_M keeps almost all of the model's quality at roughly a third of the FP16 size, so it is the right default. Q8_0 is near-lossless but about 1.7x the size of Q4_K_M, worth it only if you have memory to spare. Below Q4 (Q3, Q2) quality drops off faster and is a last resort for models that otherwise will not fit.",
+  },
+  {
+    q: "Should I use Q4_K_M or Q5_K_M?",
+    a: `Q4_K_M, unless you have spare memory after the model fits. Q5_K_M stores about ${Math.round((5.7 / 4.89 - 1) * 100)}% more bits per weight (5.7 vs 4.89 in the llama.cpp table), which buys a small quality margin on tasks sensitive to precision. If Q5_K_M pushes you past your usable memory or squeezes your context length, the trade is not worth it; Q4_K_M with more context headroom usually beats Q5_K_M without it.`,
   },
   {
     q: "Does a lower quant make the model faster?",
@@ -108,6 +115,7 @@ const jsonLd = [
         { id: "what-the-letters-mean", label: "What the letters and numbers mean" },
         { id: "worked-example", label: "A worked example" },
         { id: "which-quant", label: "Which quant should you pick?" },
+        { id: "q4-vs-q5", label: "Q4_K_M vs Q5_K_M" },
         { id: "what-you-can-run", label: "How this changes what you can run" },
         { id: "faq", label: "FAQ" },
       ]}
@@ -187,6 +195,22 @@ const jsonLd = [
     </section>
 
     <section class="mt-8">
+      <h2 id="q4-vs-q5" class="scroll-mt-20 text-xl font-semibold">Q4_K_M vs Q5_K_M, the common toss-up</h2>
+      <p class="mt-2 text-muted-foreground">
+        The step people actually debate is Q4_K_M against Q5_K_M. The size gap is about
+        {q5DeltaPct}% (5.7 vs 4.89 bits per weight in the llama.cpp table): for {example.name}
+        that is ~{q4e.gb} GB against ~{q5e.gb} GB. The quality gap is real but small, and it shows
+        up mostly on precision-sensitive work like code and math, not casual chat.
+      </p>
+      <p class="mt-3 text-muted-foreground">
+        The useful rule: memory you spend on Q5_K_M is memory you cannot spend on context. If the
+        {q5DeltaPct}% still leaves you comfortable headroom, take Q5_K_M. If it turns a comfortable
+        fit into a tight one, or forces a shorter context, stay on Q4_K_M. A tight fit costs more
+        in practice than the last few bits of weight precision.
+      </p>
+    </section>
+
+    <section class="mt-8">
       <h2 id="what-you-can-run" class="scroll-mt-20 text-xl font-semibold">How this changes what you can run</h2>
       <p class="mt-2 text-muted-foreground">
         Quant choice is the single biggest lever on whether a model fits your hardware. The same
@@ -216,6 +240,7 @@ const jsonLd = [
         <a href="/guides/how-local-llms-work" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">How local LLMs work</a>
         <a href="/guides/vram-vs-ram" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">VRAM vs RAM vs unified memory</a>
         <a href="/guides/mixture-of-experts" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Mixture of experts</a>
+        <a href="/guides/which-llms-fit-16-24-32gb" class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">Which LLMs fit in 16, 24 or 32GB</a>
       </div>
     </nav>
 

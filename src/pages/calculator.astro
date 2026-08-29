@@ -1,0 +1,157 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Detector from "@/components/Detector.tsx";
+import Sources from "@/components/Sources.astro";
+import { getModel, meta } from "@/lib/data";
+import { estimateMemory } from "@/lib/compute";
+import { breadcrumbLd, faqLd, howToLd, truncate, type FaqItem } from "@/lib/seo";
+
+// Landing page for the "llm vram calculator" query. The calculator itself is the
+// same Detector island the homepage runs; this page adds the formula, a worked
+// example and question-shaped copy so the query has a direct, linkable answer.
+const example = getModel("llama-3.1-8b")!;
+const est = estimateMemory(example, "q4_k_m", 4);
+const est32 = estimateMemory(example, "q4_k_m", 32);
+
+const path = "/calculator";
+const title = "LLM VRAM calculator: how much memory does your model need? · localmodel.run";
+const description = truncate(
+  `Free LLM VRAM and RAM calculator. Example: ${example.name} at Q4_K_M needs ~${est.totalGb} GB (${est.weightsGb} GB weights + ${est.kvGb} GB KV cache at 4K context + overhead). Pick any of the tracked models and check your machine.`,
+);
+
+const SOURCES = [
+  "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
+  "https://huggingface.co/docs/hub/gguf",
+];
+
+const faqs: FaqItem[] = [
+  {
+    q: "How much VRAM does an LLM need?",
+    a: `Weights plus KV cache plus a little runtime overhead. Concretely: ${example.name} at Q4_K_M is ${est.weightsGb} GB of weights, ~${est.kvGb} GB of KV cache at 4K context and ~${est.overheadGb} GB of overhead, about ${est.totalGb} GB total. The same model at 32K context needs ~${est32.totalGb} GB.`,
+  },
+  {
+    q: "How is the model size calculated?",
+    a: "It is not calculated, it is measured: every model's Q4_K_M and Q8_0 figures are read from real GGUF files on Hugging Face or the Ollama registry, with the source linked on the model page. Only the KV cache and overhead are computed, from the model's architecture and your context setting.",
+  },
+  {
+    q: "Does the calculator work for RAM and Apple unified memory too?",
+    a: "Yes. It compares the model's total need against the usable memory of the machine you pick: GPU VRAM minus runtime reserve, about two thirds of a Mac's unified memory (the Metal working-set limit), or a CPU laptop's RAM after the OS. The verdict is per machine, not a single number.",
+  },
+  {
+    q: "Why does my context length change the answer?",
+    a: `The KV cache grows with context and lives in the same memory as the weights. For ${example.name} the total moves from ~${est.totalGb} GB at 4K context to ~${est32.totalGb} GB at 32K, which is the difference between fitting and not fitting on an 8GB card.`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Calculator", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  howToLd({
+    name: "How to check how much VRAM or RAM an LLM needs",
+    description: "Pick a model, pick your machine, read the verdict with the measured numbers.",
+    url: path,
+    origin: Astro.site!.href,
+    steps: [
+      {
+        name: "Pick a model",
+        text: "Choose any tracked open model. Its Q4_K_M and Q8_0 sizes are measured from real GGUF files, not estimated from parameter count.",
+      },
+      {
+        name: "Pick your machine",
+        text: "Choose your GPU, Mac or laptop. The calculator uses that machine's usable memory, not the sticker gigabytes.",
+      },
+      {
+        name: "Read the verdict",
+        text: "You get a fits / tight / does-not-fit verdict with the memory breakdown, the recommended quant and the headroom left for context.",
+      },
+    ],
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle="LLM VRAM calculator"
+  ogImageAlt="LLM VRAM and RAM calculator with measured model sizes"
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Calculator", url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Instrument &middot; Memory check</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      LLM VRAM calculator
+    </h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      How much memory a model needs is three numbers, not one: <strong class="text-foreground"
+        >{example.name}</strong
+      > at Q4_K_M is <span class="font-mono">{est.weightsGb} GB</span> of weights plus
+      <span class="font-mono">~{est.kvGb} GB</span> of KV cache at 4K context plus
+      <span class="font-mono">~{est.overheadGb} GB</span> of overhead, about
+      <span class="font-mono">{est.totalGb} GB</span> total. Pick a model and your machine below;
+      every model size is measured from real GGUF files.
+    </p>
+
+    <div class="det-wrap mt-8">
+      <Detector client:load />
+    </div>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">The formula, in the open</h2>
+      <p class="mt-2 text-muted-foreground">
+        total memory = measured weights at your quant + KV cache for your context length + runtime
+        overhead. That total is compared against your machine's usable memory: VRAM minus the
+        runtime reserve on a GPU, roughly two thirds of unified memory on a Mac, RAM after the OS
+        on a CPU laptop. Every constant and its source is documented on the
+        <a href="/methodology" class="text-[var(--brand-ink)] hover:underline">methodology page</a>;
+        every model size links its GGUF source.
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold">Other ways in</h2>
+      <p class="mt-2 text-muted-foreground">
+        Start from your memory budget on the
+        <a href="/best-llm-for-ram" class="text-[var(--brand-ink)] hover:underline"
+          >best LLM for your RAM</a
+        > pages, from your exact machine on
+        <a href="/best-llm-for" class="text-[var(--brand-ink)] hover:underline">best LLM for your device</a>,
+        or from a model's own page, which carries the full memory breakdown and a fit check for
+        every tracked device. The
+        <a href="/guides/which-llms-fit-16-24-32gb" class="text-[var(--brand-ink)] hover:underline"
+          >16 / 24 / 32 GB round-up</a
+        > answers the budget question in prose.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">FAQ</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {
+          faqs.map((f) => (
+            <div class="p-4">
+              <p class="font-medium">{f.q}</p>
+              <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <Sources urls={SOURCES} />
+  </div>
+</Base>

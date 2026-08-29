@@ -1,0 +1,257 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import GuideToc from "@/components/GuideToc.astro";
+import Sources from "@/components/Sources.astro";
+import { models, meta } from "@/lib/data";
+import { estimateMemory, kvCacheGb, round1 } from "@/lib/compute";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+import type { ModelRow } from "@/data/types";
+
+// Question page for the "is 6GB VRAM enough for a local LLM" query. Uses the same
+// VRAM convention as the device engine (usable = card size minus ~1GB for the
+// runtime and display, documented in /methodology); no synthetic device rows.
+const USABLE_6GB = 5; // 6GB card, VRAM convention
+const USABLE_8GB = 7; // 8GB card, same convention
+
+function fitsIn(usable: number) {
+  return models
+    .map((model) => ({ model, est: estimateMemory(model, "q4_k_m", 4) }))
+    .filter((r) => r.est.totalGb <= usable);
+}
+
+function eloOrPulls(m: ModelRow): number {
+  return (m.arena_elo ?? 0) * 1e9 + (m.pulls ?? 0);
+}
+
+const fits6 = fitsIn(USABLE_6GB);
+const fits8 = fitsIn(USABLE_8GB);
+const top6 = [...fits6].sort((a, b) => eloOrPulls(b.model) - eloOrPulls(a.model)).slice(0, 8);
+const biggest6 = [...fits6].sort((a, b) => b.model.params_b - a.model.params_b)[0];
+const total = models.length;
+
+// KV-cache growth demo on a small model that actually fits a 6GB card.
+const kvModel =
+  top6.find((r) => r.model.params_b >= 3 && r.model.params_b <= 5)?.model ?? top6[0].model;
+const kvRows = [4, 16, 32].map((k) => ({
+  k,
+  kv: kvCacheGb(kvModel, k),
+  total: estimateMemory(kvModel, "q4_k_m", k).totalGb,
+}));
+
+const path = "/guides/is-6gb-vram-enough";
+const title = "Is 6GB VRAM enough for a local LLM? · localmodel.run";
+const description = truncate(
+  `Yes, within limits: ${fits6.length} of the ${total} open models tracked here fit a 6GB card at Q4_K_M with 4K context, up to about ${biggest6.model.params_b}B parameters. What fits, what breaks, and what 8GB adds.`,
+);
+
+const SOURCES = [
+  "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
+  "https://huggingface.co/docs/hub/gguf",
+];
+
+const faqs: FaqItem[] = [
+  {
+    q: "Is 6GB of VRAM enough to run a local LLM?",
+    a: `Yes, for the small end of the catalog: ${fits6.length} of the ${total} tracked open models fit a 6GB card at Q4_K_M with 4K context, topping out around ${biggest6.model.params_b}B parameters (${biggest6.model.name} at ${biggest6.model.q4_k_m_gb} GB on disk). The 7B-and-up class does not fit without CPU offload, which is much slower.`,
+  },
+  {
+    q: "Can I run a 7B model on 6GB VRAM?",
+    a: `Not fully on the card. A typical 7B to 8B model needs ${models.find((m) => m.id === "llama-3.1-8b")?.q4_k_m_gb ?? 4.9} GB on disk at Q4_K_M plus KV cache and overhead, which lands past the ~5 GB a 6GB card keeps usable. Runtimes will offload the spill to CPU RAM, but token speed drops sharply.`,
+  },
+  {
+    q: "How much better is 8GB of VRAM?",
+    a: `Meaningfully: the fit count rises from ${fits6.length} models at 6GB to ${fits8.length} at 8GB, and the 7B class starts fitting fully on the card at Q4_K_M.`,
+  },
+  {
+    q: "Does longer context change the answer?",
+    a: `Yes. The KV cache grows with context length and competes with weights for the same VRAM. ${kvModel.name} needs ~${kvRows[0].total} GB total at 4K context but ~${kvRows[2].total} GB at 32K, so a card that fits it at 4K can run out of room purely from context.`,
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Guides", url: "/guides" },
+      { name: "Is 6GB VRAM enough?", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "Is 6GB VRAM enough for a local LLM?",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources: SOURCES,
+    speakableSelector: [".guide-tldr"],
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle="Is 6GB VRAM enough for a local LLM?"
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt="Is 6GB of VRAM enough to run a local LLM"
+>
+  <article class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Guides", url: "/guides" },
+        { name: "Is 6GB VRAM enough?", url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Guide &middot; Memory budgets</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Is 6 GB of VRAM enough for a local LLM?
+    </h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Yes, within limits: <strong class="text-foreground">{fits6.length} of the {total}</strong> open
+      models tracked here fit a 6 GB card at Q4_K_M with 4K context, topping out around
+      <strong class="text-foreground">{biggest6.model.params_b}B parameters</strong>. Here is exactly
+      what fits, where it breaks, and what one step up to 8 GB buys.
+    </p>
+
+    <div class="panel guide-tldr mt-6">
+      <div class="panel-head"><span class="panel-label">The short version</span></div>
+      <p class="p-4 text-sm text-muted-foreground">
+        A 6 GB card (GTX 1660, RTX 2060, RTX 3050 laptop class) keeps about 5 GB usable for
+        weights. That runs the 1B to 4B class well at Q4_K_M. The 7B class needs CPU offload and
+        gets slow. 8 GB is the first tier where 7B fits fully on the card.
+      </p>
+    </div>
+
+    <GuideToc
+      items={[
+        { id: "what-fits", label: "What fits on a 6GB card" },
+        { id: "where-it-breaks", label: "Where it breaks: 7B and context" },
+        { id: "step-up", label: "What 8GB adds" },
+        { id: "faq", label: "FAQ" },
+      ]}
+    />
+
+    <section class="mt-8">
+      <h2 id="what-fits" class="scroll-mt-20 text-xl font-semibold">What fits on a 6GB card</h2>
+      <p class="mt-2 text-muted-foreground">
+        A model fits when its measured Q4_K_M file plus a 4K-context KV cache and runtime overhead
+        stays inside the ~5 GB a 6 GB card keeps usable (the card also holds the runtime and your
+        display buffer; the convention is documented in the
+        <a href="/methodology" class="text-[var(--brand-ink)] hover:underline">methodology</a>).
+        The strongest models that clear that bar:
+      </p>
+      <div class="panel mt-3 overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">Fits in ~5 GB usable</span>
+          <span class="panel-label">total at Q4_K_M, 4K ctx</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {
+            top6.map((r) => (
+              <li class="flex items-center justify-between px-4 py-2.5">
+                <a href={`/model/${r.model.id}`} class="text-sm font-medium hover:underline">
+                  {r.model.name}
+                </a>
+                <span class="font-mono text-sm text-muted-foreground">~{r.est.totalGb} GB</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <h2 id="where-it-breaks" class="scroll-mt-20 text-xl font-semibold">
+        Where it breaks: 7B and context
+      </h2>
+      <p class="mt-2 text-muted-foreground">
+        The popular 7B to 8B class lands just past the budget: Llama 3.1 8B alone is
+        {models.find((m) => m.id === "llama-3.1-8b")?.q4_k_m_gb} GB on disk at Q4_K_M before the KV
+        cache. Runtimes will still run it by spilling layers to CPU RAM, but every offloaded layer
+        moves at system-memory speed and token rates drop sharply.
+      </p>
+      <p class="mt-3 text-muted-foreground">
+        Context length is the second squeeze. The KV cache grows with every token of context and
+        shares the card with the weights. The same model, three context settings:
+      </p>
+      <div class="panel mt-3 overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-label">{kvModel.name} at Q4_K_M</span>
+          <span class="panel-label">memory needed</span>
+        </div>
+        <ul class="divide-y divide-border">
+          {
+            kvRows.map((r) => (
+              <li class="flex items-center justify-between px-4 py-2.5">
+                <span class="text-sm">{r.k}K context</span>
+                <span class="font-mono text-sm text-muted-foreground">
+                  ~{r.total} GB ({round1(r.kv)} GB of it KV cache)
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <h2 id="step-up" class="scroll-mt-20 text-xl font-semibold">What 8GB adds</h2>
+      <p class="mt-2 text-muted-foreground">
+        One tier up, an 8 GB card keeps ~7 GB usable and the fit count rises from
+        <strong class="text-foreground">{fits6.length} to {fits8.length}</strong> models. The
+        difference is almost entirely the 7B class fitting fully on the card. For the tier-by-tier
+        view from there, see
+        <a href="/guides/which-llms-fit-16-24-32gb" class="text-[var(--brand-ink)] hover:underline"
+          >which LLMs fit in 16, 24 or 32 GB</a
+        >, or start from your
+        <a href="/best-llm-for" class="text-[var(--brand-ink)] hover:underline">exact device</a>.
+      </p>
+    </section>
+
+    <section class="mt-10">
+      <h2 id="faq" class="scroll-mt-20 text-xl font-semibold">FAQ</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {
+          faqs.map((f) => (
+            <div class="p-4">
+              <p class="font-medium">{f.q}</p>
+              <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="More guides">
+      <h2 class="section-label mb-3">More guides</h2>
+      <div class="flex flex-wrap gap-2">
+        <a
+          href="/guides/which-llms-fit-16-24-32gb"
+          class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >Which LLMs fit in 16, 24 or 32GB</a
+        >
+        <a
+          href="/guides/vram-vs-ram"
+          class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >VRAM vs RAM vs unified memory</a
+        >
+        <a
+          href="/guides/quantization"
+          class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >Quantization explained</a
+        >
+      </div>
+    </nav>
+
+    <Sources urls={SOURCES} />
+  </article>
+</Base>
