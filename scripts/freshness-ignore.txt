@@ -41,3 +41,16 @@ glm-ocr   # OCR-specialized encoder-decoder, out of catalog scope (same class as
 translategemma   # translation-specialized Gemma 3 fine-tune, out of catalog scope
 functiongemma   # function-calling-specialized Gemma 3 270M fine-tune, out of catalog scope
 gemini-3-flash-preview   # Google, cloud-only preview listing, no open weights
+# 2026-08-29 triage pass (recon in .claude/research/growth-recon-2026-08-29.md):
+muse-glimmer   # in catalog (2026-08-29) as muse-glimmer-30b
+nemotron-3.5-lightning   # in catalog (2026-08-29) as nemotron-3.5-lightning-30b-a3b
+qwen3.8   # in catalog (2026-08-29) as qwen3.8-27b; the 2.4T Qwen3.8-Max is cloud/big-rig, watch GGUFs
+kimi-k3   # in catalog (2026-08-29), cloud-only on Ollama, sized from unsloth UD-Q4_K_XL sums
+ornith-1.5   # in catalog (2026-08-29) as ornith-1.5-9b + ornith-1.5-35b-a3b; 397b deferred (active params unpublished)
+olmo-3   # in catalog (2026-08-29) as olmo-3-7b-instruct; 32b covered by olmo-3.1-32b-instruct
+devstral-small-2   # in catalog (2026-08-29) as devstral-small-2-24b
+devstral-2   # in catalog (2026-08-29) as devstral-2-123b
+ministral-3   # in catalog (2026-08-29) as ministral-3-3b/-8b/-14b
+rnj-1   # in catalog (2026-08-29) as rnj-1-8b
+glm-5.3-flash   # in catalog (2026-08-29), cloud-only on Ollama, sized from unsloth GGUFs
+nomic-embed-text-v2-moe   # embedding model, out of catalog scope
