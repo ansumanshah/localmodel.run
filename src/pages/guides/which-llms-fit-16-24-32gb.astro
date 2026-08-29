@@ -1,0 +1,275 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import GuideToc from "@/components/GuideToc.astro";
+import Sources from "@/components/Sources.astro";
+import { models, meta, dedupeSources } from "@/lib/data";
+import { canRun, estimateMemory } from "@/lib/compute";
+import { interpretationsFor, TYPE_LABEL } from "@/lib/budgets";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+import type { ModelRow } from "@/data/types";
+
+// Round-up for the "which LLMs fit in 16/24/32GB" query cluster. Every figure is
+// computed from the same engine the pair pages use; nothing is hand-typed.
+const SIZES = [16, 24, 32] as const;
+
+function eloOrPulls(m: ModelRow): number {
+  return (m.arena_elo ?? 0) * 1e9 + (m.pulls ?? 0);
+}
+
+const tiers = SIZES.map((size) => {
+  const interps = interpretationsFor(size).map((interp) => {
+    const results = models
+      .map((model) => ({ model, run: canRun(model, interp.device) }))
+      .filter((r) => r.run.verdict === "yes" || r.run.verdict === "tight");
+    const ranked = [...results].sort((a, b) => eloOrPulls(b.model) - eloOrPulls(a.model));
+    const biggest = [...results].sort((a, b) => b.model.params_b - a.model.params_b)[0];
+    const q8Count = results.filter(
+      (r) => estimateMemory(r.model, "q8_0", 4).totalGb <= interp.usable,
+    ).length;
+    return {
+      ...interp,
+      fitCount: results.length,
+      top: ranked.slice(0, 5),
+      biggest,
+      q8Count,
+    };
+  });
+  const best = interps.reduce((a, b) => (b.usable > a.usable ? b : a), interps[0]);
+  return { size, interps, best };
+});
+
+// Fail loudly at build if a tier ever computes empty (the weekly cron mutates
+// the catalog in place; a silent undefined here would ship a broken page).
+for (const t of tiers) {
+  if (!t.best || !t.best.biggest || t.best.top.length === 0)
+    throw new Error(`which-llms-fit guide: empty fit pool for the ${t.size}GB tier`);
+}
+
+const total = models.length;
+const t16 = tiers[0].best;
+const t24 = tiers[1].best;
+const t32 = tiers[2].best;
+const llama70b = models.find((m) => m.id === "llama-3.3-70b");
+if (!llama70b) throw new Error("which-llms-fit guide: reference model llama-3.3-70b missing");
+
+const path = "/guides/which-llms-fit-16-24-32gb";
+const title = "Which LLMs fit in 16GB, 24GB or 32GB? · localmodel.run";
+const description = truncate(
+  `Measured answer: ${t16.fitCount} of ${total} tracked open models fit a 16GB machine at Q4_K_M, ${t24.fitCount} fit 24GB and ${t32.fitCount} fit 32GB. The full lists, by RAM, VRAM and unified memory.`,
+);
+
+const SOURCES = dedupeSources(
+  ...tiers.flatMap((t) => t.interps.map((i) => i.device.sources ?? [])),
+).slice(0, 6);
+
+const faqs: FaqItem[] = [
+  {
+    q: "What LLM can I run with 16GB of VRAM or RAM?",
+    a: `On the roomiest 16GB reading (${t16.device.name}, ~${t16.usable} GB usable), ${t16.fitCount} of the ${total} open models tracked here fit at Q4_K_M, up to about ${t16.biggest.model.params_b}B parameters (${t16.biggest.model.name}, ${t16.biggest.model.q4_k_m_gb} GB on disk). A 16GB Mac or CPU laptop exposes less usable memory, so its count is lower; the tier table above shows each reading.`,
+  },
+  {
+    q: "Which LLMs and quants are possible with 32GB?",
+    a: `At 32GB, ${t32.fitCount} tracked models fit at Q4_K_M (up to ~${t32.biggest.model.params_b}B), and ${t32.q8Count} of them also fit at near-lossless Q8_0. 30B-class MoE models are the sweet spot: 30B-class quality with 3B-class speed from the active-parameter count.`,
+  },
+  {
+    q: "Is 32GB of RAM enough for a 70B model?",
+    a: `No. A 70B model needs about ${llama70b.q4_k_m_gb} GB on disk even at Q4_K_M, before the KV cache. No 32GB machine holds that; on the tracked devices, 70B first fits on the 64GB Macs or on multi-GPU rigs.`,
+  },
+  {
+    q: "Do RAM, VRAM and unified memory gigabytes count the same?",
+    a: "No. At the same 16GB sticker, the tracked devices expose different pools for weights: the GPU keeps the most usable, the Mac exposes about two thirds of unified memory to the GPU working set, and a CPU-only laptop shares its RAM with the OS and apps. The counts above use each device's sourced usable figure, not the sticker.",
+  },
+];
+
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Guides", url: "/guides" },
+      { name: "Which LLMs fit in 16, 24 or 32GB", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "Which LLMs fit in 16GB, 24GB or 32GB?",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    sources: SOURCES,
+    speakableSelector: [".guide-tldr"],
+  }),
+  faqLd(faqs),
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogTitle="Which LLMs fit in 16, 24 or 32GB?"
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt="Which local LLMs fit in 16GB, 24GB and 32GB of memory"
+>
+  <article class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Guides", url: "/guides" },
+        { name: "Which LLMs fit in 16, 24 or 32GB", url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Guide &middot; Memory budgets</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      Which LLMs fit in 16, 24 or 32 GB?
+    </h1>
+    <p class="mt-4 text-pretty text-lg text-muted-foreground">
+      Counted against measured GGUF sizes, not param-count folklore: <strong class="text-foreground"
+        >{t16.fitCount} of the {total}</strong
+      > open models tracked here fit a 16 GB machine at Q4_K_M, <strong class="text-foreground"
+        >{t24.fitCount}</strong
+      > fit 24 GB and <strong class="text-foreground">{t32.fitCount}</strong> fit 32 GB. What changes
+      between the tiers, and the shortlist worth running at each one.
+    </p>
+
+    <div class="panel guide-tldr mt-6">
+      <div class="panel-head"><span class="panel-label">The short version</span></div>
+      <p class="p-4 text-sm text-muted-foreground">
+        At Q4_K_M, the roomiest 16 GB machine tops out around {t16.biggest.model.params_b}B
+        parameters, 24 GB around {t24.biggest.model.params_b}B and 32 GB around
+        {t32.biggest.model.params_b}B. A 70B model ({llama70b.q4_k_m_gb} GB on disk) fits none of
+        the three. The usable pool, not the sticker gigabytes, decides every one of those lines.
+      </p>
+    </div>
+
+    <GuideToc
+      items={[
+        { id: "how-counted", label: "How these counts work" },
+        ...tiers.map((t) => ({ id: `tier-${t.size}`, label: `What fits in ${t.size} GB` })),
+        { id: "faq", label: "FAQ" },
+      ]}
+    />
+
+    <section class="mt-8">
+      <h2 id="how-counted" class="scroll-mt-20 text-xl font-semibold">How these counts work</h2>
+      <p class="mt-2 text-muted-foreground">
+        A model fits when its measured Q4_K_M file plus a 4K-context KV cache and runtime overhead
+        stays inside the machine's usable memory. Usable is the honest number: a GPU keeps roughly
+        all but 1 GB of VRAM for weights, a Mac exposes about two thirds of its unified memory to
+        the GPU working set, and a CPU-only laptop shares its RAM with the OS and apps. The full
+        math is on the <a href="/methodology" class="text-[var(--brand-ink)] hover:underline"
+          >methodology page</a
+        >, the sizes come from real GGUF files with sources, and the
+        <a href="/calculator" class="text-[var(--brand-ink)] hover:underline">VRAM calculator</a>
+        runs the same check interactively for any model and machine.
+      </p>
+    </section>
+
+    {
+      tiers.map((t) => (
+        <section class="mt-8">
+          <h2 id={`tier-${t.size}`} class="scroll-mt-20 text-xl font-semibold">
+            What fits in {t.size} GB
+          </h2>
+          <div class="panel mt-3 overflow-hidden">
+            <div class="panel-head">
+              <span class="panel-label">{t.size} GB, by memory type</span>
+            </div>
+            <ul class="divide-y divide-border">
+              {t.interps.map((i) => (
+                <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                  <span class="text-sm">
+                    {TYPE_LABEL[i.type]}
+                    <span class="text-muted-foreground"> ({i.device.name})</span>
+                  </span>
+                  <span class="font-mono text-sm text-muted-foreground">
+                    ~{i.usable} GB usable &middot; {i.fitCount} models fit
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p class="mt-3 text-muted-foreground">
+            On the roomiest {t.size} GB reading ({t.best.device.name}), the largest fit is{" "}
+            <a
+              href={`/model/${t.best.biggest?.model.id}`}
+              class="text-[var(--brand-ink)] hover:underline"
+            >
+              {t.best.biggest?.model.name}
+            </a>{" "}
+            at {t.best.biggest?.model.q4_k_m_gb} GB on disk, and {t.best.q8Count} of the{" "}
+            {t.best.fitCount} fitting models also run at near-lossless Q8_0. Picks worth starting
+            with:
+          </p>
+          <div class="panel mt-3 overflow-hidden">
+            <div class="panel-head">
+              <span class="panel-label">Top picks at {t.size} GB</span>
+              <span class="panel-label">Q4_K_M on disk</span>
+            </div>
+            <ul class="divide-y divide-border">
+              {t.best.top.map((r) => (
+                <li class="flex items-center justify-between px-4 py-2.5">
+                  <a href={`/model/${r.model.id}`} class="text-sm font-medium hover:underline">
+                    {r.model.name}
+                  </a>
+                  <span class="font-mono text-sm text-muted-foreground">
+                    {r.model.q4_k_m_gb} GB
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p class="mt-3 text-sm text-muted-foreground">
+            Full tier page with every interpretation:{" "}
+            <a href={`/best-llm-for-ram/${t.size}gb`} class="text-[var(--brand-ink)] hover:underline">
+              best LLM for {t.size} GB
+            </a>
+            .
+          </p>
+        </section>
+      ))
+    }
+
+    <section class="mt-10">
+      <h2 id="faq" class="scroll-mt-20 text-xl font-semibold">FAQ</h2>
+      <div class="panel mt-3 divide-y divide-border">
+        {
+          faqs.map((f) => (
+            <div class="p-4">
+              <p class="font-medium">{f.q}</p>
+              <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <nav class="mt-8" aria-label="More guides">
+      <h2 class="section-label mb-3">More guides</h2>
+      <div class="flex flex-wrap gap-2">
+        <a
+          href="/guides/vram-vs-ram"
+          class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >VRAM vs RAM vs unified memory</a
+        >
+        <a
+          href="/guides/quantization"
+          class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >Quantization explained</a
+        >
+        <a
+          href="/guides/is-6gb-vram-enough"
+          class="rounded-[3px] border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]"
+          >Is 6GB of VRAM enough?</a
+        >
+      </div>
+    </nav>
+
+    <Sources urls={SOURCES} />
+  </article>
+</Base>
