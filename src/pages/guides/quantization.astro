@@ -38,7 +38,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "Should I use Q4_K_M or Q5_K_M?",
-    a: `Q4_K_M, unless you have spare memory after the model fits. Q5_K_M stores about ${Math.round((5.7 / 4.89 - 1) * 100)}% more bits per weight (5.7 vs 4.89 in the llama.cpp table), which buys a small quality margin on tasks sensitive to precision. If Q5_K_M pushes you past your usable memory or squeezes your context length, the trade is not worth it; Q4_K_M with more context headroom usually beats Q5_K_M without it.`,
+    a: `Q4_K_M, unless you have spare memory after the model fits. Q5_K_M stores about ${q5DeltaPct}% more bits per weight (5.7 vs 4.89 in the llama.cpp table), which buys a small quality margin on tasks sensitive to precision. If Q5_K_M pushes you past your usable memory or squeezes your context length, the trade is not worth it; Q4_K_M with more context headroom usually beats Q5_K_M without it.`,
   },
   {
     q: "Does a lower quant make the model faster?",
@@ -217,7 +217,8 @@ const jsonLd = [
         model at Q4_K_M might fit a 16 GB machine where its FP16 version needs more than three times the memory.
         To see what fits yours, start from your
         <a href="/best-llm-for-ram" class="text-[var(--brand-ink)] hover:underline">memory budget</a>
-        or your <a href="/best-llm-for" class="text-[var(--brand-ink)] hover:underline">exact device</a>.
+        or your <a href="/best-llm-for" class="text-[var(--brand-ink)] hover:underline">exact device</a>,
+        or check any model against any machine on the <a href="/calculator" class="text-[var(--brand-ink)] hover:underline">VRAM calculator</a>.
         For the full memory math, see the <a href="/methodology" class="text-[var(--brand-ink)] hover:underline">methodology</a>.
       </p>
     </section>

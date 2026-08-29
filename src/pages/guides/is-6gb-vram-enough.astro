@@ -3,32 +3,40 @@ import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import GuideToc from "@/components/GuideToc.astro";
 import Sources from "@/components/Sources.astro";
-import { models, meta } from "@/lib/data";
-import { estimateMemory, kvCacheGb, round1 } from "@/lib/compute";
+import { models, meta, getDevice, dedupeSources } from "@/lib/data";
+import { estimateMemory, kvCacheGb, round1, usableGb, canRun } from "@/lib/compute";
 import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
-import type { ModelRow } from "@/data/types";
+import type { DeviceRow, ModelRow } from "@/data/types";
 
-// Question page for the "is 6GB VRAM enough for a local LLM" query. Uses the same
-// VRAM convention as the device engine (usable = card size minus ~1GB for the
-// runtime and display, documented in /methodology); no synthetic device rows.
-const USABLE_6GB = 5; // 6GB card, VRAM convention
-const USABLE_8GB = 7; // 8GB card, same convention
+// Question page for the "is 6GB VRAM enough for a local LLM" query, anchored to
+// real sourced device rows (RTX 2060 6GB and RTX 3060 Ti 8GB), never a synthetic
+// budget. Fails the build loudly if either row leaves the catalog.
+const card6 = getDevice("nvidia-rtx-2060-6gb");
+const card8 = getDevice("nvidia-rtx-3060-ti-8gb");
+if (!card6 || !card8)
+  throw new Error("is-6gb-vram-enough: anchor device rows missing from devices.json");
 
-function fitsIn(usable: number) {
+function fitsOn(device: DeviceRow) {
   return models
-    .map((model) => ({ model, est: estimateMemory(model, "q4_k_m", 4) }))
-    .filter((r) => r.est.totalGb <= usable);
+    .map((model) => ({ model, run: canRun(model, device), est: estimateMemory(model, "q4_k_m", 4) }))
+    .filter((r) => r.run.verdict === "yes" || r.run.verdict === "tight");
 }
 
 function eloOrPulls(m: ModelRow): number {
   return (m.arena_elo ?? 0) * 1e9 + (m.pulls ?? 0);
 }
 
-const fits6 = fitsIn(USABLE_6GB);
-const fits8 = fitsIn(USABLE_8GB);
+const usable6 = usableGb(card6);
+const usable8 = usableGb(card8);
+const fits6 = fitsOn(card6);
+const fits8 = fitsOn(card8);
 const top6 = [...fits6].sort((a, b) => eloOrPulls(b.model) - eloOrPulls(a.model)).slice(0, 8);
 const biggest6 = [...fits6].sort((a, b) => b.model.params_b - a.model.params_b)[0];
+if (!biggest6 || top6.length === 0)
+  throw new Error("is-6gb-vram-enough: empty fit pool for the 6GB card");
 const total = models.length;
+const ref8b = models.find((m) => m.id === "llama-3.1-8b");
+if (!ref8b) throw new Error("is-6gb-vram-enough: reference model llama-3.1-8b missing");
 
 // KV-cache growth demo on a small model that actually fits a 6GB card.
 const kvModel =
@@ -45,10 +53,11 @@ const description = truncate(
   `Yes, within limits: ${fits6.length} of the ${total} open models tracked here fit a 6GB card at Q4_K_M with 4K context, up to about ${biggest6.model.params_b}B parameters. What fits, what breaks, and what 8GB adds.`,
 );
 
-const SOURCES = [
-  "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
-  "https://huggingface.co/docs/hub/gguf",
-];
+const SOURCES = dedupeSources(
+  ["https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md"],
+  card6.sources ?? [],
+  card8.sources ?? [],
+).slice(0, 6);
 
 const faqs: FaqItem[] = [
   {
@@ -57,7 +66,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "Can I run a 7B model on 6GB VRAM?",
-    a: `Not fully on the card. A typical 7B to 8B model needs ${models.find((m) => m.id === "llama-3.1-8b")?.q4_k_m_gb ?? 4.9} GB on disk at Q4_K_M plus KV cache and overhead, which lands past the ~5 GB a 6GB card keeps usable. Runtimes will offload the spill to CPU RAM, but token speed drops sharply.`,
+    a: `Not fully on the card. A typical 7B to 8B model needs ${ref8b.q4_k_m_gb} GB on disk at Q4_K_M plus KV cache and overhead, which lands past the ~${usable6} GB a card like the ${card6.name} keeps usable. Runtimes will offload the spill to CPU RAM, but token speed drops sharply.`,
   },
   {
     q: "How much better is 8GB of VRAM?",
@@ -125,9 +134,9 @@ const jsonLd = [
     <div class="panel guide-tldr mt-6">
       <div class="panel-head"><span class="panel-label">The short version</span></div>
       <p class="p-4 text-sm text-muted-foreground">
-        A 6 GB card (GTX 1660, RTX 2060, RTX 3050 laptop class) keeps about 5 GB usable for
-        weights. That runs the 1B to 4B class well at Q4_K_M. The 7B class needs CPU offload and
-        gets slow. 8 GB is the first tier where 7B fits fully on the card.
+        A 6 GB card like the {card6.name} keeps about {usable6} GB usable for weights. That runs
+        the {biggest6.model.params_b}B-and-under class well at Q4_K_M. The 7B class needs CPU
+        offload and gets slow. 8 GB is the first tier where 7B fits fully on the card.
       </p>
     </div>
 
@@ -144,14 +153,14 @@ const jsonLd = [
       <h2 id="what-fits" class="scroll-mt-20 text-xl font-semibold">What fits on a 6GB card</h2>
       <p class="mt-2 text-muted-foreground">
         A model fits when its measured Q4_K_M file plus a 4K-context KV cache and runtime overhead
-        stays inside the ~5 GB a 6 GB card keeps usable (the card also holds the runtime and your
-        display buffer; the convention is documented in the
+        stays inside the ~{usable6} GB a 6 GB card keeps usable (the card also holds the runtime
+        and your display buffer; the convention is documented in the
         <a href="/methodology" class="text-[var(--brand-ink)] hover:underline">methodology</a>).
         The strongest models that clear that bar:
       </p>
       <div class="panel mt-3 overflow-hidden">
         <div class="panel-head">
-          <span class="panel-label">Fits in ~5 GB usable</span>
+          <span class="panel-label">Fits the {card6.name}</span>
           <span class="panel-label">total at Q4_K_M, 4K ctx</span>
         </div>
         <ul class="divide-y divide-border">
@@ -174,8 +183,8 @@ const jsonLd = [
         Where it breaks: 7B and context
       </h2>
       <p class="mt-2 text-muted-foreground">
-        The popular 7B to 8B class lands just past the budget: Llama 3.1 8B alone is
-        {models.find((m) => m.id === "llama-3.1-8b")?.q4_k_m_gb} GB on disk at Q4_K_M before the KV
+        The popular 7B to 8B class lands just past the budget: {ref8b.name} alone is
+        {ref8b.q4_k_m_gb} GB on disk at Q4_K_M before the KV
         cache. Runtimes will still run it by spilling layers to CPU RAM, but every offloaded layer
         moves at system-memory speed and token rates drop sharply.
       </p>
@@ -206,13 +215,15 @@ const jsonLd = [
     <section class="mt-8">
       <h2 id="step-up" class="scroll-mt-20 text-xl font-semibold">What 8GB adds</h2>
       <p class="mt-2 text-muted-foreground">
-        One tier up, an 8 GB card keeps ~7 GB usable and the fit count rises from
+        One tier up, an 8 GB card like the <a href={`/best-llm-for/${card8.id}`} class="text-[var(--brand-ink)] hover:underline">{card8.name}</a> keeps ~{usable8} GB usable and the fit count rises from
         <strong class="text-foreground">{fits6.length} to {fits8.length}</strong> models. The
         difference is almost entirely the 7B class fitting fully on the card. For the tier-by-tier
         view from there, see
         <a href="/guides/which-llms-fit-16-24-32gb" class="text-[var(--brand-ink)] hover:underline"
           >which LLMs fit in 16, 24 or 32 GB</a
-        >, or start from your
+        >, check any model against any machine on the
+        <a href="/calculator" class="text-[var(--brand-ink)] hover:underline">VRAM calculator</a>,
+        or start from your
         <a href="/best-llm-for" class="text-[var(--brand-ink)] hover:underline">exact device</a>.
       </p>
     </section>

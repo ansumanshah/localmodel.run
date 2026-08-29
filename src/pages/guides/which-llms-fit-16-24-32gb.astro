@@ -39,10 +39,19 @@ const tiers = SIZES.map((size) => {
   return { size, interps, best };
 });
 
+// Fail loudly at build if a tier ever computes empty (the weekly cron mutates
+// the catalog in place; a silent undefined here would ship a broken page).
+for (const t of tiers) {
+  if (!t.best || !t.best.biggest || t.best.top.length === 0)
+    throw new Error(`which-llms-fit guide: empty fit pool for the ${t.size}GB tier`);
+}
+
 const total = models.length;
 const t16 = tiers[0].best;
 const t24 = tiers[1].best;
 const t32 = tiers[2].best;
+const llama70b = models.find((m) => m.id === "llama-3.3-70b");
+if (!llama70b) throw new Error("which-llms-fit guide: reference model llama-3.3-70b missing");
 
 const path = "/guides/which-llms-fit-16-24-32gb";
 const title = "Which LLMs fit in 16GB, 24GB or 32GB? · localmodel.run";
@@ -57,15 +66,15 @@ const SOURCES = dedupeSources(
 const faqs: FaqItem[] = [
   {
     q: "What LLM can I run with 16GB of VRAM or RAM?",
-    a: `${t16.fitCount} of the ${total} open models tracked here fit a 16GB machine at Q4_K_M, up to about ${t16.biggest ? t16.biggest.model.params_b + "B parameters (" + t16.biggest.model.name + ", " + t16.biggest.model.q4_k_m_gb + " GB on disk)" : "13B parameters"}. The usable pool matters more than the sticker size: a 16GB GPU exposes ~${t16.usable} GB for weights after overhead.`,
+    a: `On the roomiest 16GB reading (${t16.device.name}, ~${t16.usable} GB usable), ${t16.fitCount} of the ${total} open models tracked here fit at Q4_K_M, up to about ${t16.biggest.model.params_b}B parameters (${t16.biggest.model.name}, ${t16.biggest.model.q4_k_m_gb} GB on disk). A 16GB Mac or CPU laptop exposes less usable memory, so its count is lower; the tier table above shows each reading.`,
   },
   {
     q: "Which LLMs and quants are possible with 32GB?",
-    a: `At 32GB, ${t32.fitCount} tracked models fit at Q4_K_M (up to ~${t32.biggest ? t32.biggest.model.params_b + "B" : "32B"}), and ${t32.q8Count} of them also fit at near-lossless Q8_0. 30B-class MoE models like Qwen3 30B-A3B are the sweet spot: 30B quality with 3B-class speed.`,
+    a: `At 32GB, ${t32.fitCount} tracked models fit at Q4_K_M (up to ~${t32.biggest.model.params_b}B), and ${t32.q8Count} of them also fit at near-lossless Q8_0. 30B-class MoE models are the sweet spot: 30B-class quality with 3B-class speed from the active-parameter count.`,
   },
   {
     q: "Is 32GB of RAM enough for a 70B model?",
-    a: `No. A 70B model needs about ${models.find((m) => m.id === "llama-3.3-70b")?.q4_k_m_gb ?? 42.5} GB on disk even at Q4_K_M, before the KV cache. 70B locally starts at 48GB of unified memory or dual 24GB GPUs.`,
+    a: `No. A 70B model needs about ${llama70b.q4_k_m_gb} GB on disk even at Q4_K_M, before the KV cache. No 32GB machine holds that; on the tracked devices, 70B first fits on the 64GB Macs or on multi-GPU rigs.`,
   },
   {
     q: "Do RAM, VRAM and unified memory gigabytes count the same?",
@@ -131,9 +140,10 @@ const jsonLd = [
     <div class="panel guide-tldr mt-6">
       <div class="panel-head"><span class="panel-label">The short version</span></div>
       <p class="p-4 text-sm text-muted-foreground">
-        16 GB runs the 7B to 13B class comfortably. 24 GB opens the 27B to 32B dense class. 32 GB
-        adds headroom for 30B models at higher quants and bigger context. 70B stays out of reach
-        until 48 GB. The usable pool, not the sticker gigabytes, decides every one of those lines.
+        At Q4_K_M, the roomiest 16 GB machine tops out around {t16.biggest.model.params_b}B
+        parameters, 24 GB around {t24.biggest.model.params_b}B and 32 GB around
+        {t32.biggest.model.params_b}B. A 70B model ({llama70b.q4_k_m_gb} GB on disk) fits none of
+        the three. The usable pool, not the sticker gigabytes, decides every one of those lines.
       </p>
     </div>
 
@@ -154,7 +164,9 @@ const jsonLd = [
         the GPU working set, and a CPU-only laptop shares its RAM with the OS and apps. The full
         math is on the <a href="/methodology" class="text-[var(--brand-ink)] hover:underline"
           >methodology page</a
-        >, and the sizes come from real GGUF files, per model, with sources.
+        >, the sizes come from real GGUF files with sources, and the
+        <a href="/calculator" class="text-[var(--brand-ink)] hover:underline">VRAM calculator</a>
+        runs the same check interactively for any model and machine.
       </p>
     </section>
 

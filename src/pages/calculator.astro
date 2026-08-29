@@ -97,17 +97,23 @@ const jsonLd = [
       LLM VRAM calculator
     </h1>
     <p class="mt-4 text-pretty text-lg text-muted-foreground">
-      How much memory a model needs is three numbers, not one: <strong class="text-foreground"
-        >{example.name}</strong
-      > at Q4_K_M is <span class="font-mono">{est.weightsGb} GB</span> of weights plus
+      <strong class="text-foreground">{example.name}</strong> needs about
+      <span class="font-mono">{est.totalGb} GB</span> at Q4_K_M:
+      <span class="font-mono">{est.weightsGb} GB</span> of weights plus
       <span class="font-mono">~{est.kvGb} GB</span> of KV cache at 4K context plus
-      <span class="font-mono">~{est.overheadGb} GB</span> of overhead, about
-      <span class="font-mono">{est.totalGb} GB</span> total. Pick a model and your machine below;
-      every model size is measured from real GGUF files.
+      <span class="font-mono">~{est.overheadGb} GB</span> of overhead. That three-part sum is the
+      whole calculation. Pick a model and your machine below; every model size is measured from
+      real GGUF files.
     </p>
 
-    <div class="det-wrap mt-8">
-      <Detector client:load />
+    <div class="panel-hero mt-8">
+      <div class="panel-head" aria-hidden="true">
+        <span class="panel-label">VRAM threshold engine</span>
+        <span class="panel-status"><span class="status-dot"></span>LIVE</span>
+      </div>
+      <div class="det-wrap">
+        <Detector client:load />
+      </div>
     </div>
 
     <section class="mt-10">
