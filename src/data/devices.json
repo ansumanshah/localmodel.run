@@ -792,5 +792,59 @@
       "https://www.qualcomm.com/news/releases/2026/02/qualcomm-unveils-the-snapdragon-8-elite-gen-5-for-galaxy--drivin"
     ],
     "notes": "16GB LPDDR5X on the 1TB config (256/512GB ship 12GB) per GSMArena and SammyFans. Snapdragon 8 Elite Gen 5. Android overhead ~3-4GB; usable ~12GB (community estimate). Fits 7B-13B Q4_K_M. MLC-LLM + Adreno for best throughput."
+  },
+  {
+    "id": "nvidia-rtx-3060-ti-8gb",
+    "name": "Nvidia GeForce RTX 3060 Ti (8GB)",
+    "category": "nvidia",
+    "memory_gb": 8,
+    "memory_type": "vram",
+    "usable_memory_gb": 7,
+    "bandwidth_gbs": 448,
+    "msrp_usd": 399,
+    "tdp_w": 200,
+    "best_runtime": "Ollama (CUDA) / llama.cpp CUDA",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3060-3060ti/",
+      "https://www.tomshardware.com/news/nvidia-geforce-rtx-3060-ti-specifications",
+      "https://en.wikipedia.org/wiki/GeForce_RTX_30_series"
+    ],
+    "notes": "8GB GDDR6 on a 256-bit bus, 448 GB/s. The most common 8GB Ampere card in budget LLM builds. ~1GB reserved for driver/display = ~7GB usable: the 7B class fits at Q4_K_M, 13B does not without offload."
+  },
+  {
+    "id": "nvidia-gtx-1070-8gb",
+    "name": "Nvidia GeForce GTX 1070 (8GB)",
+    "category": "nvidia",
+    "memory_gb": 8,
+    "memory_type": "vram",
+    "usable_memory_gb": 7,
+    "bandwidth_gbs": 256,
+    "msrp_usd": 379,
+    "tdp_w": 150,
+    "best_runtime": "llama.cpp CUDA (Pascal, no tensor cores)",
+    "sources": [
+      "https://www.tomshardware.com/news/geforce-gtx-1070-specifications,31822.html",
+      "https://en.wikipedia.org/wiki/GeForce_10_series",
+      "https://www.nvidia.com/en-gb/geforce/graphics-cards/geforce-gtx-1070/specifications/"
+    ],
+    "notes": "8GB GDDR5 on a 256-bit bus, 256 GB/s, Pascal (2016). Still a workable secondhand LLM card: ~7GB usable fits the 7B class at Q4_K_M. No tensor cores, so prompt processing is slower than RTX cards; token generation is bandwidth-bound and fine."
+  },
+  {
+    "id": "nvidia-rtx-2060-6gb",
+    "name": "Nvidia GeForce RTX 2060 (6GB)",
+    "category": "nvidia",
+    "memory_gb": 6,
+    "memory_type": "vram",
+    "usable_memory_gb": 5,
+    "bandwidth_gbs": 336,
+    "msrp_usd": 349,
+    "tdp_w": 160,
+    "best_runtime": "Ollama (CUDA) / llama.cpp CUDA",
+    "sources": [
+      "https://www.techspot.com/specs/gpu/188332-nvidia-geforce-rtx-2060-6gb.html",
+      "https://videocardz.net/nvidia-geforce-rtx-2060",
+      "https://en.wikipedia.org/wiki/GeForce_20_series"
+    ],
+    "notes": "6GB GDDR6 on a 192-bit bus, 336 GB/s, Turing (Jan 2019, $349). The classic entry LLM card: ~1GB reserved for driver/display = ~5GB usable, which runs the 1B to 4B class at Q4_K_M; the 7B class needs CPU offload."
   }
 ]
