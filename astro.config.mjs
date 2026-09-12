@@ -11,6 +11,12 @@ import tailwindcss from "@tailwindcss/vite";
 // discounts as synthetic freshness; meta.updated only advances when the catalog
 // actually changes (the weekly cron), so it is an honest per-crawl signal.
 const meta = JSON.parse(readFileSync(new URL("./src/data/meta.json", import.meta.url), "utf8"));
+const arena = JSON.parse(readFileSync(new URL("./src/data/arena-snapshot.json", import.meta.url), "utf8"));
+/** @type {Array<{ pricing: { verifiedAt: string } | null }>} */
+const comparisonModels = JSON.parse(readFileSync(new URL("./src/data/cloud-comparison-models.json", import.meta.url), "utf8"));
+// Editorial additions and separately maintained benchmarks have their own dates.
+const comparisonModified = ["2026-09-12", meta.updated, arena.snapshotDate,
+  ...comparisonModels.flatMap((model) => model.pricing ? [model.pricing.verifiedAt] : [])].sort().at(-1);
 // Tailwind v4 runs via the @tailwindcss/vite plugin. Under Astro 7 (Vite 8 /
 // Rolldown) the old PostCSS path broke: postcss-import could not resolve
 // `@import "tailwindcss"`. The Vite plugin is the recommended v4 setup and
@@ -63,6 +69,12 @@ export default defineConfig({
       changefreq: "weekly",
       priority: 0.7,
       lastmod: new Date(meta.updated),
+      serialize(item) {
+        const path = new URL(item.url).pathname.replace(/\/$/, "");
+        if (path === "/compare/local-vs-cloud") item.lastmod = comparisonModified;
+        if (path === "/guides/can-you-run-claude-locally") item.lastmod = ["2026-09-12", meta.updated].sort().at(-1);
+        return item;
+      },
       i18n: {
         defaultLocale: "en",
         locales: { en: "en-US", es: "es-ES" },

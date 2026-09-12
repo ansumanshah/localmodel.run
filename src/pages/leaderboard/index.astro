@@ -32,17 +32,17 @@ const gridRows = grid.map((m) => {
 
 const title = "Local LLM leaderboard: coding, tool use & chat, with hardware fit · localmodel.run";
 const description = truncate(
-  `Open-weight models ranked by sourced benchmarks: Aider polyglot coding, BFCL tool use, and LMArena chat Elo. The only local-LLM leaderboard that also tells you which hardware can run the top models.`,
+  `Compare tracked open-weight models on Aider coding, BFCL tool use and LMArena chat scores, alongside estimated Q4_K_M hardware fit. Coverage is partial.`,
 );
 
 const faqs: FaqItem[] = [
   {
-    q: "What is the best local LLM right now?",
-    a: `It depends what for. ${tops.coding ? `For coding, ${tops.coding.model.name} leads the Aider polyglot board at ${tops.coding.score}%. ` : ""}${tops["tool-use"] ? `For tool use and agents, ${tops["tool-use"].model.name} tops BFCL at ${tops["tool-use"].score}%. ` : ""}${tops.chat ? `For general chat, ${tops.chat.model.name} has the highest LMArena Elo at ${Math.round(tops.chat.score)}.` : ""}`,
+    q: "Which tracked models have the highest recorded scores?",
+    a: `Among the models with scores in our catalog, ${tops.coding ? `${tops.coding.model.name} leads coding at ${tops.coding.score}% on Aider polyglot. ` : ""}${tops["tool-use"] ? `${tops["tool-use"].model.name} has the highest recorded BFCL score at ${tops["tool-use"].score}%. ` : ""}${tops.chat ? `${tops.chat.model.name} has the highest recorded chat Elo at ${Math.round(tops.chat.score)}. ` : ""}Coverage is partial and score verification dates are not yet recorded, so these are not claims about the current overall leaders.`,
   },
   {
     q: "Why is this leaderboard different?",
-    a: "Every other leaderboard stops at the score. This one ties each ranked model to whether you can actually run it: each row shows the lightest tracked device that fits the model at Q4_K_M, and links to the full hardware breakdown.",
+    a: "Each ranked model links to a hardware estimate: the lightest tracked device that fits it at Q4_K_M, plus the full memory breakdown. A hardware fit does not mean that a local quantized run will reproduce the benchmark score.",
   },
   {
     q: "Where do the scores come from?",
@@ -71,6 +71,10 @@ const jsonLd = [
       <p class="mt-4 text-pretty text-lg text-muted-foreground">
         Open-weight models ranked by sourced benchmarks, coding, tool use, and chat. The difference: every ranked model shows the lightest hardware that runs it at Q4_K_M, so the ranking and your hardware fit live in one place.
       </p>
+      <p class="mt-3 text-sm text-muted-foreground">
+        These are recorded third-party results with partial coverage. Benchmark verification dates are not yet tracked;
+        the catalog refresh updates model sizes, not these scores. Open each source board for its latest results.
+      </p>
     </div>
 
     <!-- Board cards -->
@@ -94,6 +98,14 @@ const jsonLd = [
         );
       })}
     </div>
+
+    <p class="mt-5 text-sm text-muted-foreground">
+      Compare <a href="/compare/local-vs-cloud" class="text-[var(--brand-ink)] underline underline-offset-2">local models with Astra, Claude and Gemini</a>
+      using a separate, dated Arena snapshot plus local memory fit and API prices.
+      Considering a local coding setup? Read
+      <a href="/guides/can-you-run-claude-locally" class="text-[var(--brand-ink)] underline underline-offset-2">Can you run Claude locally?</a>
+      for the distinction between Claude models, Claude Code and local alternatives.
+    </p>
 
     {grid.length > 0 && (
       <section class="mt-8">
@@ -136,7 +148,10 @@ const jsonLd = [
           </table>
         </div>
         <p class="mt-3 text-xs text-muted-foreground">
-          A model appears once it has at least one verified score; a dot means no checked score on that board yet (coverage is partial by design, never estimated). Scores are full-precision; memory and the "runs on" device are computed at Q4_K_M. Sorted by size, biggest first. See each board above for the ranked view.
+          A model appears once it has at least one recorded score; a dot means no checked score on that board yet.
+          Scores describe the source's evaluation setup, not a measured Q4_K_M run on the listed device.
+          Memory and the "runs on" device are estimates at Q4_K_M. Sorted by size, biggest first.
+          See each board above for the ranked view.
         </p>
       </section>
     )}
@@ -154,7 +169,8 @@ const jsonLd = [
     </section>
 
     <p class="mt-6 text-xs text-muted-foreground">
-      Benchmark scores are third-party and sourced (Aider, BFCL, LMArena); we list a model only after verifying its score against the canonical board. Memory and fit are computed, validated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+      Sources: Aider polyglot, BFCL and LMArena. Memory-data refresh: {meta.updated}; this is not a benchmark verification date.
+      See <a href="/methodology" class="underline">methodology</a>.
     </p>
   </div>
 </Base>

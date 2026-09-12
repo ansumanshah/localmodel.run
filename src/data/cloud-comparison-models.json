@@ -1,0 +1,134 @@
+[
+  {
+    "id": "gpt-6-astra",
+    "name": "GPT-6 Astra (Max)",
+    "arenaName": "gpt-6-astra-max",
+    "access": "hosted",
+    "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+    "providerModelId": "gpt-6-astra",
+    "localModelId": null,
+    "pricing": {
+      "inputPerMillion": 10,
+      "outputPerMillion": 50,
+      "cacheReadPerMillion": 1,
+      "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+      "verifiedAt": "2026-09-12",
+      "notes": "Standard text rates for requests with at most 272K input tokens. Above that threshold the whole request has 2x input and 1.5x output rates. Cache creation and tools are excluded.",
+      "validThrough": null
+    }
+  },
+  {
+    "id": "claude-opus-5",
+    "name": "Claude Opus 5 (High)",
+    "arenaName": "claude-opus-5-high",
+    "access": "hosted",
+    "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
+    "providerModelId": "claude-opus-5",
+    "localModelId": null,
+    "pricing": {
+      "inputPerMillion": 5,
+      "outputPerMillion": 25,
+      "cacheReadPerMillion": 0.5,
+      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "verifiedAt": "2026-09-12",
+      "notes": "Standard global Claude API, including the 1M context window. US-only inference costs 1.1x. Fast mode, cache creation and tools are excluded.",
+      "validThrough": null
+    }
+  },
+  {
+    "id": "claude-sonnet-5",
+    "name": "Claude Sonnet 5 (High)",
+    "arenaName": "claude-sonnet-5-high",
+    "access": "hosted",
+    "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
+    "providerModelId": "claude-sonnet-5",
+    "localModelId": null,
+    "pricing": {
+      "inputPerMillion": 2,
+      "outputPerMillion": 10,
+      "cacheReadPerMillion": 0.2,
+      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "verifiedAt": "2026-09-12",
+      "notes": "Standard global Claude API, including the 1M context window. US-only inference costs 1.1x. Cache creation and tools are excluded.",
+      "validThrough": null
+    }
+  },
+  {
+    "id": "gemini-3.8-flash",
+    "name": "Gemini 3.8 Flash (High)",
+    "arenaName": "gemini-3.8-flash-high",
+    "access": "hosted",
+    "sourceUrl": "https://ai.google.dev/gemini-api/docs/latest-model",
+    "providerModelId": "gemini-3.8-flash",
+    "localModelId": null,
+    "pricing": {
+      "inputPerMillion": 0.75,
+      "outputPerMillion": 3.75,
+      "cacheReadPerMillion": 0.075,
+      "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing?hl=en",
+      "verifiedAt": "2026-09-12",
+      "notes": "Standard paid Gemini Developer API rates through 2026-12-31. Published rates from 2027-01-01 are $1.50 input and $7.50 output per million. Output includes thinking tokens. Cache storage, tools and other tiers are excluded.",
+      "validThrough": "2026-12-31"
+    }
+  },
+  {
+    "id": "gemma-4-31b",
+    "name": "Gemma 4 31B",
+    "arenaName": "gemma-4-31b",
+    "access": "local",
+    "sourceUrl": "https://huggingface.co/google/gemma-4-31B-it",
+    "providerModelId": null,
+    "localModelId": "gemma-4-31b",
+    "pricing": null
+  },
+  {
+    "id": "gemma-4-26b-a4b",
+    "name": "Gemma 4 26B-A4B",
+    "arenaName": "gemma-4-26b-a4b",
+    "access": "local",
+    "sourceUrl": "https://huggingface.co/google/gemma-4-26B-A4B-it",
+    "providerModelId": null,
+    "localModelId": "gemma-4-26b-a4b",
+    "pricing": null
+  },
+  {
+    "id": "qwen3-32b",
+    "name": "Qwen3 32B",
+    "arenaName": "qwen3-32b",
+    "access": "local",
+    "sourceUrl": "https://huggingface.co/Qwen/Qwen3-32B-GGUF",
+    "providerModelId": null,
+    "localModelId": "qwen3-32b",
+    "pricing": null
+  },
+  {
+    "id": "qwen3-30b-a3b",
+    "name": "Qwen3 30B-A3B",
+    "arenaName": "qwen3-30b-a3b",
+    "access": "local",
+    "sourceUrl": "https://huggingface.co/unsloth/Qwen3-30B-A3B-GGUF",
+    "providerModelId": null,
+    "localModelId": "qwen3-30b-a3b",
+    "pricing": null
+  },
+  {
+    "id": "gpt-oss-20b",
+    "name": "gpt-oss 20B",
+    "arenaName": "gpt-oss-20b",
+    "access": "local",
+    "sourceUrl": "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF",
+    "providerModelId": null,
+    "localModelId": "gpt-oss-20b",
+    "pricing": null
+  },
+  {
+    "id": "gpt-oss-120b",
+    "name": "gpt-oss 120B",
+    "arenaName": "gpt-oss-120b",
+    "access": "local",
+    "sourceUrl": "https://huggingface.co/ggml-org/gpt-oss-120b-GGUF",
+    "providerModelId": null,
+    "localModelId": "gpt-oss-120b",
+    "pricing": null
+  }
+]

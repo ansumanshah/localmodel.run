@@ -109,6 +109,8 @@ validates, and commits any changes. The push triggers a redeploy.
 
 - Add a `HF_TOKEN` repo secret for higher HuggingFace rate limits (optional).
 - Add `hf_repo` to a model row to pull exact per-quant sizes from HuggingFace.
+- `bun run update:arena` refreshes the selected local-versus-cloud preference snapshot. The weekly workflow
+  runs it too; failed validation keeps the last valid file. Vendor API tariffs are reviewed separately.
 
 ## Deploy (Cloudflare Pages)
 
@@ -126,6 +128,10 @@ Optional build-time env vars (Cloudflare Pages → Settings → Environment vari
 
 ## SEO + AI-crawlability
 
+The [organic growth plan](docs/organic-growth-plan.md) explains the gradual expansion into local-versus-cloud
+decisions. [Source evidence and implementation learnings](docs/local-vs-cloud-learnings.md) record the verified
+facts, pricing limits, importer behavior, browser checks, and next steps for the comparison pilot.
+
 - One indexable page per `model × device` (`/can-i-run/[model]/[device]`), per device (`/best-llm-for/[device]`), and per model (`/model/[model]`), plus `/compare` head-to-heads, `/rig-for/[model]`, `/leaderboard` (Aider / BFCL / LMArena with hardware fit), `/best-llm-for-ram/[budget]`, embeddable SVG badges (`/badge/[model]/[device].svg`) and an OpenAPI spec (`/api/openapi.json`); about 6,400 pages.
 - JSON-LD on every page: TechArticle, FAQPage, BreadcrumbList, ItemList, Dataset, WebApplication, Organization, WebSite.
 - `robots.txt` explicitly allows AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended) since being citable is the strategy.
@@ -135,6 +141,10 @@ Optional build-time env vars (Cloudflare Pages → Settings → Environment vari
 ## License and reusing the data
 
 License and data-access details are in [Open dataset](#open-dataset) above.
+
+The local-versus-cloud comparison includes selected [Arena dataset](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset)
+rows under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Keep Arena attribution, source revision,
+and license fields when reusing `/api/local-vs-cloud.json`; ratings are not locally measured Q4 results.
 
 - **Badges:** every `model × device` pair has an embeddable SVG badge for GGUF
   model cards and project READMEs:

@@ -20,6 +20,7 @@ export const GET: APIRoute = ({ site }) => {
       models: `${origin}/api/models.json`,
       devices: `${origin}/api/devices.json`,
       browser_models: `${origin}/api/browser-models.json`,
+      local_vs_cloud: `${origin}/api/local-vs-cloud.json`,
       can_i_run: `${origin}/api/can-i-run/{model}.json`,
       example: `${origin}/api/can-i-run/llama-3.1-8b.json`,
       openapi: `${origin}/api/openapi.json`,
@@ -32,6 +33,6 @@ export const GET: APIRoute = ({ site }) => {
     },
     methodology: `${origin}/methodology`,
     note: "Memory figures are estimates. See methodology.",
-    license: "Data CC BY 4.0 with attribution to localmodel.run",
+    license: "Data CC BY 4.0 with attribution to localmodel.run. The local-versus-cloud benchmark also requires Arena attribution; see its source and license fields.",
   });
 };

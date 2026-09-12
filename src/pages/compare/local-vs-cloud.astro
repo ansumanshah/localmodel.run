@@ -1,0 +1,180 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { buildCloudComparison } from "@/lib/cloud-comparison";
+import { estimateApiCost, formatApiCost as money } from "@/lib/api-cost";
+import { breadcrumbLd, faqLd, itemListLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+
+const comparison = buildCloudComparison();
+const path = "/compare/local-vs-cloud";
+const pageDate = "2026-09-12";
+const modifiedDate = [pageDate, comparison.snapshot.snapshotDate, comparison.memoryUpdated,
+  ...comparison.rows.flatMap((row) => row.pricing ? [row.pricing.verifiedAt] : [])].sort().at(-1)!;
+const localCount = comparison.rows.filter((row) => row.access === "local").length;
+const hostedCount = comparison.rows.filter((row) => row.access === "hosted").length;
+const defaultDevice = comparison.devices.find((device) => device.id === comparison.defaultDeviceId) ?? comparison.devices[0];
+const defaultContext = comparison.defaultContextK;
+const localMemory = comparison.rows.flatMap((row) => row.memoryGb == null ? [] : [row.memoryGb]);
+const minMemory = Math.min(...localMemory);
+const maxMemory = Math.max(...localMemory);
+const initialInputMillion = 1;
+const initialOutputMillion = 0.2;
+
+function rate(value: number): string {
+  return `${money(value)} / M`;
+}
+
+function fitFor(rowId: string) {
+  return defaultDevice ? comparison.fits[rowId]?.[defaultDevice.id]?.[String(defaultContext)] : undefined;
+}
+
+const title = "Local vs cloud LLMs: Claude, Astra, Gemini and open models · localmodel.run";
+const description = truncate(
+  `Compare ${localCount} local and ${hostedCount} hosted models from one Arena preference snapshot. Check local Q4 memory fit for your hardware and estimate listed API cost for your monthly usage.`,
+);
+const faqs: FaqItem[] = [
+  {
+    q: "Can I run a cloud model locally?",
+    a: "Usually not. Hosted rows represent a provider API run, while local rows link to an open-weight model with a Q4 memory estimate. The hardware selector only evaluates the local catalog models in this selected comparison.",
+  },
+  {
+    q: "Does an Arena preference rating measure local performance?",
+    a: "No. The rating comes from the listed Arena leaderboard snapshot and retains its evaluated mode. A hosted Arena run is not a local quantization benchmark, so use the rating for preference context and the memory verdict for local hardware planning.",
+  },
+  {
+    q: "Are the API costs a bill quote?",
+    a: "No. The estimate multiplies your entered input and output millions of tokens by the linked vendor rates in this snapshot. It excludes subscriptions, tools, regional pricing, taxes and any rate that is not listed.",
+  },
+];
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Compare", url: "/compare" },
+      { name: "Local vs cloud", url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: "Local vs cloud LLM comparison",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    datePublished: pageDate,
+    dateModified: modifiedDate,
+    sources: [comparison.snapshot.sourceUrl, comparison.snapshot.licenseUrl],
+    speakableSelector: [".verdict-text"],
+  }),
+  itemListLd({
+    name: "Selected local and hosted language models",
+    items: comparison.rows.map((row) => ({ name: row.name, url: row.sourceUrl })),
+    origin: Astro.site!.href,
+  }),
+  faqLd(faqs),
+];
+const clientData = JSON.stringify(comparison).replace(/</g, "\\u003c");
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogType="article" articleModified={modifiedDate} ogTitle="Local vs cloud LLM comparison">
+  <article class="mx-auto max-w-6xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Compare", url: "/compare" }, { name: "Local vs cloud", url: path }]} />
+
+    <div class="max-w-3xl">
+      <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Selected comparison</p>
+      <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Local vs cloud LLM comparison</h1>
+      <p class="verdict-text mt-4 text-pretty text-lg text-muted-foreground">
+        <strong class="text-foreground">These {localCount} local models need an estimated {minMemory}–{maxMemory} GB at Q4 and {defaultContext}K context.</strong> Compare them with {hostedCount} hosted options from Claude, Astra and Gemini. Choose your hardware, then estimate monthly API token costs alongside Arena's preference ratings from {comparison.snapshot.snapshotDate}.
+      </p>
+    </div>
+
+
+
+    <cloud-comparison class="block mt-8" data-default-device={comparison.defaultDeviceId} data-default-context={String(defaultContext)}>
+      <section class="panel p-4 sm:p-5" aria-label="Comparison controls">
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end">
+          <label class="block text-sm font-medium" for="cloud-device">Your hardware
+            <select id="cloud-device" class="field mt-1 block w-full" name="device">
+              {comparison.devices.map((device) => <option value={device.id} selected={device.id === comparison.defaultDeviceId}>{device.name} (~{device.usableGb} GB usable)</option>)}
+            </select>
+          </label>
+          <label class="block text-sm font-medium" for="cloud-context">Context length
+            <select id="cloud-context" class="field mt-1 block w-full" name="context">
+              {comparison.contexts.map((contextK) => <option value={contextK} selected={contextK === defaultContext}>{contextK}K tokens</option>)}
+            </select>
+          </label>
+          <label class="block text-sm font-medium" for="cloud-filter">Show
+            <select id="cloud-filter" class="field mt-1 block w-full" name="access">
+              <option value="all">All models</option><option value="local">Local models</option><option value="hosted">Hosted models</option>
+            </select>
+          </label>
+        </div>
+        <p id="cloud-summary" class="mt-4 text-sm text-muted-foreground" aria-live="polite">Showing {comparison.rows.length} selected models. Local fit uses {defaultDevice?.name ?? "the selected device"} at {defaultContext}K context.</p>
+      </section>
+
+      <section class="panel mt-8 p-4 sm:p-5" aria-labelledby="cost-heading">
+        <div class="max-w-2xl"><p class="eyebrow"><span class="dot" aria-hidden="true"></span>Usage estimate</p><h2 id="cost-heading" class="mt-1 text-xl font-semibold">Estimate listed API spend</h2><p class="mt-2 text-sm text-muted-foreground">Enter millions of tokens for one month. Only hosted rows with a listed standard rate receive an estimate.</p></div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="block text-sm font-medium" for="cloud-input">Monthly input tokens <span class="text-muted-foreground">(millions)</span><input id="cloud-input" class="field mt-1 block w-full" type="number" inputmode="decimal" min="0" max="1000000" step="any" value={initialInputMillion} /></label>
+          <label class="block text-sm font-medium" for="cloud-output">Monthly billed output tokens <span class="text-muted-foreground">(millions)</span><input id="cloud-output" class="field mt-1 block w-full" type="number" inputmode="decimal" min="0" max="1000000" step="any" value={initialOutputMillion} /></label>
+        </div>
+        <p id="cloud-cost-note" class="mt-3 text-xs text-muted-foreground" aria-live="polite">Estimates use standard-tier uncached input and billed output rates. They exclude cache reads and writes, tools, batch or priority discounts, long-request surcharges and taxes. Known expired rates show Unavailable. Follow each price link for vendor notes.</p>
+      </section>
+
+      <section class="mt-5" aria-labelledby="comparison-table-heading">
+        <div class="flex flex-wrap items-end justify-between gap-2">
+          <div><p class="eyebrow"><span class="dot" aria-hidden="true"></span>Preference and fit</p><h2 id="comparison-table-heading" class="mt-1 text-xl font-semibold">Selected models, highest rating first</h2></div>
+          <a href={comparison.snapshot.sourceUrl} class="text-sm text-[var(--brand-ink)] underline underline-offset-2">Open source snapshot</a>
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground lg:hidden">Scroll the table sideways for local memory fit and API costs.</p>
+        <div class="panel mt-3 overflow-x-auto" tabindex="0" role="region" aria-label="Scrollable local versus cloud comparison table">
+          <table class="cloud-table w-full text-left">
+            <caption class="sr-only">Selected local and hosted models with Arena preference ratings, local memory fit and listed API costs.</caption>
+            <thead><tr><th scope="col">Model</th><th scope="col">Arena preference rating</th><th scope="col">Local fit and Q4 memory</th><th scope="col">Dated API price</th><th scope="col">Monthly API estimate</th></tr></thead>
+            <tbody>
+              {comparison.rows.map((row) => {
+                const fit = fitFor(row.id);
+                const cost = row.pricing ? estimateApiCost(row.pricing, initialInputMillion, initialOutputMillion) : null;
+                return <tr data-cloud-row data-access={row.access} data-model-id={row.id} data-pricing={row.pricing ? JSON.stringify(row.pricing).replace(/</g, "\\u003c") : ""}>
+                  <th scope="row"><a href={row.access === "local" && row.localModelId ? `/model/${row.localModelId}` : row.sourceUrl} class="font-medium hover:text-[var(--brand-ink)]">{row.name}</a><span class="mt-1 block text-xs font-normal text-muted-foreground">{row.arenaName} · {row.access === "local" ? "Local" : "Hosted"}</span></th>
+                  <td><span class="num font-semibold">{row.rating.toFixed(1)}</span><span class="mt-1 block text-xs text-muted-foreground">{row.ratingLower.toFixed(1)}–{row.ratingUpper.toFixed(1)} · {row.votes.toLocaleString()} votes</span></td>
+                  <td data-fit-cell>{row.access === "hosted" ? <span class="text-sm text-muted-foreground">Hosted only</span> : fit ? <><span class={`fit-chip fit-${fit.verdict}`}><span>{fit.verdict === "yes" ? "Fits" : fit.verdict === "tight" ? "Tight" : "No fit"}</span><span class="num">~{fit.memoryGb} GB</span></span><a href={fit.pairUrl} class="block mt-1 text-xs underline underline-offset-2">4K setup details</a></> : <span class="text-sm text-muted-foreground">Not available</span>}</td>
+                  <td>{row.pricing ? <a href={row.pricing.sourceUrl} aria-label={`Open ${row.name} API pricing and verification date`} class="text-sm hover:text-[var(--brand-ink)]"><span class="block">In <span class="num">{rate(row.pricing.inputPerMillion)}</span></span><span class="block">Out <span class="num">{rate(row.pricing.outputPerMillion)}</span></span><span class="mt-1 block text-xs text-muted-foreground">Verified {row.pricing.verifiedAt}</span>{row.pricing.validThrough && <span class="block text-xs text-muted-foreground">Through {row.pricing.validThrough}</span>}</a> : <span class="text-sm text-muted-foreground">Not listed</span>}</td>
+                  <td data-cost-cell>{row.pricing ? <span class="num font-semibold">{money(cost)}</span> : <span class="text-sm text-muted-foreground">Not listed</span>}</td>
+                </tr>;
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-xs text-muted-foreground">The bounds show the source confidence interval. Rating intervals can overlap, so do not assume a reliable ordering from nearby rows. Names retain the source's evaluated reasoning modes. Arena's settings can differ from a local Q4 installation.</p>
+      </section>
+
+
+    </cloud-comparison>
+
+    <section class="mt-10 grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(17rem,.6fr)]">
+      <div><p class="eyebrow mb-3"><span class="dot" aria-hidden="true"></span>How to read this</p><h2 class="text-xl font-semibold">One source snapshot, two deployment paths</h2><p class="mt-2 text-muted-foreground">The preference ratings come from the linked Arena snapshot on {comparison.snapshot.snapshotDate}. Local memory uses this catalog's Q4 measurements and selected context. Monthly API usage is separate from that per-request context setting. Billed output includes reasoning tokens, which can exceed the visible answer. Memory fit does not guarantee runtime support or usable speed. Vendor API prices have their own verification dates and links per row. These are separate facts, shown together for planning, not evidence of parity.</p><p class="mt-3 text-muted-foreground">For a broader local benchmark view, visit the <a class="text-[var(--brand-ink)] underline underline-offset-2" href="/leaderboard">local leaderboard</a>. To size any local model for a machine, use the <a class="text-[var(--brand-ink)] underline underline-offset-2" href="/calculator">memory calculator</a>. <a class="text-[var(--brand-ink)] underline underline-offset-2" href="/guides/can-you-run-claude-locally">Can you run Claude locally?</a> explains the open-weight boundary.</p></div>
+      <details class="panel h-fit p-4"><summary class="cursor-pointer font-medium">Methodology and dates</summary><div class="mt-3 space-y-2 text-sm text-muted-foreground"><p><strong class="text-foreground">Arena:</strong> {comparison.snapshot.metric}, adapted from the dataset snapshot dated {comparison.snapshot.snapshotDate}; rounded to one decimal here.</p><p><strong class="text-foreground">Memory:</strong> Q4 local-catalog estimate recomputed for the selected device and context. Memory data updated {comparison.memoryUpdated}.</p><p><strong class="text-foreground">Prices:</strong> USD per million tokens, separate from subscription plans. Vendor rates below cover the base API model; the Arena label retains the evaluated reasoning mode.</p>
+        {comparison.rows.filter((row) => row.pricing).map((row) => <p><a href={row.pricing!.sourceUrl} class="text-[var(--brand-ink)] underline underline-offset-2">{row.name}</a> ({row.providerModelId}), verified {row.pricing!.verifiedAt}: {row.pricing!.notes}</p>)}<p><a href={comparison.snapshot.licenseUrl} class="text-[var(--brand-ink)] underline underline-offset-2">Adapted from Arena leaderboard dataset, CC BY 4.0</a>.</p></div></details>
+    </section>
+
+    <section class="mt-10" aria-labelledby="faq-heading"><p class="eyebrow mb-3"><span class="dot" aria-hidden="true"></span>FAQ</p><h2 id="faq-heading" class="sr-only">Frequently asked questions</h2><div class="panel divide-y divide-border">{faqs.map((faq) => <div class="p-4"><h3 class="font-medium">{faq.q}</h3><p class="mt-2 text-sm text-muted-foreground">{faq.a}</p></div>)}</div></section>
+
+    <p class="mt-6 text-xs text-muted-foreground">Source retrieved {comparison.snapshot.retrievedAt.slice(0, 10)}. <a href="/api/local-vs-cloud.json" class="underline underline-offset-2">Download the comparison data</a>. Selection is editorial and does not claim a global rank. Ratings are rounded for display; source and license links above carry the full dataset context.</p>
+  </article>
+
+  <script type="application/json" id="cloud-comparison-data" set:html={clientData} is:inline />
+  <script>import "@/lib/cloud-comparison-client";</script>
+</Base>
+
+<style>
+  .cloud-table { min-width: 940px; border-collapse: collapse; }
+  .cloud-table th, .cloud-table td { border-bottom: 1px solid var(--border); padding: .85rem 1rem; vertical-align: top; }
+  .cloud-table thead th { background: color-mix(in oklch, var(--color-muted) 55%, transparent); color: var(--muted-foreground); font-size: .72rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .cloud-table tbody tr:last-child > * { border-bottom: 0; }
+  .cloud-table [hidden] { display: none; }
+  :global(.fit-chip) { display: inline-flex; flex-direction: column; gap: .1rem; border: 1px solid var(--border); border-radius: var(--radius-panel); padding: .35rem .5rem; font-size: .82rem; line-height: 1.2; }
+  :global(.fit-yes) { border-color: color-mix(in oklch, var(--color-verdict-yes) 45%, var(--border)); color: var(--verdict-yes-fg); }
+  :global(.fit-tight) { border-color: color-mix(in oklch, var(--color-verdict-tight) 55%, var(--border)); color: var(--verdict-tight-fg); }
+  :global(.fit-no) { border-color: color-mix(in oklch, var(--color-verdict-no) 45%, var(--border)); color: var(--verdict-no-fg); }
+  @media (max-width: 640px) { .cloud-table th, .cloud-table td { padding: .7rem; } }
+</style>

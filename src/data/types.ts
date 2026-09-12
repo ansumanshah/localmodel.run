@@ -26,7 +26,7 @@ export interface ModelRow {
   // by design: only set when a row was verified against the canonical leaderboard
   // for the SAME model (size + variant + version). Never estimated.
   aider_polyglot_pct?: number | null; // Aider polyglot coding benchmark, % of 225 Exercism tasks solved
-  bfcl_v3_acc?: number | null; // Berkeley Function-Calling Leaderboard v3, overall accuracy % (tool use)
+  bfcl_v3_acc?: number | null; // Legacy BFCL overall accuracy %; source version/snapshot needs re-verification
   hf_repo?: string | null; // GGUF repo (e.g. "bartowski/...-GGUF") so update-data.mjs can cron-refresh sizes
   ollama_default_gb?: number | null; // default-tag size from the Ollama OCI manifest (written by the cron)
   subtype?: "vlm" | "embedding" | "coder" | null; // display discriminant; VLM rows render via the text path

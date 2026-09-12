@@ -21,6 +21,14 @@ export const GET: APIRoute = ({ site }) => {
     },
     servers: [{ url: origin }],
     paths: {
+      "/api/local-vs-cloud.json": {
+        get: {
+          operationId: "getLocalVsCloudComparison",
+          summary: "Selected local and hosted models, dated Arena preference ratings and vendor API tariffs",
+          description: "Exact evaluated model names and source revision are preserved. Benchmark data is adapted from Arena under CC BY 4.0; retain its attribution and license fields. API tariffs have independent verification and expiry dates.",
+          responses: { "200": { description: "An object with models and benchmark snapshot fields" } },
+        },
+      },
       "/api/index.json": {
         get: {
           operationId: "getCatalog",

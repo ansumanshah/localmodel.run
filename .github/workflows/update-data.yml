@@ -37,6 +37,10 @@ jobs:
         run: bun run update-data
       - name: Validate dataset
         run: bun run validate-data
+      - name: Refresh the validated Arena comparison snapshot
+        id: arena
+        continue-on-error: true
+        run: bun run update:arena
       - name: Commit changes if any
         run: |
           if [[ -n "$(git status --porcelain src/data)" ]]; then
@@ -48,3 +52,8 @@ jobs:
           else
             echo "No data changes."
           fi
+      - name: Report an Arena refresh failure
+        if: steps.arena.outcome == 'failure'
+        run: |
+          echo "::error::Arena refresh failed. The previous snapshot was retained; valid catalog updates were handled separately."
+          exit 1

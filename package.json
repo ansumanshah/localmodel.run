@@ -1,7 +1,7 @@
 {
   "name": "localmodel-run",
   "type": "module",
-  "version": "0.1.67",
+  "version": "0.1.68",
   "description": "Can I run this AI model locally? Per-platform compatibility checker for local AI models (text, image, video, audio) on Mac, Windows, Linux, iOS and Android.",
   "license": "MIT",
   "author": "Ansuman Shah (https://github.com/ansumanshah)",
@@ -19,6 +19,7 @@
     "check": "astro check",
     "test": "bun test",
     "update-data": "node scripts/update-data.mjs",
+    "update:arena": "bun scripts/update-arena.ts",
     "validate-data": "node scripts/validate-data.mjs",
     "audit:links": "bun scripts/audit-links.ts",
     "audit:mobile": "bun scripts/mobile-audit.mjs",

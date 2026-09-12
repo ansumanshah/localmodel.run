@@ -168,16 +168,20 @@ const jsonLd = [
         </p>
         <ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
           <li><strong class="text-foreground">Coding</strong> is the Aider polyglot benchmark (share of 225 Exercism exercises solved across six languages), read from the Aider repo's published leaderboard data.</li>
-          <li><strong class="text-foreground">Tool use</strong> is the Berkeley Function-Calling Leaderboard (BFCL) Overall Acc, the share of tasks where the model picks the right tool with the right arguments. Where a model has a native function-calling (FC) result we use that, otherwise its prompted result. It is the open, sourced proxy for how agent-ready a model is.</li>
+          <li><strong class="text-foreground">Tool use</strong> records Berkeley Function-Calling Leaderboard (BFCL) Overall Acc. Where a model has a native function-calling (FC) result we use that, otherwise its prompted result. The legacy field name is not sufficient to establish the benchmark version: the exact source snapshot needs re-verification before comparison with the current BFCL board.</li>
           <li><strong class="text-foreground">Chat</strong> is LMArena (Chatbot Arena) Elo from blind human votes.</li>
         </ul>
         <p class="mt-2 text-sm text-muted-foreground">
           We list a model on a board only after verifying its score against the canonical leaderboard for that
           exact model (same family, size, variant and version), so coverage is partial by design and a number is
-          never estimated. Scores are for the full-precision model, not a specific quant, and they drift, so we
-          re-check them. Whole-task agent leaderboards such as Agent Arena are still led by frontier cloud
-          models with open-weight models well behind; we cite them for context but rank on the open, sourced
-          boards above.
+          never estimated. The source's model settings and evaluation setup determine the result; a recorded
+          score does not establish performance for a Q4_K_M run on the hardware we suggest.
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+          Benchmark verification dates and complete evaluation configurations are not yet recorded in our dataset.
+          The scheduled catalog refresh updates model sizes, not benchmark scores. Its date should not be read as
+          a benchmark review date. Rankings cover the scored subset of our catalog; consult the source boards for
+          current results. Compare scores only within the same benchmark version and evaluation conditions.
         </p>
       </div>
 
