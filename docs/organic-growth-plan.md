@@ -105,6 +105,9 @@ from the same evaluation, including retries, if measured results support it.
 
 ## Original benchmarking, after the pilot
 
+The [coding pilot protocol](coding-benchmark-pilot.md) defines one proposed repair task
+across a local model, Claude and Astra. No runs or benchmark scores have been produced.
+
 Choose one narrow task suite where this project can contribute firsthand evidence, such as repository edits
 with tests, structured extraction, or tool-call reliability. Publish fixtures, scoring, failures, exact models,
 quantization/runtime versions, hardware, prompts, context, retries, token usage and result files.

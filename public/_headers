@@ -15,8 +15,8 @@
   #     zone's cache phase, ruleId 273b8576). With it, the edge honours s-maxage.
   #  2. A CF Pages deploy does NOT purge that rule's edge entries, so freshness is
   #     handled by .github/workflows/purge-on-deploy.yml: it fires on CF Pages'
-  #     GitHub check run completing for main and purge_everything's the zone, so a
-  #     deployed change is live within ~1 min regardless of the TTL below.
+  #     GitHub check run or the data-refresh workflow completing for main. It
+  #     waits for the deployed commit before purging the zone.
   # Because purge-on-deploy guarantees freshness, s-maxage is LONG (1 day) to
   # maximise the cache-hit ratio between deploys. Browsers still revalidate
   # (max-age=0). If you ever disable that purge workflow, drop s-maxage back to

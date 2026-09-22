@@ -3,7 +3,8 @@ name: Purge CF cache after deploy
 # Cloudflare Pages reports a "Cloudflare Pages" GitHub Check Run when it finishes
 # deploying a commit. We trigger on that check completing successfully for main,
 # then purge the whole edge cache so the new build is live immediately, instead
-# of waiting for the short s-maxage to expire. Purges are free + unlimited on CF.
+# of waiting for s-maxage to expire. Automated data commits need workflow_run
+# because GitHub suppresses check_run triggers associated with Actions commits.
 #
 # Why purge_everything (not selective): on this site one model/device change
 # recomputes rankings across thousands of pages, so "changed pages" is rarely a
@@ -43,6 +44,10 @@ name: Purge CF cache after deploy
 on:
   check_run:
     types: [completed]
+  workflow_run:
+    workflows: ["Refresh model data"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch: {}
 
 permissions:
@@ -58,35 +63,37 @@ env:
 
 jobs:
   purge:
-    # Only on a successful PRODUCTION (main) Cloudflare Pages deploy, or a manual run.
+    # Data refresh can push valid catalog changes before reporting an Arena failure.
+    # Check production readiness even when that refresh workflow ends in failure.
     if: >
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'workflow_run' ||
       (github.event.check_run.name == 'Cloudflare Pages' &&
        github.event.check_run.conclusion == 'success' &&
        github.event.check_run.check_suite.head_branch == 'main')
     runs-on: ubuntu-latest
     steps:
-      # Checked out only to read the expected version out of package.json.
+      # workflow_run.head_sha is the pre-refresh commit; read the updated main.
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.check_run.head_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.event.check_run.head_sha || github.sha }}
 
       - name: Wait for the deployment to be promoted
         id: wait
         run: |
-          expected=$(jq -r .version package.json)
+          expected=$(git rev-parse --short=7 HEAD)
           echo "expected=$expected" >> "$GITHUB_OUTPUT"
-          echo "Waiting for $READINESS_HOST to serve version $expected"
+          echo "Waiting for $READINESS_HOST to serve commit $expected"
           for a in $(seq 1 20); do
             code=$(curl -s -o /tmp/v.json -w '%{http_code}' --max-time 20 \
                      "$READINESS_HOST/version.json" || echo "000")
-            got=$(jq -r '.version // "?"' /tmp/v.json 2>/dev/null || echo "?")
+            got=$(jq -r '.commit // "?"' /tmp/v.json 2>/dev/null || echo "?")
             if [ "$code" = "200" ] && [ "$got" = "$expected" ]; then
               echo "promoted=true" >> "$GITHUB_OUTPUT"
               echo "✓ promoted: $READINESS_HOST serves $expected (after $a check(s))"
               exit 0
             fi
-            echo "  attempt $a: HTTP $code, version '$got', want '$expected'"
+            echo "  attempt $a: HTTP $code, commit '$got', want '$expected'"
             sleep 15
           done
           # Never fatal. A manual dispatch has no new deploy to wait for, and if
