@@ -27,7 +27,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct"
       }
     ]
@@ -60,7 +60,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct"
       }
     ]
@@ -91,7 +91,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/gemma-3-270m-it-ONNX"
       },
       {
@@ -128,7 +128,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct"
       },
       {
@@ -165,7 +165,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct"
       },
       {
@@ -202,7 +202,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Qwen3-0.6B-ONNX"
       }
     ],
@@ -236,7 +236,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Qwen2.5-1.5B-Instruct"
       }
     ],
@@ -270,7 +270,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/DeepSeek-R1-Distill-Qwen-1.5B-ONNX"
       }
     ],
@@ -304,7 +304,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/gemma-3-1b-it-ONNX"
       }
     ]
@@ -335,7 +335,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/LFM2.5-350M-ONNX"
       }
     ]
@@ -365,7 +365,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/granite-4.0-350m-ONNX-web"
       }
     ],
@@ -394,7 +394,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Bonsai-1.7B-ONNX"
       }
     ],
@@ -422,7 +422,7 @@
     "pipeline_task": "text-generation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Phi-3.5-mini-instruct-onnx-web"
       }
     ],
@@ -454,7 +454,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/gemma-4-E2B-it-ONNX"
       }
     ],
@@ -486,7 +486,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/gemma-4-E4B-it-ONNX"
       }
     ],
@@ -520,7 +520,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Janus-Pro-1B-ONNX"
       }
     ],
@@ -554,7 +554,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct"
       }
     ],
@@ -589,7 +589,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Florence-2-base-ft"
       },
       {
@@ -626,7 +626,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Qwen3.5-0.8B-ONNX"
       }
     ],
@@ -658,7 +658,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/granite-docling-258M-ONNX"
       }
     ],
@@ -692,7 +692,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Florence-2-large-ft"
       }
     ],
@@ -726,7 +726,7 @@
     "pipeline_task": "automatic-speech-recognition",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/whisper-tiny"
       },
       {
@@ -762,7 +762,7 @@
     "pipeline_task": "automatic-speech-recognition",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/whisper-base"
       },
       {
@@ -798,7 +798,7 @@
     "pipeline_task": "automatic-speech-recognition",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/whisper-small"
       },
       {
@@ -835,7 +835,7 @@
     "pipeline_task": "automatic-speech-recognition",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/moonshine-base-ONNX"
       },
       {
@@ -872,7 +872,7 @@
     "pipeline_task": "automatic-speech-recognition",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/whisper-large-v3-turbo"
       }
     ]
@@ -905,7 +905,7 @@
     "pipeline_task": "automatic-speech-recognition",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/moonshine-tiny-ONNX"
       }
     ]
@@ -936,7 +936,7 @@
     "pipeline_task": "automatic-speech-recognition",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Voxtral-Mini-4B-Realtime-2602-ONNX"
       }
     ],
@@ -970,7 +970,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/pyannote-segmentation-3.0"
       }
     ],
@@ -1003,7 +1003,7 @@
     "pipeline_task": "text-to-speech",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX"
       },
       {
@@ -1035,7 +1035,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Supertonic-TTS-2-ONNX"
       }
     ],
@@ -1069,7 +1069,7 @@
     "pipeline_task": "feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/Xenova/all-MiniLM-L6-v2"
       },
       {
@@ -1106,7 +1106,7 @@
     "pipeline_task": "feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/Xenova/bge-small-en-v1.5"
       },
       {
@@ -1141,7 +1141,7 @@
     "pipeline_task": "feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX"
       },
       {
@@ -1178,7 +1178,7 @@
     "pipeline_task": "feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/gte-multilingual-base"
       }
     ],
@@ -1212,7 +1212,7 @@
     "pipeline_task": "feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/Qwen3-Embedding-0.6B-ONNX"
       }
     ]
@@ -1244,7 +1244,7 @@
     "pipeline_task": "feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/bge-m3-ONNX"
       }
     ],
@@ -1276,7 +1276,7 @@
     "pipeline_task": "feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/voyage-4-nano-ONNX"
       }
     ]
@@ -1309,7 +1309,7 @@
     "pipeline_task": "text-classification",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/bge-reranker-v2-m3-ONNX"
       }
     ],
@@ -1343,7 +1343,7 @@
     "pipeline_task": "zero-shot-image-classification",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/Xenova/clip-vit-base-patch32"
       },
       {
@@ -1376,7 +1376,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/briaai/RMBG-1.4"
       }
     ],
@@ -1411,7 +1411,7 @@
     "pipeline_task": "background-removal",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/Xenova/modnet"
       },
       {
@@ -1448,7 +1448,7 @@
     "pipeline_task": "depth-estimation",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/depth-anything-v2-small"
       },
       {
@@ -1481,7 +1481,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/Xenova/slimsam-77-uniform"
       },
       {
@@ -1520,7 +1520,7 @@
     "pipeline_task": "zero-shot-image-classification",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX"
       }
     ]
@@ -1549,7 +1549,7 @@
     "pipeline_task": "image-feature-extraction",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX"
       }
     ],
@@ -1583,7 +1583,7 @@
     "pipeline_task": "zero-shot-object-detection",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/grounding-dino-tiny-ONNX"
       }
     ]
@@ -1616,7 +1616,7 @@
     "pipeline_task": null,
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/sam2.1-hiera-tiny-ONNX"
       }
     ],
@@ -1646,7 +1646,7 @@
     "pipeline_task": "background-removal",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/BiRefNet_lite-ONNX"
       }
     ],
@@ -1674,7 +1674,7 @@
     "pipeline_task": "background-removal",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/BEN2-ONNX"
       }
     ],
@@ -1708,7 +1708,7 @@
     "pipeline_task": "background-removal",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/ormbg-ONNX"
       }
     ]
@@ -1741,7 +1741,7 @@
     "pipeline_task": "token-classification",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/punctuate-all-ONNX"
       }
     ],
@@ -1775,7 +1775,7 @@
     "pipeline_task": "token-classification",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/gliner_small-v2.1"
       }
     ],
@@ -1809,7 +1809,7 @@
     "pipeline_task": "token-classification",
     "sources": [
       {
-        "label": "HuggingFace (sizes measured from HF API 2026-08-01)",
+        "label": "HuggingFace (sizes measured from HF API 2026-09-23)",
         "url": "https://huggingface.co/onnx-community/piiranha-v1-detect-personal-information-ONNX"
       }
     ]

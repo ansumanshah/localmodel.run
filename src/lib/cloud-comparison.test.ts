@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import candidates from "@/data/cloud-comparison-models.json";
 import { assertComparisonCandidates, buildCloudComparison } from "./cloud-comparison";
 import { canRun, estimateMemory } from "./compute";
 import { devices, getModel } from "./data";
@@ -32,15 +31,16 @@ describe("local versus hosted boundary", () => {
   });
 
   test("rejects duplicate identities, guessed local mappings and hosted memory mappings", () => {
+    const candidates = buildCloudComparison().rows;
     expect(() => assertComparisonCandidates([...candidates, candidates[0]])).toThrow("Duplicate");
     const local = candidates.find((row) => row.access === "local")!;
     expect(() => assertComparisonCandidates([{ ...local, localModelId: "invented-model" }])).toThrow("Missing measured");
-    const hosted = candidates.find((row) => row.access === "hosted")!;
+    const hosted = buildCloudComparison().rows.find((row) => row.access === "hosted")!;
     expect(() => assertComparisonCandidates([{ ...hosted, localModelId: local.id }])).toThrow("no local mapping");
   });
 
   test("requires meaningful tariff scope, valid dates and nonnegative prices", () => {
-    const hosted = candidates.find((row) => row.pricing)!;
+    const hosted = buildCloudComparison().rows.find((row) => row.pricing)!;
     for (const update of [{ inputPerMillion: -1 }, { verifiedAt: "2099-01-01" }, { verifiedAt: "2026-02-30" }, { validThrough: "2026-02-30" }, { validThrough: "2020-01-01" }, { notes: "" }]) {
       expect(() => assertComparisonCandidates([{ ...hosted, pricing: { ...hosted.pricing, ...update } }])).toThrow();
     }

@@ -4,11 +4,12 @@ import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import Command from "@/components/Command.astro";
 import { allModels, devices, meta } from "@/lib/data";
 import { breadcrumbLd, techArticleLd, truncate } from "@/lib/seo";
+import { hostedModels } from "@/lib/hosted-models";
 
 const path = "/developers";
 const title = "Developers & AI agents: free API and data · localmodel.run";
 const description = truncate(
-  "A free, no-auth JSON API and agent-ready endpoints for local AI model hardware compatibility (text, image, video, audio). Query whether any device can run any model, plus llms.txt, markdown, and an agent card.",
+  "A free JSON API for local AI model hardware compatibility and sourced hosted model API rates. Query device fit, models and prices without an API key.",
 );
 const jsonLd = [
   breadcrumbLd([{ name: "Home", url: "/" }, { name: "Developers", url: path }], Astro.site!.href),
@@ -19,6 +20,7 @@ const endpoints = [
   { m: "GET", url: "/api/index.json", d: "API catalog and discovery links" },
   { m: "GET", url: "/api/models.json", d: `All ${allModels.length} models with quant sizes` },
   { m: "GET", url: "/api/devices.json", d: `All ${devices.length} devices with usable memory` },
+  { m: "GET", url: "/api/hosted-models.json", d: `${hostedModels.length} hosted models with source-reviewed API rates` },
   { m: "GET", url: "/api/can-i-run/{model}.json", d: "Verdict, quant, memory, command for every device" },
 ];
 const agentFiles = [

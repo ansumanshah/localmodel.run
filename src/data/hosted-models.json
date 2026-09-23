@@ -1,0 +1,92 @@
+[
+  {
+    "id": "gpt-6-astra",
+    "name": "GPT-6 Astra",
+    "provider": "OpenAI",
+    "providerModelId": "gpt-6-astra",
+    "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+    "verifiedAt": "2026-09-22",
+    "accessNote": "Available through the OpenAI API.",
+    "pricing": {
+      "inputPerMillion": 10,
+      "outputPerMillion": 50,
+      "cacheReadPerMillion": 1,
+      "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+      "verifiedAt": "2026-09-22",
+      "validThrough": null,
+      "notes": "Standard text rates. Requests over 272K input tokens have higher rates; cache writes and tools are excluded."
+    }
+  },
+  {
+    "id": "claude-opus-5",
+    "name": "Claude Opus 5",
+    "provider": "Anthropic",
+    "providerModelId": "claude-opus-5",
+    "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
+    "verifiedAt": "2026-09-22",
+    "accessNote": "Active legacy model on the Claude API, with retirement no sooner than July 24, 2027.",
+    "pricing": {
+      "inputPerMillion": 5,
+      "outputPerMillion": 25,
+      "cacheReadPerMillion": 0.5,
+      "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
+      "verifiedAt": "2026-09-22",
+      "validThrough": null,
+      "notes": "Standard Claude API rates. Cache writes, batch discounts, fast mode, and US inference pricing are excluded."
+    }
+  },
+  {
+    "id": "claude-sonnet-5",
+    "name": "Claude Sonnet 5",
+    "provider": "Anthropic",
+    "providerModelId": "claude-sonnet-5",
+    "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
+    "verifiedAt": "2026-09-22",
+    "accessNote": "Current Claude API model.",
+    "pricing": {
+      "inputPerMillion": 2,
+      "outputPerMillion": 10,
+      "cacheReadPerMillion": 0.2,
+      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "verifiedAt": "2026-09-22",
+      "validThrough": null,
+      "notes": "Standard Claude API rates. Cache writes, batch discounts, fast mode, and US inference pricing are excluded."
+    }
+  },
+  {
+    "id": "gemini-3.8-flash",
+    "name": "Gemini 3.8 Flash",
+    "provider": "Google",
+    "providerModelId": "gemini-3.8-flash",
+    "sourceUrl": "https://ai.google.dev/gemini-api/docs/latest-model",
+    "verifiedAt": "2026-09-22",
+    "accessNote": "Generally available through the Gemini API and ready for production use.",
+    "pricing": {
+      "inputPerMillion": 0.75,
+      "outputPerMillion": 3.75,
+      "cacheReadPerMillion": 0.075,
+      "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing?hl=en",
+      "verifiedAt": "2026-09-22",
+      "validThrough": "2026-12-31",
+      "notes": "Standard paid Gemini Developer API rates through December 31, 2026. Output includes thinking tokens; cache storage, tools, and other service tiers are excluded."
+    }
+  },
+  {
+    "id": "grok-4.7",
+    "name": "Grok 4.7",
+    "provider": "xAI",
+    "providerModelId": "grok-4.7",
+    "sourceUrl": "https://docs.x.ai/developers/models/grok-4.7",
+    "verifiedAt": "2026-09-22",
+    "accessNote": "Available through the xAI API.",
+    "pricing": {
+      "inputPerMillion": 2,
+      "outputPerMillion": 6,
+      "cacheReadPerMillion": 0.5,
+      "sourceUrl": "https://docs.x.ai/developers/models/grok-4.7",
+      "verifiedAt": "2026-09-22",
+      "validThrough": null,
+      "notes": "Global short-context rates below 200K prompt tokens. Longer prompts, US regional inference, and tools cost more."
+    }
+  }
+]

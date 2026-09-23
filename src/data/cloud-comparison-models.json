@@ -6,16 +6,7 @@
     "access": "hosted",
     "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
     "providerModelId": "gpt-6-astra",
-    "localModelId": null,
-    "pricing": {
-      "inputPerMillion": 10,
-      "outputPerMillion": 50,
-      "cacheReadPerMillion": 1,
-      "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
-      "verifiedAt": "2026-09-12",
-      "notes": "Standard text rates for requests with at most 272K input tokens. Above that threshold the whole request has 2x input and 1.5x output rates. Cache creation and tools are excluded.",
-      "validThrough": null
-    }
+    "localModelId": null
   },
   {
     "id": "claude-opus-5",
@@ -24,16 +15,7 @@
     "access": "hosted",
     "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
     "providerModelId": "claude-opus-5",
-    "localModelId": null,
-    "pricing": {
-      "inputPerMillion": 5,
-      "outputPerMillion": 25,
-      "cacheReadPerMillion": 0.5,
-      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "verifiedAt": "2026-09-12",
-      "notes": "Standard global Claude API, including the 1M context window. US-only inference costs 1.1x. Fast mode, cache creation and tools are excluded.",
-      "validThrough": null
-    }
+    "localModelId": null
   },
   {
     "id": "claude-sonnet-5",
@@ -42,16 +24,7 @@
     "access": "hosted",
     "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
     "providerModelId": "claude-sonnet-5",
-    "localModelId": null,
-    "pricing": {
-      "inputPerMillion": 2,
-      "outputPerMillion": 10,
-      "cacheReadPerMillion": 0.2,
-      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "verifiedAt": "2026-09-12",
-      "notes": "Standard global Claude API, including the 1M context window. US-only inference costs 1.1x. Cache creation and tools are excluded.",
-      "validThrough": null
-    }
+    "localModelId": null
   },
   {
     "id": "gemini-3.8-flash",
@@ -60,16 +33,7 @@
     "access": "hosted",
     "sourceUrl": "https://ai.google.dev/gemini-api/docs/latest-model",
     "providerModelId": "gemini-3.8-flash",
-    "localModelId": null,
-    "pricing": {
-      "inputPerMillion": 0.75,
-      "outputPerMillion": 3.75,
-      "cacheReadPerMillion": 0.075,
-      "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing?hl=en",
-      "verifiedAt": "2026-09-12",
-      "notes": "Standard paid Gemini Developer API rates through 2026-12-31. Published rates from 2027-01-01 are $1.50 input and $7.50 output per million. Output includes thinking tokens. Cache storage, tools and other tiers are excluded.",
-      "validThrough": "2026-12-31"
-    }
+    "localModelId": null
   },
   {
     "id": "gemma-4-31b",
