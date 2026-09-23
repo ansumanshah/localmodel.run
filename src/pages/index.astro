@@ -457,6 +457,9 @@ const jsonLd = [
         { href: "/best-local", t: "Image, video, audio", d: "Local diffusion and speech models, ranked by GPU memory." },
         { href: "/open-source-llms-for-commercial-use", t: "Commercial use", d: "Which local models you can actually ship, sorted by license." },
         { href: "/guides", t: "Guides", d: "Quantization, VRAM vs RAM, mixture of experts, in plain words." },
+        { href: "/compare/local-vs-cloud", t: "Local or cloud", d: "Compare local memory needs with hosted model access and cost." },
+        { href: "/compare/api-pricing", t: "API pricing", d: "Estimate monthly costs for Astra, Claude, Gemini and Grok from sourced rates." },
+        { href: "/guides/can-you-run-claude-locally", t: "Can Claude run locally?", d: "Understand the closed-weight boundary and the local alternatives." },
       ].map((c) => (
         <a href={c.href} class="card-seam group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/30">
           <div class="flex items-center justify-between gap-2">
