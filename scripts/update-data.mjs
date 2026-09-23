@@ -9,8 +9,8 @@
     -> siblings[].lfs.size gives exact per-quant GGUF file sizes (when a model
        row carries an optional `hf_repo`).
 
-  Conservative by design: it always refreshes `ollama_default_gb` and the
-  validated date, but only overwrites q4_k_m_gb / q8_0_gb when an authoritative
+  Conservative by design: it refreshes `ollama_default_gb`, but only overwrites
+  q4_k_m_gb / q8_0_gb when an authoritative
   HuggingFace file size is found, so curated values are never clobbered by a
   differently-quantised default tag.
 
@@ -44,7 +44,51 @@ async function ollamaDefaultGb(ollamaTag) {
   return round2(layer.size / GIB);
 }
 
-async function hfQuantSizes(repo) {
+// A Hub repo can contain a plain GGUF, a sharded copy of it, and alternate
+// exports (MTP drafts, imatrix builds, etc.). Only use one complete artifact.
+// Returning null on ambiguity preserves the curated value for review.
+export function completeGgufBytes(files, matcher, { excludeAuxiliary = true } = {}) {
+  const candidates = files.filter(
+    (f) =>
+      f.size > 0 &&
+      /\.gguf$/i.test(f.name) &&
+      matcher.test(f.name) &&
+      (!excludeAuxiliary || !/(?:^|[\/_.-])(mmproj|mtp|draft|embedding|imatrix)(?:$|[\/_.-])/i.test(f.name)),
+  );
+  const groups = new Map();
+  for (const file of candidates) {
+    const shard = file.name.match(/-(\d+)-of-(\d+)(?=\.gguf$)/i);
+    const key = file.name.replace(/-(\d+)-of-(\d+)(?=\.gguf$)/i, "");
+    const group = groups.get(key) ?? { plain: [], shards: new Map(), total: null };
+    if (shard) {
+      const index = Number(shard[1]);
+      const total = Number(shard[2]);
+      group.total ??= total;
+      if (group.total !== total || group.shards.has(index)) continue;
+      group.shards.set(index, file.size);
+    } else {
+      group.plain.push(file.size);
+    }
+    groups.set(key, group);
+  }
+
+  const complete = [];
+  for (const group of groups.values()) {
+    if (group.plain.length === 1 && group.shards.size === 0) complete.push(group.plain[0]);
+    if (
+      group.plain.length === 0 &&
+      group.total != null &&
+      group.shards.size === group.total &&
+      [...group.shards.keys()].every((index) => index >= 1 && index <= group.total)
+    )
+      complete.push([...group.shards.values()].reduce((sum, bytes) => sum + bytes, 0));
+  }
+  return complete.length === 1 ? complete[0] : null;
+}
+
+const exactQuant = (quant) => new RegExp(`(?:^|[-_.])${quant}(?=$|[-_.])`, "i");
+
+export async function hfQuantSizes(repo) {
   const url = `https://huggingface.co/api/models/${repo}?blobs=true`;
   const headers = HF_TOKEN ? { Authorization: `Bearer ${HF_TOKEN}` } : {};
   const res = await fetch(url, { headers });
@@ -54,28 +98,30 @@ async function hfQuantSizes(repo) {
     name: s.rfilename,
     size: s.lfs?.size ?? s.size ?? 0,
   }));
-  const sumQuant = (re) => {
-    const matched = files.filter((f) => re.test(f.name) && /\.gguf$/i.test(f.name));
-    if (!matched.length) return null;
-    const bytes = matched.reduce((a, f) => a + f.size, 0); // handle split files
-    return round2(bytes / GIB);
+  const quantGb = (quant) => {
+    const bytes = completeGgufBytes(files, exactQuant(quant));
+    return bytes == null ? null : round2(bytes / GIB);
   };
   // mmproj = the VLM vision projector, shipped fp16 alongside the LLM GGUF.
-  const mmproj = files.filter((f) => /mmproj/i.test(f.name) && /(f16|fp16)/i.test(f.name) && /\.gguf$/i.test(f.name));
+  const mmprojBytes = completeGgufBytes(files, /mmproj.*(?:f16|fp16)|(?:f16|fp16).*mmproj/i, {
+    excludeAuxiliary: false,
+  });
   return {
-    q4_k_m_gb: sumQuant(/Q4_K_M/i),
-    q8_0_gb: sumQuant(/Q8_0/i),
-    mxfp4_gb: sumQuant(/mxfp4/i), // native 4-bit format for gpt-oss et al (no Q4_K_M file)
-    mmproj_gb: mmproj.length ? round2(mmproj.reduce((a, f) => a + f.size, 0) / GIB) : null,
+    q4_k_m_gb: quantGb("Q4_K_M"),
+    q8_0_gb: quantGb("Q8_0"),
+    mxfp4_gb: quantGb("mxfp4"), // native 4-bit format for gpt-oss et al (no Q4_K_M file)
+    mmproj_gb: mmprojBytes == null ? null : round2(mmprojBytes / GIB),
   };
 }
 
 async function main() {
-  const models = JSON.parse(await readFile(join(DATA, "models.json"), "utf8"));
+  const previousModels = await readFile(join(DATA, "models.json"), "utf8");
+  const models = JSON.parse(previousModels);
   const meta = JSON.parse(await readFile(join(DATA, "meta.json"), "utf8"));
 
   let okOllama = 0;
   let okHf = 0;
+  let failedSources = 0;
   const drift = []; // size moves worth a human glance before the cron commit deploys
   for (const m of models) {
     if (m.ollama_tag) {
@@ -83,6 +129,7 @@ async function main() {
         m.ollama_default_gb = await ollamaDefaultGb(m.ollama_tag);
         okOllama++;
       } catch (e) {
+        failedSources++;
         console.warn("  [ollama]", e instanceof Error ? e.message : e);
       }
     }
@@ -109,6 +156,7 @@ async function main() {
         if (q8) m.q8_0_gb = q8;
         okHf++;
       } catch (e) {
+        failedSources++;
         console.warn("  [hf]", e instanceof Error ? e.message : e);
       }
     }
@@ -144,15 +192,24 @@ async function main() {
     console.log("::endgroup::");
   }
 
-  meta.updated = today();
-  meta.generated_by = "cron refresh (Ollama registry + HuggingFace Hub API)";
+  const nextModels = JSON.stringify(models, null, 2) + "\n";
+  // This is the catalog-change date, not a claim that every upstream source
+  // answered. Failed sources retain their previous values and are logged.
+  if (nextModels !== previousModels) meta.updated = today();
+  meta.generated_by = failedSources
+    ? "partial cron refresh (Ollama registry + HuggingFace Hub API)"
+    : "cron refresh (Ollama registry + HuggingFace Hub API)";
 
-  await writeFile(join(DATA, "models.json"), JSON.stringify(models, null, 2) + "\n");
+  await writeFile(join(DATA, "models.json"), nextModels);
   await writeFile(join(DATA, "meta.json"), JSON.stringify(meta, null, 2) + "\n");
-  console.log(`Refreshed ${okOllama} Ollama sizes, ${okHf} HF repos. Dated ${meta.updated}.`);
+  console.log(
+    `Refreshed ${okOllama} Ollama sizes, ${okHf} HF repos; ${failedSources} source failures. ` +
+      `Catalog change date: ${meta.updated}.`,
+  );
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+if (process.argv[1] === fileURLToPath(import.meta.url))
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

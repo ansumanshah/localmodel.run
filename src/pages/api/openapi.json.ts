@@ -15,7 +15,7 @@ export const GET: APIRoute = ({ site }) => {
       title: "localmodel.run data API",
       version: "1.0.0",
       description:
-        "Check whether a device can run a local AI model (text, image, video, audio) and how much memory it needs. Free, no auth, CORS-open. Memory figures are sourced estimates (see /methodology).",
+        "Check local AI model hardware fit and browse source-reviewed hosted API rates. Free, no auth, CORS-open. Memory figures are sourced estimates (see /methodology).",
       license: { name: "CC BY 4.0", url: `${origin}/methodology` },
       contact: { url: `${origin}/developers` },
     },
@@ -27,6 +27,14 @@ export const GET: APIRoute = ({ site }) => {
           summary: "Selected local and hosted models, dated Arena preference ratings and vendor API tariffs",
           description: "Exact evaluated model names and source revision are preserved. Benchmark data is adapted from Arena under CC BY 4.0; retain its attribution and license fields. API tariffs have independent verification and expiry dates.",
           responses: { "200": { description: "An object with models and benchmark snapshot fields" } },
+        },
+      },
+      "/api/hosted-models.json": {
+        get: {
+          operationId: "listHostedModels",
+          summary: "Source-reviewed hosted model IDs and dated API token rates",
+          description: "Unpriced models retain null pricing. API rates are separate from subscription plans and benchmark results.",
+          responses: { "200": { description: "Array of hosted model records" } },
         },
       },
       "/api/index.json": {

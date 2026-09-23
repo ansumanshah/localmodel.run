@@ -12,11 +12,18 @@ import tailwindcss from "@tailwindcss/vite";
 // actually changes (the weekly cron), so it is an honest per-crawl signal.
 const meta = JSON.parse(readFileSync(new URL("./src/data/meta.json", import.meta.url), "utf8"));
 const arena = JSON.parse(readFileSync(new URL("./src/data/arena-snapshot.json", import.meta.url), "utf8"));
-/** @type {Array<{ pricing: { verifiedAt: string } | null }>} */
+/** @type {Array<{ id: string, pricing: { verifiedAt: string } | null, verifiedAt: string }>} */
+const hostedModels = JSON.parse(readFileSync(new URL("./src/data/hosted-models.json", import.meta.url), "utf8"));
+/** @type {Array<{ id: string, access: string }>} */
 const comparisonModels = JSON.parse(readFileSync(new URL("./src/data/cloud-comparison-models.json", import.meta.url), "utf8"));
+const selectedHostedIds = new Set(
+  comparisonModels.filter((model) => model.access === "hosted").map((model) => model.id),
+);
 // Editorial additions and separately maintained benchmarks have their own dates.
 const comparisonModified = ["2026-09-12", meta.updated, arena.snapshotDate,
-  ...comparisonModels.flatMap((model) => model.pricing ? [model.pricing.verifiedAt] : [])].sort().at(-1);
+  ...hostedModels.filter((model) => selectedHostedIds.has(model.id))
+    .flatMap((model) => model.pricing ? [model.pricing.verifiedAt] : [])].sort().at(-1);
+const hostedModified = hostedModels.map((model) => model.verifiedAt).sort().at(-1);
 // Tailwind v4 runs via the @tailwindcss/vite plugin. Under Astro 7 (Vite 8 /
 // Rolldown) the old PostCSS path broke: postcss-import could not resolve
 // `@import "tailwindcss"`. The Vite plugin is the recommended v4 setup and
@@ -72,6 +79,7 @@ export default defineConfig({
       serialize(item) {
         const path = new URL(item.url).pathname.replace(/\/$/, "");
         if (path === "/compare/local-vs-cloud") item.lastmod = comparisonModified;
+        if (path === "/compare/api-pricing") item.lastmod = hostedModified;
         if (path === "/guides/can-you-run-claude-locally") item.lastmod = ["2026-09-12", meta.updated].sort().at(-1);
         return item;
       },

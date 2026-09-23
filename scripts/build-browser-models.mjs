@@ -17,7 +17,7 @@ import { dirname, join } from "node:path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SIZES_PATH = join(__dirname, "browser-model-sizes.json");
 const OUT_PATH = join(__dirname, "..", "src", "data", "browser-models.json");
-const MEASURED_DATE = "2026-08-01";
+const MEASURED_DATE = "2026-09-23";
 const LARGE_BYTES = 1500 * 1024 * 1024; // 1.5 GB: past this, flag the download-size caveat
 const LARGE_NOTE =
   "This is a multi-gigabyte download. Between the file size and current browser memory limits, it is impractical to run on most machines today.";

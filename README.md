@@ -11,7 +11,8 @@
 Can I run this AI model locally? A per-platform compatibility checker for local
 AI models. Pick a model and your hardware and get a verdict, the memory math,
 the exact tool to use, and what to run instead, across macOS, Windows, Linux,
-iOS and Android.
+iOS and Android. A separate [hosted API directory](https://localmodel.run/compare/api-pricing)
+shows sourced token prices for selected closed models.
 
 **Live at [localmodel.run](https://localmodel.run).** Free, no account, cookieless.
 
@@ -21,9 +22,9 @@ specs, statically rendered as one page per model, per device, and per
 
 ## Modalities
 
-153 models across four modalities, each with its own sourced memory model:
+179 local models across four modalities, each with its own sourced memory model:
 
-- **Text LLMs** (125): Llama, Qwen, DeepSeek, Gemma, Mistral, Phi, GLM, Kimi, and more. Memory = weights at the chosen quant + KV cache + runtime overhead.
+- **Text LLMs** (151): Llama, Qwen, DeepSeek, Gemma, Mistral, Phi, GLM, Kimi, and more. Memory = weights at the chosen quant + KV cache + runtime overhead.
 - **Image generation** (6): FLUX.1 dev/schnell, SDXL, SD 3.5 Large, Stable Diffusion 1.5, Qwen-Image.
 - **Video generation** (11): Wan 2.1/2.2, LTX-Video, CogVideoX, HunyuanVideo, Mochi 1, Stable Video Diffusion.
 - **Audio and voice** (11): Whisper (STT), Kokoro / Bark / Dia / Orpheus (TTS), MusicGen / Stable Audio (music).
@@ -38,15 +39,15 @@ whether they run on CPU.
 
 ## Open dataset
 
-The catalog is a standalone dataset, not just page content: 153 models (125 text
-LLMs with measured GGUF quant sizes, 6 image, 11 video, 11 audio) across 40
+The catalog is a standalone dataset, not just page content: 179 local models (151 text
+LLMs with measured GGUF quant sizes, 6 image, 11 video, 11 audio) across 43
 devices, plus 54 in-browser WebGPU/WASM models with per-variant measured
 download bytes. Every row carries a `sources[]` array pointing at the primary
-source.
+source. Five separately listed hosted models have dated vendor API rates and no local-memory verdict.
 
 - **License:** code is MIT ([LICENSE](LICENSE)); the dataset is CC BY 4.0 ([LICENSE-DATA](LICENSE-DATA)).
 - **Raw files (GitHub):** `src/data/{models,image-models,video-models,audio-models,devices,browser-models}.json`, e.g. `https://raw.githubusercontent.com/ansumanshah/localmodel.run/main/src/data/models.json`.
-- **Live API:** [`/api/models.json`](https://localmodel.run/api/models.json), [`/api/devices.json`](https://localmodel.run/api/devices.json), [`/api/browser-models.json`](https://localmodel.run/api/browser-models.json), full spec at [`/api/openapi.json`](https://localmodel.run/api/openapi.json).
+- **Live API:** [`/api/models.json`](https://localmodel.run/api/models.json), [`/api/devices.json`](https://localmodel.run/api/devices.json), [`/api/browser-models.json`](https://localmodel.run/api/browser-models.json), [`/api/hosted-models.json`](https://localmodel.run/api/hosted-models.json), full spec at [`/api/openapi.json`](https://localmodel.run/api/openapi.json).
 - **HuggingFace mirror:** [local-ai-model-memory-requirements](https://huggingface.co/datasets/ansumanshah/local-ai-model-memory-requirements).
 
 Every size is measured from the HuggingFace or Ollama file tree, never
@@ -76,7 +77,8 @@ a `sources[]` array that the pages render.
 
 - `src/data/models.json`, text LLMs: params, GGUF quant sizes (Q4_K_M, Q8_0), context, Ollama tag.
 - `src/data/image-models.json`, `video-models.json`, `audio-models.json`: backbone params, component sizes, and a sourced peak-VRAM/peak-memory anchor (with its own source URL) per model.
-- `src/data/devices.json`, 40 devices: Macs, NVIDIA/AMD GPUs, unified-memory APUs, RAM-only laptops, iPhones/iPads, Android, with sourced usable memory, bandwidth, MSRP and TDP.
+- `src/data/devices.json`, 43 devices: Macs, NVIDIA/AMD GPUs, unified-memory APUs, RAM-only laptops, iPhones/iPads, Android, with sourced usable memory, bandwidth, MSRP and TDP.
+- `src/data/hosted-models.json`: vendor model IDs, API access and dated standard text-token prices. Hosted rows never enter the local fit engine.
 - `src/data/tools.json`, per-platform runtime recommendations.
 - `src/lib/compute.ts`, the text memory estimator (bits-per-weight, KV cache, MoE-aware, Apple unified-memory handling).
 - `src/lib/compute-mm.ts`, the multi-modal engine: dispatches text to `compute.ts` unchanged, and uses the sourced anchors + runtime gate for image/video/audio. See `/methodology`.
@@ -115,7 +117,7 @@ validates, and commits any changes. The push triggers a redeploy.
 ## Deploy (Cloudflare Pages)
 
 Git integration: in the Cloudflare dashboard, create a Pages project from this
-repo. Build command `bun run validate-data && bun run build`, output dir `dist`,
+repo. Build command `bun install --frozen-lockfile && bun run validate-data && (bun run build > build.log 2>&1 || (echo BUILD_FAILED_TAIL; tail -n 250 build.log; exit 1))`, output dir `dist`,
 set `SITE_URL` to the production origin. `.github/workflows/purge-on-deploy.yml`
 purges the edge cache when a deploy completes (needs `CLOUDFLARE_API_TOKEN` with
 Cache Purge scope, `CLOUDFLARE_ZONE_ID`).
@@ -132,10 +134,10 @@ The [organic growth plan](docs/organic-growth-plan.md) explains the gradual expa
 decisions. [Source evidence and implementation learnings](docs/local-vs-cloud-learnings.md) record the verified
 facts, pricing limits, importer behavior, browser checks, and next steps for the comparison pilot.
 
-- One indexable page per `model × device` (`/can-i-run/[model]/[device]`), per device (`/best-llm-for/[device]`), and per model (`/model/[model]`), plus `/compare` head-to-heads, `/rig-for/[model]`, `/leaderboard` (Aider / BFCL / LMArena with hardware fit), `/best-llm-for-ram/[budget]`, embeddable SVG badges (`/badge/[model]/[device].svg`) and an OpenAPI spec (`/api/openapi.json`); about 6,400 pages.
+- One indexable page per `model × device` (`/can-i-run/[model]/[device]`), per device (`/best-llm-for/[device]`), and per model (`/model/[model]`), plus `/compare` head-to-heads, `/rig-for/[model]`, `/leaderboard` (Aider / BFCL / LMArena with hardware fit), `/best-llm-for-ram/[budget]`, embeddable SVG badges (`/badge/[model]/[device].svg`), a hosted API price calculator, and an OpenAPI spec (`/api/openapi.json`).
 - JSON-LD on every page: TechArticle, FAQPage, BreadcrumbList, ItemList, Dataset, WebApplication, Organization, WebSite.
 - `robots.txt` explicitly allows AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended) since being citable is the strategy.
-- `/llms.txt` and `/llms-full.txt` expose all 153 models (text, image, video, audio) for answer engines.
+- `/llms.txt` and `/llms-full.txt` expose the local catalog (text, image, video, audio) for answer engines.
 - Sitemap, RSS, canonical URLs, OG/Twitter cards (dynamic per page via Satori), fast static HTML.
 
 ## License and reusing the data

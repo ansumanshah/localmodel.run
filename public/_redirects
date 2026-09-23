@@ -11,6 +11,22 @@
 /llms-full            /llms-full.txt        301
 /llms                 /llms.txt             301
 
+# Granite 4.0 H Small had two catalog IDs for the same weights and hardware.
+/model/granite-4-h-small                         /model/granite-4.0-h-small                         301
+/model/granite-4-h-small.md                      /model/granite-4.0-h-small.md                      301
+/can-i-run/granite-4-h-small                     /can-i-run/granite-4.0-h-small                     301
+/rig-for/granite-4-h-small                       /rig-for/granite-4.0-h-small                       301
+/rig-for/granite-4-h-small.md                    /rig-for/granite-4.0-h-small.md                    301
+/api/can-i-run/granite-4-h-small.json            /api/can-i-run/granite-4.0-h-small.json            301
+/og/model/granite-4-h-small.png                  /og/model/granite-4.0-h-small.png                  301
+/compare/granite-3.1-2b-vs-granite-4-h-small     /compare/granite-3.1-2b-vs-granite-4.0-h-small     301
+/compare/granite-4.0-h-small-vs-granite-4-h-small /model/granite-4.0-h-small                         301
+/compare/granite-4-h-small-vs-granite-4.1-3b     /compare/granite-4.0-h-small-vs-granite-4.1-3b     301
+/compare/granite-4-h-small-vs-granite-4.1-8b     /compare/granite-4.0-h-small-vs-granite-4.1-8b     301
+/compare/granite-4-h-small-vs-granite-4.1-30b    /compare/granite-4.0-h-small-vs-granite-4.1-30b    301
+/can-i-run/granite-4-h-small/:device             /can-i-run/granite-4.0-h-small/:device             301
+/badge/granite-4-h-small/:device.svg             /badge/granite-4.0-h-small/:device.svg             301
+
 # API consolidation 2026-08: the per-pair can-i-run JSON endpoint moved into
 # the per-model file (one file per model, not one per model x device pair).
 # Placeholders stop at "." same as "/", so :device matches up to ".json".

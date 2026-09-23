@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { allModels, browserModels, devices, meta } from "@/lib/data";
 import { json } from "@/lib/api";
+import { hostedModels } from "@/lib/hosted-models";
 
 // API catalog: the discovery entry point for AI agents.
 export const GET: APIRoute = ({ site }) => {
@@ -8,19 +9,21 @@ export const GET: APIRoute = ({ site }) => {
   return json({
     name: "localmodel.run API",
     description:
-      "Check whether a device can run a local AI model (text, image, video, audio), and which tool to use. Free, no auth.",
+      "Check local model hardware fit, browse hosted API rates, and find the right tool. Free, no auth.",
     version: "1",
     updated: meta.updated,
     counts: {
       models: allModels.length,
       devices: devices.length,
       browser_models: browserModels.length,
+      hosted_models: hostedModels.length,
     },
     endpoints: {
       models: `${origin}/api/models.json`,
       devices: `${origin}/api/devices.json`,
       browser_models: `${origin}/api/browser-models.json`,
       local_vs_cloud: `${origin}/api/local-vs-cloud.json`,
+      hosted_models: `${origin}/api/hosted-models.json`,
       can_i_run: `${origin}/api/can-i-run/{model}.json`,
       example: `${origin}/api/can-i-run/llama-3.1-8b.json`,
       openapi: `${origin}/api/openapi.json`,

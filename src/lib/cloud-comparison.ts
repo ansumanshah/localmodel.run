@@ -4,6 +4,7 @@ import { devices, getModel, meta } from "@/lib/data";
 import { canRun, estimateMemory, usableGb } from "@/lib/compute";
 import { assertArenaSnapshot, type ArenaSnapshot } from "@/lib/arena-snapshot";
 import type { ApiPricing } from "@/lib/api-cost";
+import { hostedModels } from "@/lib/hosted-models";
 
 export interface ComparisonCandidate {
   id: string;
@@ -102,7 +103,14 @@ export function assertComparisonCandidates(value: unknown): asserts value is Com
 
 /** Build-time adapter. Only the small result payload belongs in the browser. */
 export function buildCloudComparison(): CloudComparison {
-  const candidates: unknown = candidateData;
+  const candidates: unknown = candidateData.map((candidate) => {
+    if (candidate.access !== "hosted") return candidate;
+    const hosted = hostedModels.find((model) => model.id === candidate.id);
+    if (!hosted || hosted.providerModelId !== candidate.providerModelId) {
+      throw new Error(`Missing matching hosted catalog model: ${candidate.id}`);
+    }
+    return { ...candidate, pricing: hosted.pricing };
+  });
   assertComparisonCandidates(candidates);
   assertArenaSnapshot(snapshotData, candidates.map((row) => row.arenaName));
   const contexts = [4, 16, 32, 64];

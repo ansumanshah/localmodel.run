@@ -53,4 +53,7 @@ devstral-2   # in catalog (2026-08-29) as devstral-2-123b
 ministral-3   # in catalog (2026-08-29) as ministral-3-3b/-8b/-14b
 rnj-1   # in catalog (2026-08-29) as rnj-1-8b
 glm-5.3-flash   # in catalog (2026-08-29), cloud-only on Ollama, sized from unsloth GGUFs
+deepseek-v4.1-flash   # reviewed 2026-09-22: public community GGUF has no verified vision component for this multimodal model
+qwen3.8-flash-next   # reviewed 2026-09-22: public GGUF repo has MTP Q4_K_M artifacts but no complete base Q4_K_M artifact
+glm-5.3   # reviewed 2026-09-22: public repo has UD-Q4_K_XL, not a comparable Q4_K_M anchor
 nomic-embed-text-v2-moe   # embedding model, out of catalog scope

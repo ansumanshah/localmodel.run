@@ -19,6 +19,8 @@ const videoModels = await readJson("video-models.json");
 const audioModels = await readJson("audio-models.json");
 const devices = await readJson("devices.json");
 const browserModels = await readJson("browser-models.json");
+const hostedModels = await readJson("hosted-models.json");
+const comparisonModels = await readJson("cloud-comparison-models.json");
 
 const nonText = [...imageModels, ...videoModels, ...audioModels];
 const allModels = [...textModels, ...nonText];
@@ -27,6 +29,35 @@ const errors = [];
 const warnings = [];
 
 const isUrl = (s) => typeof s === "string" && /^https?:\/\//.test(s);
+const isHttps = (s) => { try { return new URL(s).protocol === "https:"; } catch { return false; } };
+const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s)
+  && !Number.isNaN(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s;
+
+// Hosted API models are separate from the local memory catalog. Missing rates
+// stay null, and the Arena selection resolves its tariffs from this one list.
+const hostedIds = new Set();
+if (!Array.isArray(hostedModels) || hostedModels.length === 0) errors.push("hosted model catalog is empty");
+for (const m of hostedModels) {
+  if (!m.id || !m.name || !m.provider || !m.providerModelId || !m.accessNote)
+    errors.push(`hosted model missing identity or access note: ${m.id}`);
+  if (hostedIds.has(m.id)) errors.push(`duplicate hosted model id: ${m.id}`);
+  hostedIds.add(m.id);
+  if (!isHttps(m.sourceUrl) || !isDate(m.verifiedAt) || m.verifiedAt > new Date().toISOString().slice(0, 10))
+    errors.push(`${m.id}: invalid hosted source or review date`);
+  if (m.pricing !== null) {
+    const p = m.pricing;
+    if (!p || ![p.inputPerMillion, p.outputPerMillion].every((rate) => Number.isFinite(rate) && rate >= 0)
+      || (p.cacheReadPerMillion !== null && !(Number.isFinite(p.cacheReadPerMillion) && p.cacheReadPerMillion >= 0))
+      || !isHttps(p.sourceUrl) || !isDate(p.verifiedAt) || p.verifiedAt > new Date().toISOString().slice(0, 10)
+      || (p.validThrough !== null && (!isDate(p.validThrough) || p.validThrough < p.verifiedAt))
+      || !p.notes?.trim()) errors.push(`${m.id}: invalid hosted API tariff`);
+  }
+}
+for (const m of comparisonModels.filter((m) => m.access === "hosted")) {
+  const source = hostedModels.find((item) => item.id === m.id);
+  if (!source || source.providerModelId !== m.providerModelId) errors.push(`${m.id}: missing matching hosted catalog source`);
+  if (m.pricing != null) errors.push(`${m.id}: duplicate hosted tariff in comparison selection`);
+}
 
 // --- Text models (the validated path; rules unchanged) ---
 for (const m of textModels) {
@@ -135,5 +166,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `OK: ${textModels.length} text + ${imageModels.length} image + ${videoModels.length} video + ${audioModels.length} audio models, ${devices.length} devices, ${browserModels.length} browser models valid (${warnings.length} warnings).`,
+  `OK: ${textModels.length} text + ${imageModels.length} image + ${videoModels.length} video + ${audioModels.length} audio models, ${devices.length} devices, ${browserModels.length} browser and ${hostedModels.length} hosted models valid (${warnings.length} warnings).`,
 );
