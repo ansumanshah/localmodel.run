@@ -40,7 +40,7 @@ export function modelMarkdown(model: ModelRow): string {
     ``,
     `> ${model.name} is a ${paramLabel} ${model.family} model${model.is_moe ? ` (Mixture-of-Experts, ${model.active_params_b}B active per token)` : ""}. At Q4_K_M it needs about **${q4.totalGb} GB** to run and fits **${runnable.length} of ${devices.length}** tracked devices. Minimum to run: ${minDevice ? minDevice.name : "high-memory hardware"}.`,
     ``,
-    `Last validated: ${meta.updated}. Sources: Ollama, HuggingFace GGUF repos, vendor specs.`,
+    `Catalog updated: ${meta.updated}. Sources: Ollama, HuggingFace GGUF repos, vendor specs.`,
     ``,
     `## Memory by quantization`,
     `| Quant | On disk | To run (4k context) |`,

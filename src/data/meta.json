@@ -1,6 +1,6 @@
 {
-  "updated": "2026-09-23",
-  "site_updated": "2026-09-23",
+  "updated": "2026-09-26",
+  "site_updated": "2026-09-26",
   "launched": "2026-06-14",
   "generated_by": "manual source review plus partial cron refresh (Ollama registry + HuggingFace Hub API)",
   "formula_version": "1.1.0",
@@ -29,6 +29,9 @@
     "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct",
     "https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct",
     "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+    "https://huggingface.co/Qwen/Qwen3-VL-30B-A3B-Instruct",
+    "https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct",
+    "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
     "https://huggingface.co/Qwen/Qwen3-14B-GGUF",
     "https://huggingface.co/Qwen/Qwen3-235B-A22B",
     "https://huggingface.co/Qwen/Qwen3-30B-A3B-GGUF",
@@ -99,6 +102,9 @@
     "https://huggingface.co/mradermacher/DeepSeek-V2-Lite-GGUF",
     "https://huggingface.co/openai/gpt-oss-120b",
     "https://huggingface.co/openai/gpt-oss-20b",
+    "https://huggingface.co/Qwen/Qwen3-VL-30B-A3B-Instruct-GGUF",
+    "https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF",
+    "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct-GGUF",
     "https://huggingface.co/sarvamai/sarvam-1",
     "https://huggingface.co/sarvamai/sarvam-105b",
     "https://huggingface.co/sarvamai/sarvam-105b-gguf",
@@ -118,6 +124,9 @@
     "https://huggingface.co/unsloth/granite-4.0-h-small-GGUF",
     "https://ollama.com/library/mistral-nemo",
     "https://ollama.com/library/mixtral",
-    "https://ollama.com/library/qwen2.5-coder"
+    "https://ollama.com/library/qwen2.5-coder",
+    "https://ollama.com/library/qwen3-vl:30b",
+    "https://ollama.com/library/qwen3-vl:4b",
+    "https://ollama.com/library/qwen3-vl:8b"
   ]
 }

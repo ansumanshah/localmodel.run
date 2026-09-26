@@ -48,30 +48,45 @@ for (const [host, idxs] of byHost) {
   }
 }
 
-const items = parsed
-  .map((p, i) => ({ url: p.url, host: labels[i] }))
+const groups = [...byHost.entries()]
+  .map(([host, idxs]) => ({
+    host,
+    items: idxs.map((i) => ({ url: parsed[i].url, label: labels[i] })).sort((a, b) => a.label.localeCompare(b.label)),
+  }))
   .sort((a, b) => a.host.localeCompare(b.host));
 ---
 
-{items.length > 0 && (
+{groups.length > 0 && (
   <section class={compact ? "" : "mt-8"} aria-label={title}>
     {!compact && <h2 id="sources" class="scroll-mt-20 font-mono text-[11px] uppercase tracking-widest text-[var(--brand-ink)]">{title}</h2>}
-    <ul class={`flex flex-wrap gap-2 ${compact ? "" : "mt-3"}`}>
-      {items.map((it) => (
-        <li class="min-w-0 max-w-full">
-          <a
-            href={it.url}
-            rel="noopener nofollow"
-            title={it.url}
-            aria-label={`Source: ${it.host}`}
-            class="inline-flex max-w-full items-center gap-1.5 rounded-md border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 opacity-70">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"></path>
-            </svg>
-            <span class="min-w-0 truncate">{it.host}</span>
-          </a>
+    <ul class={`space-y-1.5 ${compact ? "" : "mt-3"}`}>
+      {groups.map((group) => (
+        <li>
+          <details class="max-w-full rounded-md border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_42%,transparent)] px-2 py-1">
+            <summary class="cursor-pointer font-mono text-[11px] text-muted-foreground">
+              <span class="truncate">{group.host}</span>
+              <span class="shrink-0 opacity-70">· {group.items.length} {group.items.length === 1 ? "source" : "sources"}</span>
+            </summary>
+            <ul class="mt-1 flex flex-wrap gap-1.5 pl-4">
+              {group.items.map((it) => (
+                <li class="min-w-0 max-w-full">
+                  <a
+                    href={it.url}
+                    rel="noopener nofollow"
+                    title={it.url}
+                    aria-label={`Source: ${it.label}`}
+                    class="inline-flex max-w-full items-center gap-1 rounded border border-[var(--lite-rim)] bg-[color-mix(in_oklch,var(--card)_62%,transparent)] px-2 py-0.5 font-mono text-[11px] leading-5 text-muted-foreground transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)] hover:text-foreground"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0 opacity-70">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"></path>
+                    </svg>
+                    <span class="min-w-0 truncate">{it.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
         </li>
       ))}
     </ul>

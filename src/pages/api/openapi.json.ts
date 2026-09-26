@@ -102,7 +102,7 @@ export const GET: APIRoute = ({ site }) => {
         RunVerdictSet: {
           type: "object",
           properties: {
-            updated: { type: "string", description: "ISO date the data was last validated" },
+            updated: { type: "string", description: "ISO date the catalog was last updated" },
             model: {
               type: "object",
               properties: {

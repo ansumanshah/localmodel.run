@@ -57,3 +57,8 @@ deepseek-v4.1-flash   # reviewed 2026-09-22: public community GGUF has no verifi
 qwen3.8-flash-next   # reviewed 2026-09-22: public GGUF repo has MTP Q4_K_M artifacts but no complete base Q4_K_M artifact
 glm-5.3   # reviewed 2026-09-22: public repo has UD-Q4_K_XL, not a comparable Q4_K_M anchor
 nomic-embed-text-v2-moe   # embedding model, out of catalog scope
+mistral-large-3   # Ollama listing is cloud-only; no verified official GGUF
+deepseek-ocr   # OCR-specialized model, outside the general model catalog
+cogito-2.1   # current local GGUF is too large for the tracked hardware
+gpt-oss-safeguard   # safety classifier, outside the general model catalog
+qwen3-embedding   # embedding-only family, outside the generation catalog
