@@ -20,7 +20,7 @@ export const GET: APIRoute = ({ site }) => {
 
   out.push("# localmodel.run, full dataset");
   out.push(
-    `Validated ${meta.updated}. Memory = weights + KV cache + ~0.8GB overhead. Estimates only.`,
+    `Catalog updated ${meta.updated}. Memory = weights + KV cache + ~0.8GB overhead. Estimates only.`,
   );
   out.push("");
 

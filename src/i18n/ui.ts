@@ -18,7 +18,7 @@ export const ui = {
     "nav.guides": "Guides",
     "nav.methodology": "Methodology",
     "hero.badge":
-      "{models} models across text, image, video, audio · {devices} devices · validated {date}",
+      "{models} models across text, image, video, audio · {devices} devices · catalog updated {date}",
     "hero.title1": "Can I run this AI",
     "hero.title2": "model",
     "hero.locally": "locally?",
@@ -38,7 +38,7 @@ export const ui = {
     "home.estimatesNote": "Estimates, not guarantees. See how we calculate and our sources.",
     "footer.tagline":
       "Does your machine run it? Pick a model, pick your hardware, get a yes or no. Free, no account.",
-    "footer.dataNote": "Validated {date} against GGUF model repos and vendor spec sheets.",
+    "footer.dataNote": "Catalog updated {date}; sources include GGUF model repos and vendor spec sheets.",
   },
   es: {
     "nav.models": "Modelos",
@@ -51,7 +51,7 @@ export const ui = {
     "nav.guides": "Guías",
     "nav.methodology": "Metodología",
     "hero.badge":
-      "{models} modelos entre texto, imagen, video y audio · {devices} dispositivos · validado {date}",
+      "{models} modelos entre texto, imagen, video y audio · {devices} dispositivos · catálogo actualizado el {date}",
     "hero.title1": "¿Puedo ejecutar este",
     "hero.title2": "modelo de IA",
     "hero.locally": "en local?",
@@ -73,7 +73,7 @@ export const ui = {
     "footer.tagline":
       "Comprueba si tu equipo puede ejecutar un modelo de IA en local, y qué herramienta usar, en Mac, Windows, Linux, iOS y Android. Gratis, sin registro.",
     "footer.dataNote":
-      "Validados el {date} con repositorios GGUF y hojas de especificaciones de fabricantes.",
+      "Catálogo actualizado el {date}; fuentes: repositorios GGUF y hojas de especificaciones de fabricantes.",
   },
 } as const;
 

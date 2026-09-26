@@ -27,7 +27,7 @@ export const GET: APIRoute = ({ site }) => {
   );
   lines.push("");
   lines.push(
-    `Dataset: ${allModels.length} models (${models.length} text, ${imageModels.length} image, ${videoModels.length} video, ${audioModels.length} audio), ${devices.length} devices. Last validated ${meta.updated}. Memory figures are estimates; see ${origin}/methodology.`,
+    `Dataset: ${allModels.length} models (${models.length} text, ${imageModels.length} image, ${videoModels.length} video, ${audioModels.length} audio), ${devices.length} devices. Catalog updated ${meta.updated}. Memory figures are estimates; see ${origin}/methodology.`,
   );
   lines.push("");
 

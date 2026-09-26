@@ -171,7 +171,7 @@ export interface ToolRow {
 }
 
 export interface DataMeta {
-  updated: string; // ISO date of last validated data refresh (drives "Validated …" prose)
+  updated: string; // ISO date of the catalog refresh
   site_updated?: string; // ISO date the site itself was last meaningfully updated (footer)
   launched?: string; // stable site launch date, used as JSON-LD datePublished
   generated_by: string;

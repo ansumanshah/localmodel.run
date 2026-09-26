@@ -12,6 +12,7 @@
  *   bun scripts/check-freshness.ts            # prints + writes freshness-report.md
  */
 import { existsSync } from "node:fs";
+import { parseIgnoredSlugs } from "./freshness-ignore";
 
 const LIBRARY_URL = "https://ollama.com/library?sort=newest";
 const MODEL_FILES = [
@@ -42,13 +43,7 @@ async function loadTrackedSlugs(): Promise<Set<string>> {
 
 async function loadIgnore(): Promise<Set<string>> {
   if (!existsSync(IGNORE_FILE)) return new Set();
-  const text = await Bun.file(IGNORE_FILE).text();
-  return new Set(
-    text
-      .split("\n")
-      .map((l) => l.trim().toLowerCase())
-      .filter((l) => l && !l.startsWith("#")),
-  );
+  return parseIgnoredSlugs(await Bun.file(IGNORE_FILE).text());
 }
 
 async function fetchLibrarySlugs(): Promise<string[] | null> {
