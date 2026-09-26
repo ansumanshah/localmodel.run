@@ -24,6 +24,10 @@
   Cache-Control: public, max-age=0, s-maxage=86400, stale-while-revalidate=86400
   Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt", </.well-known/agent.json>; rel="alternate"; type="application/json"; title="agent-card", </.well-known/api-catalog>; rel="api-catalog", </sitemap-index.xml>; rel="sitemap"
 
+# This Pages hostname duplicates the canonical custom domain.
+https://localmodel-run.pages.dev/*
+  X-Robots-Tag: noindex
+
 # /browser pages run models IN the tab (the playground), which the global
 # policy above forbids. This rule detaches and replaces exactly two headers,
 # scoped to /browser/*; everything else keeps the strict global policy.
