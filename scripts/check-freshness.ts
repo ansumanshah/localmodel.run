@@ -12,7 +12,7 @@
  *   bun scripts/check-freshness.ts            # prints + writes freshness-report.md
  */
 import { existsSync } from "node:fs";
-import { parseIgnoredSlugs } from "./freshness-ignore";
+import { findNewSlugs, parseSlugLines } from "./freshness-ignore";
 
 const LIBRARY_URL = "https://ollama.com/library?sort=newest";
 const MODEL_FILES = [
@@ -22,6 +22,7 @@ const MODEL_FILES = [
   "src/data/audio-models.json",
 ];
 const IGNORE_FILE = "scripts/freshness-ignore.txt";
+const BASELINE_FILE = "scripts/freshness-baseline.txt";
 const REPORT_FILE = "freshness-report.md";
 const MAX_NEW = 25;
 
@@ -41,9 +42,9 @@ async function loadTrackedSlugs(): Promise<Set<string>> {
   return tracked;
 }
 
-async function loadIgnore(): Promise<Set<string>> {
-  if (!existsSync(IGNORE_FILE)) return new Set();
-  return parseIgnoredSlugs(await Bun.file(IGNORE_FILE).text());
+async function loadSlugs(file: string): Promise<Set<string>> {
+  if (!existsSync(file)) return new Set();
+  return parseSlugLines(await Bun.file(file).text());
 }
 
 async function fetchLibrarySlugs(): Promise<string[] | null> {
@@ -79,16 +80,17 @@ if (slugs == null) {
   console.log("freshness: fetch failed, wrote a no-op report.");
 } else {
   const tracked = await loadTrackedSlugs();
-  const ignore = await loadIgnore();
-  const missing = slugs.filter((s) => !tracked.has(s) && !ignore.has(s)).slice(0, MAX_NEW);
+  const ignore = await loadSlugs(IGNORE_FILE);
+  const baseline = parseSlugLines(await Bun.file(BASELINE_FILE).text());
+  const missing = findNewSlugs(slugs, tracked, ignore, baseline, MAX_NEW);
 
   if (missing.length === 0) {
-    body = `_No untracked models in Ollama's newest listing as of ${today}. Catalog is current._`;
-    console.log("freshness: catalog is current, nothing new.");
+    body = `_No newly surfaced Ollama slugs as of ${today}. Historical unreviewed slugs remain in the baseline._`;
+    console.log("freshness: no newly surfaced slugs.");
   } else {
     const list = missing.map((s) => `- [ ] [\`${s}\`](https://ollama.com/library/${s})`).join("\n");
     body =
-      `Models in Ollama's [newest listing](${LIBRARY_URL}) that aren't in the catalog yet, as of ${today}.\n\n` +
+      `New slugs in Ollama's [newest listing](${LIBRARY_URL}) absent from the catalog, reviewed skips, and historical baseline as of ${today}.\n\n` +
       `${list}\n\n` +
       `Some may be intentionally out of scope (cloud-only, duplicates, embeddings, fine-tune spam). ` +
       `This is a watchlist, not a TODO: verify each against its real GGUF source before adding, and add anything ` +

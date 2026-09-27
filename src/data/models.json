@@ -4947,5 +4947,38 @@
     "hf_likes": 2527,
     "license": "MIT",
     "commercial_use": "yes"
+  },
+  {
+    "id": "qwen3-coder-next",
+    "name": "Qwen3-Coder-Next 80B-A3B",
+    "family": "Qwen3-Coder",
+    "params_b": 80,
+    "is_moe": true,
+    "active_params_b": 3,
+    "q4_k_m_gb": 48.41,
+    "q8_0_gb": 84.81,
+    "fp16_gb": 159.46,
+    "min_ram_q4_gb": null,
+    "default_context_k": 256,
+    "ollama_tag": "qwen3-coder-next:latest",
+    "release": "2026-02-02",
+    "sources": [
+      "https://huggingface.co/Qwen/Qwen3-Coder-Next",
+      "https://huggingface.co/Qwen/Qwen3-Coder-Next-GGUF",
+      "https://ollama.com/library/qwen3-coder-next/tags"
+    ],
+    "notes": "Coding MoE with 80B total and 3B active parameters, 256K native context, and Apache-2.0. Q4_K_M, Q8_0 and F16 sizes are exact four-shard sums from Qwen's official GGUF repository. Ollama latest has a separately packed 51.74 GB model layer.",
+    "pulls": null,
+    "pulls_text": null,
+    "arena_elo": null,
+    "arena_rank": null,
+    "hf_repo": "Qwen/Qwen3-Coder-Next-GGUF",
+    "hf_id": "Qwen/Qwen3-Coder-Next",
+    "hf_downloads": 548859,
+    "hf_likes": 1664,
+    "license": "Apache-2.0",
+    "commercial_use": "yes",
+    "subtype": "coder",
+    "ollama_default_gb": 51.74
   }
 ]
