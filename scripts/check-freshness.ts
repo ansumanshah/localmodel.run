@@ -65,6 +65,9 @@ async function fetchLibrarySlugs(): Promise<string[] | null> {
         order.push(slug);
       }
     }
+    // ponytail: a short page is likely a challenge or partial response; update this
+    // parser if Ollama starts paginating below 50 rather than closing a live issue.
+    if (order.length < 50) return null;
     return order;
   } catch {
     return null;
