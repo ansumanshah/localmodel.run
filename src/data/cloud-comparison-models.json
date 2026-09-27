@@ -10,10 +10,10 @@
   },
   {
     "id": "claude-opus-5",
-    "name": "Claude Opus 5 (High)",
+    "name": "Claude Opus 5 (Legacy, High)",
     "arenaName": "claude-opus-5-high",
     "access": "hosted",
-    "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
+    "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
     "providerModelId": "claude-opus-5",
     "localModelId": null
   },

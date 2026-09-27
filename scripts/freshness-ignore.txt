@@ -62,3 +62,28 @@ deepseek-ocr   # OCR-specialized model, outside the general model catalog
 cogito-2.1   # current local GGUF is too large for the tracked hardware
 gpt-oss-safeguard   # safety classifier, outside the general model catalog
 qwen3-embedding   # embedding-only family, outside the generation catalog
+# 2026-09-27 review of issue #3's older Ollama watchlist:
+qwen3-next   # 2025 general model; Qwen3.6 represents the newer generation
+embeddinggemma   # already tracked in the browser catalog; embedding-only
+deepseek-v3.1   # older 409GB Q4 model beyond the tracked device range
+qwen2.5vl   # catalog already includes its 3B and 7B vision variants
+granite3.3   # superseded by Granite 4.2 rows
+deepcoder   # older coding preview; Qwen3-Coder variants cover this use case
+cogito   # third-party Qwen fine-tune, outside the focused catalog
+exaone-deep   # older reasoning branch; EXAONE 4 is tracked
+command-r7b-arabic   # language-specific variant, defer to a multilingual pass
+granite3.2-vision   # older vision model; current small VLMs are tracked
+granite3.2   # superseded by Granite 4.2 rows
+r1-1776   # older 404GB Q4 fine-tune beyond the tracked device range
+deepscaler   # older math fine-tune of DeepSeek-R1-Distill
+openthinker   # reasoning fine-tune, covered by newer Qwen and DeepSeek families
+olmo2   # older 7B and 13B sizes; OLMo 3 and 3.1 are tracked
+command-r7b   # distinct RAG variant; defer until a focused RAG comparison
+dolphin3   # third-party Llama fine-tune
+smallthinker   # older Qwen2.5 reasoning fine-tune
+granite3.1-moe   # older family, Granite 4.x is tracked
+granite-embedding   # embedding-only model
+exaone3.5   # superseded by tracked EXAONE 4
+snowflake-arctic-embed2   # embedding-only model
+sailor2   # older SEA-language family, defer to a multilingual pass
+qwq   # older reasoning generation; Qwen3 is tracked

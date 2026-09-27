@@ -1,7 +1,7 @@
 name: Catalog freshness
 
 # Weekly watchlist: diffs Ollama's newest library listing against our catalog and
-# keeps ONE GitHub issue updated with models we don't track yet. It never edits the
+# historical baseline, then keeps one issue open only for new slugs. It never edits the
 # dataset (every row is verified by hand against its GGUF source before adding); it
 # just surfaces candidates. Uses the default GITHUB_TOKEN to write the issue, so no
 # extra secret or repo setting is needed.
@@ -46,6 +46,18 @@ jobs:
             const issue = existing.find(
               (i) => !i.pull_request && i.title === title && (i.body || '').includes(marker),
             );
+
+            if (report.startsWith('_Could not reach')) {
+              core.warning('Ollama was unavailable; retaining the prior issue state.');
+              return;
+            }
+            if (report.startsWith('_No newly surfaced Ollama slugs')) {
+              if (issue) {
+                await github.rest.issues.update({ owner, repo, issue_number: issue.number, body, state: 'closed', state_reason: 'completed' });
+                core.info(`Closed resolved issue #${issue.number}.`);
+              }
+              return;
+            }
 
             if (issue) {
               await github.rest.issues.update({ owner, repo, issue_number: issue.number, body });
