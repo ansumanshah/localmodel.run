@@ -1,0 +1,30 @@
+---
+import Base from "@/layouts/Base.astro";
+export function getStaticPaths() {
+  return ["worked", "blocked"].map((result) => ({ params: { result } }));
+}
+const worked = Astro.params.result === "worked";
+const path = `/start/result/${Astro.params.result}`;
+const title = `${worked ? "Setup worked" : "Setup help"} · localmodel.run`;
+---
+
+<Base title={title} description="Local model setup feedback and next steps." path={path} noindex>
+  <div class="mx-auto max-w-2xl px-4 py-10">
+    <h1 class="text-3xl font-bold">{worked ? "You have a local model running" : "Let's get you unstuck"}</h1>
+    <p class="mt-4 text-muted-foreground">Thanks for the response. This page view contributes to aggregate setup feedback. It does not identify your model or hardware, and it is not a verified runtime test.</p>
+    {worked ? (
+      <p class="mt-4">Try your own writing or coding task next. Keep the same Q4 file and context setting when comparing the memory estimate with what your runtime reports.</p>
+    ) : (
+      <ul class="mt-4 list-disc space-y-3 pl-5">
+        <li>If the model will not load, close other applications, reduce the context window, or choose a smaller Q4 download in the <a href="/start" class="underline">setup guide</a>.</li>
+        <li>If your runtime does not recognize the file or hardware, check the <a href="/tools" class="underline">platform runtime guide</a> and the model's source repository.</li>
+        <li>If it runs slowly, a memory fit does not guarantee speed. Use the <a href="/calculator" class="underline">calculator</a> to inspect the device and memory assumptions.</li>
+      </ul>
+    )}
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a href="/start" class="btn">Back to setup</a>
+      <a href="/browser" class="btn">Try a browser demo</a>
+    </div>
+    <p class="mt-6 text-sm"><a href="/privacy" class="underline">How feedback is counted</a></p>
+  </div>
+</Base>

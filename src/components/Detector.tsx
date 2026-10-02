@@ -8,6 +8,7 @@ import {
   type SpeedClass,
 } from "@/lib/compute";
 import { models, devices, devicePlatform, getTool, platformLabel } from "@/lib/data";
+import { fitRecovery } from "@/lib/fit-recovery";
 import { makerForFamily } from "@/lib/icons";
 import type { Verdict } from "@/data/types";
 
@@ -216,6 +217,7 @@ export default function Detector() {
   const [modelId, setModelId] = useState("llama-3.1-8b");
   const [ctxK, setCtxK] = useState(DEFAULT_CONTEXT_K);
   const [detected, setDetected] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<{ command: string; message: string } | null>(null);
 
   const device = devices.find((d) => d.id === deviceId)!;
   const model = models.find((m) => m.id === modelId)!;
@@ -223,6 +225,7 @@ export default function Detector() {
   const effCtxK = Math.min(ctxK, maxCtxK);
 
   const result = useMemo(() => canRun(model, device, effCtxK), [model, device, effCtxK]);
+  const recovery = useMemo(() => fitRecovery(model, device, effCtxK, models), [model, device, effCtxK]);
   const usable = usableGb(device);
   const platform = devicePlatform(device);
   const tool = getTool(platform);
@@ -236,7 +239,7 @@ export default function Detector() {
   const fillScale = Math.min(1, needGb / trackMax);
   const markAt = Math.min(100, (usable / trackMax) * 100);
   const speed = SPEED_LABEL[result.speed];
-  const cmd = canOllama ? `ollama run ${model.ollama_tag}` : null;
+  const cmd = canOllama && result.verdict !== "no" ? `ollama run ${model.ollama_tag}` : null;
   const vc = result.verdict === "no" ? VERDICT_COLOR.no : VERDICT_COLOR[result.verdict];
 
   function detect() {
@@ -341,6 +344,41 @@ export default function Detector() {
 
         <p className="mt-3 text-sm text-muted-foreground">{result.reason}</p>
 
+        {result.verdict !== "yes" && (
+          <section className="mt-4 rounded-xl border border-border p-4" aria-labelledby="det-recovery-title">
+            <h3 id="det-recovery-title" className="text-xl font-semibold">Find a comfortable fit</h3>
+            {recovery.shorterContextK != null && (
+              <div className="mt-3">
+                <button type="button" className="btn" onClick={() => setCtxK(recovery.shorterContextK!)}>
+                  Try {fmtCtx(recovery.shorterContextK)} context
+                </button>
+                <p className="mt-2 text-sm text-muted-foreground">Keep this model with a shorter conversation window and more memory headroom.</p>
+              </div>
+            )}
+            {recovery.alternatives.length > 0 ? (
+              <>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  These alternatives fit at your current context. Same family first, then largest estimated memory use. This is a memory match, not a quality ranking.
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {recovery.alternatives.map(({ model: alternative, result: fit }) => (
+                    <li key={alternative.id}>
+                      <button type="button" className="btn w-full flex-wrap justify-between gap-2" onClick={() => setModelId(alternative.id)}>
+                        <span>Try {alternative.name}</span>
+                        <span className="num">~{fit.estimate!.totalGb} GB</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-muted-foreground">Estimated Q4_K_M memory including context and runtime overhead. Task tags are matched; quality and runtime support can differ.</p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">No matching alternative has comfortable headroom at this context. Try a shorter context or compare hardware for this model.</p>
+            )}
+            <a className="mt-3 inline-block text-sm underline" href={`/rig-for/${model.id}`}>Compare hardware for {model.name} →</a>
+          </section>
+        )}
+
         <div className="det-cta">
           <a href={`/can-i-run/${model.id}/${device.id}`} className="btn btn--primary magnetic">
             See the full breakdown
@@ -360,9 +398,17 @@ export default function Detector() {
             <div className="cmd-chip" data-cmd={cmd}>
               <span className="d">$</span>
               <span className="cmd-text">{cmd}</span>
-              <button type="button" className="copy" aria-label="Copy command">
+              <button type="button" className="copy" data-init-copy="1" aria-label="Copy command" onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(cmd);
+                  setCopyStatus({ command: cmd, message: "Copied" });
+                } catch {
+                  setCopyStatus({ command: cmd, message: "Copy failed. Select the command to copy it." });
+                }
+              }}>
                 copy
               </button>
+              <span role="status" className="text-xs">{copyStatus?.command === cmd ? copyStatus.message : ""}</span>
             </div>
           )}
         </div>

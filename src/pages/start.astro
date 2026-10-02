@@ -1,0 +1,45 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import SetupGuide from "@/components/SetupGuide.tsx";
+import { getModel } from "@/lib/data";
+import { estimateMemory } from "@/lib/compute";
+import { breadcrumbLd, howToLd, truncate } from "@/lib/seo";
+
+const path = "/start";
+const example = getModel("llama-3.1-8b")!;
+const memory = estimateMemory(example, "q4_k_m", 4);
+const title = "Run a local LLM: choose a model and set it up · localmodel.run";
+const description = truncate("Choose a local LLM for your device and task, check its measured Q4 download and estimated memory, then set it up in LM Studio or PocketPal. No signup.");
+const jsonLd = [
+  breadcrumbLd([{ name: "Home", url: "/" }, { name: "Start here", url: path }], Astro.site!.href),
+  howToLd({
+    name: "Choose and set up a local LLM",
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    steps: [
+      { name: "Choose your device and task", text: "Select your actual hardware, chat, coding or reasoning, and the context window you want." },
+      { name: "Choose a model that fits", text: "Compare measured Q4_K_M download sizes with estimated memory and headroom. The shortlist uses recorded popularity, not quality scores." },
+      { name: "Set up the runtime", text: "Use the linked model repository to download Q4_K_M in LM Studio or PocketPal, set the same context window, and try a real task." },
+    ],
+  }),
+];
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd} ogTitle="Choose a local model and run it">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs items={[{ name: "Home", url: "/" }, { name: "Start here", url: path }]} />
+    <h1 class="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-4xl">Your first local LLM</h1>
+    <p class="mt-4 text-lg text-muted-foreground">
+      {example.name} has a measured Q4_K_M download of <span class="font-mono">{memory.weightsGb} GB</span>
+      and needs about <span class="font-mono">{memory.totalGb} GB</span> of memory at
+      <span class="font-mono">4k</span> context. Find a fit for your hardware below, then follow the setup steps.
+    </p>
+    <div class="mt-7">
+      <SetupGuide client:load />
+      <noscript><p class="mt-4">Enable JavaScript for the guided shortlist, or browse the <a href="/best-llm-for" class="underline">device guides</a> and <a href="/tools" class="underline">runtime setup guide</a>.</p></noscript>
+    </div>
+    <p class="mt-5 text-sm text-muted-foreground">Memory fit is an estimate, not a tested runtime result. Read the <a href="/methodology" class="underline">calculation method</a> or <a href="/leaderboard" class="underline">compare recorded benchmarks</a>.</p>
+  </div>
+</Base>
