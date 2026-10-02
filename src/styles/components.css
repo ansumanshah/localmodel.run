@@ -257,6 +257,11 @@
     display: flex;
   }
 }
+@media (max-width: 1023px) {
+  .site-header > #mobile-menu-btn {
+    margin-left: auto;
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
    FIELDS / SELECTS — recessed instrument wells
@@ -1060,10 +1065,6 @@
   .site-brand {
     font-size: 14px;
   }
-  .site-header > #mobile-menu-btn {
-    margin-left: auto;
-  }
-
   .btn,
   .btn--primary {
     padding: 13px 18px;
