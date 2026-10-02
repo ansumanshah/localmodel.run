@@ -73,6 +73,7 @@ export default defineConfig({
     icon(),
     react(),
     sitemap({
+      filter: (url) => !new URL(url).pathname.startsWith("/start/result/"),
       changefreq: "weekly",
       priority: 0.7,
       lastmod: new Date(meta.updated),
