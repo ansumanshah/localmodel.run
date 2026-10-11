@@ -7,10 +7,11 @@ import type { DeviceRow, MemoryType } from "@/data/types";
 // devices through here, so there is one source of truth and no drift.
 
 // Each budget must have at least one REAL sourced desktop device at that exact
-// size (interpretationsFor filters on memory_gb === size). 48/64/128/256 are the
-// high-memory Mac tiers (Apple's only configs at those sizes); no GPU/CPU rows
-// exist there, so those pages render a single unified interpretation.
-export const BUDGETS = [8, 16, 24, 32, 48, 64, 128, 256] as const;
+// size (interpretationsFor filters on memory_gb === size). 6 and 12 are GPU-only
+// tiers (RTX 2060 6GB; RTX 3060/4070 12GB) and 48/64/128/256 are the high-memory
+// Mac tiers (Apple's only configs at those sizes); no other desktop rows exist
+// there, so those pages render a single interpretation.
+export const BUDGETS = [6, 8, 12, 16, 24, 32, 48, 64, 128, 256] as const;
 
 const DESKTOP_CATS = new Set(["mac", "nvidia", "amd", "intel", "laptop"]);
 const TYPE_ORDER: MemoryType[] = ["unified", "vram", "ram"];
@@ -60,4 +61,18 @@ export function mostGenerousFor(size: number): Interp | undefined {
     (a, b) => (a == null || b.usable > a.usable ? b : a),
     undefined,
   );
+}
+
+/** Every tracked desktop device at exactly this size, best usable memory first.
+ *  interpretationsFor keeps one representative per memory type; this keeps them
+ *  all so a budget page can list each real card (e.g. both 12GB GPUs). */
+export function desktopDevicesAt(size: number): DeviceRow[] {
+  return devices
+    .filter((d) => d.memory_gb === size && DESKTOP_CATS.has(d.category))
+    .sort(
+      (a, b) =>
+        (b.usable_memory_gb ?? 0) - (a.usable_memory_gb ?? 0) ||
+        (CAT_PREF[a.category] ?? 9) - (CAT_PREF[b.category] ?? 9) ||
+        (a.id < b.id ? -1 : 1),
+    );
 }

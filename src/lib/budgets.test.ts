@@ -1,6 +1,6 @@
 import { test, expect, describe } from "bun:test";
 import { devices } from "@/lib/data";
-import { BUDGETS, interpretationsFor, mostGenerousFor } from "@/lib/budgets";
+import { BUDGETS, desktopDevicesAt, interpretationsFor, mostGenerousFor } from "@/lib/budgets";
 
 // The RAM-budget anchoring is the one source of truth behind every budget-based
 // surface (best-llm-for-ram pages, family hardware-gating). These pin its
@@ -64,6 +64,13 @@ describe("interpretationsFor", () => {
     }
   });
 
+  test("6GB and 12GB are GPU-only tiers backed by real VRAM cards", () => {
+    for (const size of [6, 12]) {
+      const interps = interpretationsFor(size);
+      expect(interps.map((i) => i.type)).toEqual(["vram"]);
+    }
+  });
+
   test("selection is deterministic across calls", () => {
     for (const size of BUDGETS) {
       const first = interpretationsFor(size).map((i) => i.device.id);
@@ -90,5 +97,28 @@ describe("mostGenerousFor", () => {
 
   test("returns undefined for a size with no devices", () => {
     expect(mostGenerousFor(9999)).toBeUndefined();
+  });
+});
+
+describe("desktopDevicesAt", () => {
+  test("lists every desktop device at the exact size, most usable memory first", () => {
+    for (const size of BUDGETS) {
+      const list = desktopDevicesAt(size);
+      expect(list.length).toBeGreaterThan(0);
+      expect(list.every((d) => d.memory_gb === size && DESKTOP_CATS.has(d.category))).toBe(true);
+      const usable = list.map((d) => d.usable_memory_gb ?? 0);
+      expect(usable).toEqual([...usable].sort((a, b) => b - a));
+    }
+  });
+
+  test("includes the representative device interpretationsFor picks", () => {
+    for (const size of BUDGETS) {
+      const ids = desktopDevicesAt(size).map((d) => d.id);
+      for (const { device } of interpretationsFor(size)) expect(ids).toContain(device.id);
+    }
+  });
+
+  test("returns nothing for a size with no devices", () => {
+    expect(desktopDevicesAt(9999)).toEqual([]);
   });
 });
