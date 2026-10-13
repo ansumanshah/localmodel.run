@@ -308,6 +308,18 @@
   cursor: pointer;
   font: inherit;
 }
+/* Chromium-only: its native dark-mode select popup renders the option rows
+   and optgroup headers too faint to read, while Firefox's popup already draws
+   them correctly, so gate these rules instead of altering the popup in every
+   engine. The -moz-appearance exclusion is load-bearing: Firefox also
+   supports -webkit-appearance for compatibility, and would match without it. */
+@supports (-webkit-appearance: none) and (not (-moz-appearance: none)) {
+  .dark .field select option,
+  .dark .field select optgroup {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
 .field .chev {
   color: var(--muted-foreground);
   flex: none;
