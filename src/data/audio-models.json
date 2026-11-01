@@ -452,5 +452,56 @@
       "https://huggingface.co/stabilityai/stable-audio-open-1.0/blob/main/LICENSE.md"
     ],
     "notes": "Latent-diffusion music model (1.06B DiT + autoencoder + T5-base, ~1.3B total) generating up to 47s of 44.1kHz stereo. The diffusion phase uses ~5.9GB VRAM; the decoder peaks at ~14.5GB (measured on an RTX 3090), so budget ~15GB unless you use chunked decoding. Stability Community License: free commercial use under $1M revenue. Sources: HF card, the Stable Audio Open paper, the license."
+  },
+  {
+    "id": "lfm3-audio-2b",
+    "name": "LFM3 Audio 2B",
+    "family": "LFM",
+    "params_b": 2,
+    "is_moe": false,
+    "active_params_b": null,
+    "q4_k_m_gb": null,
+    "q8_0_gb": null,
+    "fp16_gb": null,
+    "min_ram_q4_gb": null,
+    "default_context_k": 8,
+    "ollama_tag": null,
+    "release": "2026-10",
+    "pulls": null,
+    "pulls_text": null,
+    "arena_elo": null,
+    "arena_rank": null,
+    "license": "LFM Open License v1.0",
+    "commercial_use": "conditional",
+    "license_note": "LFM Open License v1.0: free for organizations below $10M annual revenue; larger organizations require separate terms.",
+    "modality": "audio",
+    "hf_id": "LiquidAI/LFM3-Audio-2B",
+    "audio": {
+      "subtype": "stt",
+      "backbone_params_b": 2,
+      "precision": "Q8_0 GGUF + Q8_0 projector",
+      "recommended": {
+        "gb": 4.61,
+        "quant": "Q8_0, audio.cpp ASR",
+        "source": "https://github.com/0xShug0/audio.cpp/blob/cd770076152085af5b166521185bec76f9d47808/docs/models/lfm3_audio.md#performance"
+      },
+      "cpu_ok": false,
+      "device_classes": [
+        "mac",
+        "nvidia"
+      ],
+      "tools": [
+        "audio.cpp (experimental)"
+      ],
+      "task": "Speech recognition"
+    },
+    "sources": [
+      "https://huggingface.co/LiquidAI/LFM3-Audio-2B",
+      "https://huggingface.co/LiquidAI/LFM3-Audio-2B-GGUF",
+      "https://huggingface.co/LiquidAI/LFM3-Audio-2B/blob/main/LICENSE",
+      "https://ollama.com/library/lfm3-audio",
+      "https://github.com/0xShug0/audio.cpp/blob/cd770076152085af5b166521185bec76f9d47808/docs/models/lfm3_audio.md#performance"
+    ],
+    "notes": "ASR profile for the experimental audio.cpp runtime with official Q8_0 backbone and Q8_0 projector (2,150,048,544 bytes combined). Runtime-author measurements on 2026-10-27: H100 GPU peak 4,719 MiB for 418-second ASR, used as the memory anchor; short ASR used 2,683 MiB and TTS 2,751 MiB. M3 Ultra process footprint was 3,594 MB for long ASR, a different metric. The anchor applies to that runtime and workload, not all audio lengths or speech tasks. audio.cpp caps context at 8,192 steps, despite the vendor config 128,000-token capacity; Q4 accuracy degradation is documented. CPU and phone memory support are not verified here."
   }
 ]
