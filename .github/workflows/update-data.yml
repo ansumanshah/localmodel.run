@@ -24,13 +24,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
-      - name: Cache bun install
-        uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - run: bun install --frozen-lockfile
+      # No `bun install`: update-data, validate-data and update:arena import only
+      # Node/Bun builtins and files in this repo (verified from a clean archive
+      # with no node_modules), so the dependency install and its cache are dead
+      # weight. If one of them ever gains an npm import, it fails loudly here.
       - name: Refresh data from primary sources
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
