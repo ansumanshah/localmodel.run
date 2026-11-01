@@ -36,7 +36,12 @@ describe("featuredTextModelIds", () => {
 
 describe("inSitemap", () => {
   test("non-pair pages are always listed", () => {
-    for (const p of ["/", "/can-i-run", `/can-i-run/${models[0].id}`, `/best-llm-for/${devices[0].id}`])
+    for (const p of [
+      "/",
+      "/can-i-run",
+      `/can-i-run/${models[0].id}`,
+      `/best-llm-for/${devices[0].id}`,
+    ])
       expect(inSitemap(p)).toBe(true);
   });
 
