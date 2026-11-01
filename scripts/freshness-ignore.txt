@@ -87,3 +87,30 @@ exaone3.5   # superseded by tracked EXAONE 4
 snowflake-arctic-embed2   # embedding-only model
 sailor2   # older SEA-language family, defer to a multilingual pass
 qwq   # older reasoning generation; Qwen3 is tracked
+
+# Issue #60 review (2026-11-01). Primary cards: https://ollama.com/library/<slug>
+# Added separately: Flint 40B-A2.5B, Nemotron 3.5 Bolt E4B, Nemotron 3.5 Super VL.
+d3   # decision/classification scorer, not general generation
+phonon   # local TTS deferred: vendor reports loaded allocation, not a verified runtime peak memory anchor
+minimax-m3.1-flash   # local weights exist; inspected GGUF repos lack a complete comparable Q4_K_M export
+d1-omni   # non-generative multimodal decision scorer
+bonsai-2   # ternary Q2_0/PTQ1_0/PQ2_0 artifacts do not match the Q4_K_M memory baseline
+beam   # verified Q4_K_M weights alone are 302407122944 bytes, beyond tracked hardware
+muse-spark-open   # local Q4_K_S and UD-Q4_K_XL exist, but no verified comparable Q4_K_M export
+pplx-decider   # decision scorer, not general generation
+d1   # decision scorer, not general generation
+kev   # decision/classification scorer, not general generation
+nimble-v3   # decision scorer, not general generation
+mistral-large-4   # verified complete Q4_K_M plus projector is 638246941024 bytes, beyond tracked hardware
+embeddinggemma-2   # embedding-only model, outside the generation catalog
+strands-decider   # classification/routing scorer, not general generation
+clef-flash   # decision scorer, not general generation
+clef   # decision scorer with local downloads, not general generation
+laya   # ModernBERT decision/classification model, not general generation
+tev1   # decision model trained for option selection, not general chat
+nimble   # decision scorer, not general generation
+
+# Newer entries surfaced while completing #60; reviewed from their primary cards.
+mimo-v2.6-pro   # complete Q4_K_M plus projector is 620690860864 bytes, beyond tracked hardware
+mimo-v2.6-flash   # verified MXFP4/Q2 exports, but no complete comparable Q4_K_M in inspected GGUF repos
+lfm3-audio   # in audio catalog as lfm3-audio-2b; measured Q8_0 audio.cpp profile, not the default Ollama Q4 package
