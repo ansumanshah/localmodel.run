@@ -5,6 +5,7 @@ import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import icon from "astro-icon";
 import tailwindcss from "@tailwindcss/vite";
+import { inSitemap } from "./src/lib/sitemap-policy.ts";
 
 // Sitemap lastmod = the date the DATA last changed (meta.updated), NOT the build
 // time. A uniform build timestamp moves on every code-only deploy, which Google
@@ -73,7 +74,8 @@ export default defineConfig({
     icon(),
     react(),
     sitemap({
-      filter: (url) => !new URL(url).pathname.startsWith("/start/result/"),
+      // Pair pages are trimmed to recent and popular models: see sitemap-policy.ts.
+      filter: (url) => inSitemap(new URL(url).pathname.replace(/\/$/, "")),
       changefreq: "weekly",
       priority: 0.7,
       lastmod: new Date(meta.updated),
