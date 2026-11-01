@@ -952,8 +952,11 @@
       "https://www.nvidia.com/en-us/products/workstations/dgx-spark/",
       "https://docs.nvidia.com/dgx/dgx-spark/hardware.html",
       "https://nvidianews.nvidia.com/news/nvidia-dgx-spark-arrives-for-worlds-ai-developers",
-      "https://www.tomshardware.com/pc-components/gpus/nvidia-dgx-spark-review/2"
+      "https://www.tomshardware.com/pc-components/gpus/nvidia-dgx-spark-review/2",
+      "https://docs.nvidia.com/dgx/dgx-spark-porting-guide/latest/optimization.html",
+      "https://forums.developer.nvidia.com/t/difference-in-total-vram-available-for-different-sparks/363849",
+      "https://forums.developer.nvidia.com/t/memory-creep-on-dgx-spark-where-your-128-gb-actually-goes-and-how-to-stop-it/364886"
     ],
-    "notes": "GB10 Grace Blackwell: 128GB LPDDR5X unified memory on a 256-bit bus, 273 GB/s (256 x 8533 / 8). tdp_w is NVIDIA's stated GB10 SoC TDP (CPU and GPU combined); the box ships with a 240W power supply. NVIDIA publishes no GPU-allocatable cap, so usable is an assumption: 128GB minus ~16GB for DGX OS and apps. $3,999 launch price (Oct 2025). Ships DGX OS (Linux). Bandwidth limits dense models; MoE models are the sweet spot."
+    "notes": "GB10 Grace Blackwell: 128GB LPDDR5X unified memory on a 256-bit bus, 273 GB/s (256 x 8533 / 8). The OS sees about 121 GiB on NVIDIA's own unit and 119 GiB on some OEM boxes (firmware carveout plus a 2 GB default UEFI display reservation); DGX OS with the desktop uses about 6-7 GB at idle. Usable is set to 112GB (119 minus 7), which holds across GB10 boxes. NVIDIA publishes no fixed GPU cap; nvidia-smi shows N/A for memory, so check free -g. tdp_w is NVIDIA's stated GB10 SoC TDP (CPU and GPU combined); the box ships with a 240W power supply. $3,999 launch price (Oct 2025). Ships DGX OS (Linux). Bandwidth limits dense models; MoE models are the sweet spot."
   }
 ]
