@@ -126,6 +126,7 @@ Optional build-time env vars (Cloudflare Pages → Settings → Environment vari
 
 - `SITE_URL`, the canonical production origin (defaults to `https://localmodel.run`).
 - `CF_BEACON_TOKEN`, the Cloudflare Web Analytics site token. Unset = no analytics script emitted.
+- `PUBLIC_ACTION_EVENTS=1`, enables fixed-name action counts after configuring the Cloudflare collector described in [action analytics](docs/action-analytics.md). Leave unset until that endpoint is verified.
 - `GSC_VERIFICATION`, optional Google Search Console verification meta tag (backup to DNS TXT).
 
 ## SEO + AI-crawlability

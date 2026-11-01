@@ -1,5 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
+import { setupHref } from "@/lib/setup-link";
+import { supportsSetupModel } from "@/lib/setup";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import MemoryBar from "@/components/MemoryBar.astro";
@@ -23,6 +25,7 @@ import {
 } from "@/lib/data";
 import {
   estimateMemory,
+  canRun,
   quantLadderSizes,
   usableGb,
   QUANT_LABEL,
@@ -56,6 +59,8 @@ export function getStaticPaths() {
 const { model, device } = Astro.props;
 const modality = modelModality(model);
 const isText = modality === "text";
+const setupContext = Math.min(4, model.default_context_k ?? 4);
+const supportsSetup = supportsSetupModel(model) && canRun(model, device, setupContext).verdict === "yes";
 const result = canRunModality(model, device);
 const usable = usableGb(device);
 const platform = devicePlatform(device);
@@ -589,6 +594,7 @@ if (fits && commands.length > 0) {
               )}
             </dl>
           )}
+          {supportsSetup && <p class="mt-4"><a href={setupHref({ modelId: model.id, deviceId: device.id, contextK: setupContext })} class="cta-link">Set up this model at <span class="num">{setupContext}K</span> &rarr;</a></p>}
           <a href={`/model/${model.id}`} class="mt-4 inline-block text-sm text-[var(--brand-ink)] hover:underline">Full {model.name} requirements &rarr;</a>
         </div>
       </div>

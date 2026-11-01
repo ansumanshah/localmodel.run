@@ -196,28 +196,6 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     </main>
     <Footer year={year} lang={lang} />
     <script is:inline>
-      // Delegated copy-to-clipboard for [data-copy] buttons. Guarded so the
-      // single document listener is not re-bound across view-transition swaps.
-      if (!window.__lmrCopyBound) {
-        window.__lmrCopyBound = true;
-        document.addEventListener("click", function (e) {
-          var t = e.target;
-          if (!(t instanceof Element)) return;
-          var btn = t.closest("[data-copy]");
-          if (!btn) return;
-          var text = btn.getAttribute("data-copy") || "";
-          navigator.clipboard?.writeText(text).then(function () {
-            var prev = btn.textContent;
-            btn.textContent = "Copied";
-            setTimeout(function () {
-              btn.textContent = prev;
-            }, 1400);
-          });
-        });
-      }
-    </script>
-
-    <script is:inline>
       // The View Transitions API emits a benign "Transition was aborted"
       // rejection when one navigation supersedes an in-flight transition.
       // Swallow only that exact message so it never surfaces as an uncaught error.

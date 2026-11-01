@@ -1,5 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
+import { setupHref } from "@/lib/setup-link";
+import { supportsSetupModel } from "@/lib/setup";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import Command from "@/components/Command.astro";
@@ -40,6 +42,7 @@ export function getStaticPaths() {
 const { model } = Astro.props;
 const modality = modelModality(model);
 const isText = modality === "text";
+const supportsSetup = supportsSetupModel(model);
 // Cross-model internal links (same family first, then nearest-size text models).
 const similar = [
   ...allModels.filter((m) => m.id !== model.id && m.family === model.family),
@@ -265,6 +268,8 @@ const VERDICT_WORD: Record<string, string> = { yes: "Yes, it runs", tight: "Yes,
                 Shopping for hardware? See what runs {model.name} &rarr;
               </a>
             </p>
+
+            {supportsSetup && <p class="mt-3"><a href={setupHref({ modelId: model.id, contextK: Math.min(4, model.default_context_k ?? 4) })} class="cta-link">Set up {model.name} on your hardware &rarr;</a></p>}
 
             <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
               {model.subtype === "vlm" && (

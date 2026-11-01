@@ -1,4 +1,5 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { trackEvent } from "@/lib/analytics";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   canRun,
   usableGb,
@@ -8,6 +9,8 @@ import {
   type SpeedClass,
 } from "@/lib/compute";
 import { models, devices, devicePlatform, getTool, platformLabel } from "@/lib/data";
+import { setupHref } from "@/lib/setup-link";
+import { supportsSetupModel } from "@/lib/setup";
 import { fitRecovery } from "@/lib/fit-recovery";
 import { makerForFamily } from "@/lib/icons";
 import type { Verdict } from "@/data/types";
@@ -240,10 +243,16 @@ export default function Detector() {
   const markAt = Math.min(100, (usable / trackMax) * 100);
   const speed = SPEED_LABEL[result.speed];
   const cmd = canOllama && result.verdict !== "no" ? `ollama run ${model.ollama_tag}` : null;
+  useEffect(() => {
+    const href = setupHref({ deviceId, modelId, contextK: effCtxK });
+    document.querySelectorAll<HTMLAnchorElement>("a[data-setup-context]").forEach((link) => { link.href = href; });
+  }, [deviceId, modelId, effCtxK]);
+
   const vc = result.verdict === "no" ? VERDICT_COLOR.no : VERDICT_COLOR[result.verdict];
 
   function detect() {
     setDeviceId(guessDeviceId());
+    void trackEvent("fit_check");
     setDetected(true);
   }
 
@@ -254,14 +263,14 @@ export default function Detector() {
           label="Model"
           value={modelId}
           displayValue={model.name}
-          onChange={setModelId}
+          onChange={(id) => { setModelId(id); void trackEvent("fit_check"); }}
           groups={MODEL_GROUPS}
         />
         <SelectField
           label="Device"
           value={deviceId}
           displayValue={device.name}
-          onChange={setDeviceId}
+          onChange={(id) => { setDeviceId(id); void trackEvent("fit_check"); }}
           groups={DEVICE_GROUPS}
         />
       </div>
@@ -337,7 +346,7 @@ export default function Detector() {
             max={maxCtxK}
             step={1}
             value={effCtxK}
-            onChange={(e) => setCtxK(parseInt(e.target.value, 10))}
+            onChange={(e) => { setCtxK(parseInt(e.target.value, 10)); void trackEvent("fit_check"); }}
             aria-label="Context length in thousands of tokens"
           />
         </div>
@@ -349,7 +358,7 @@ export default function Detector() {
             <h3 id="det-recovery-title" className="text-xl font-semibold">Find a comfortable fit</h3>
             {recovery.shorterContextK != null && (
               <div className="mt-3">
-                <button type="button" className="btn" onClick={() => setCtxK(recovery.shorterContextK!)}>
+                <button type="button" className="btn" onClick={() => { setCtxK(recovery.shorterContextK!); void trackEvent("fit_check"); }}>
                   Try {fmtCtx(recovery.shorterContextK)} context
                 </button>
                 <p className="mt-2 text-sm text-muted-foreground">Keep this model with a shorter conversation window and more memory headroom.</p>
@@ -363,7 +372,7 @@ export default function Detector() {
                 <ul className="mt-3 space-y-2">
                   {recovery.alternatives.map(({ model: alternative, result: fit }) => (
                     <li key={alternative.id}>
-                      <button type="button" className="btn w-full flex-wrap justify-between gap-2" onClick={() => setModelId(alternative.id)}>
+                      <button type="button" className="btn w-full flex-wrap justify-between gap-2" onClick={() => { setModelId(alternative.id); void trackEvent("fit_check"); }}>
                         <span>Try {alternative.name}</span>
                         <span className="num">~{fit.estimate!.totalGb} GB</span>
                       </button>
@@ -394,6 +403,9 @@ export default function Detector() {
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </a>
+          <a href={setupHref({ deviceId, modelId, contextK: effCtxK })} className="btn">
+            {result.verdict === "yes" && supportsSetupModel(model) ? "Set up this model" : "Find a comfortable fit and setup steps"}
+          </a>
           {cmd && (
             <div className="cmd-chip" data-cmd={cmd}>
               <span className="d">$</span>
@@ -401,6 +413,7 @@ export default function Detector() {
               <button type="button" className="copy" data-init-copy="1" aria-label="Copy command" onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(cmd);
+                  void trackEvent("command_copy");
                   setCopyStatus({ command: cmd, message: "Copied" });
                 } catch {
                   setCopyStatus({ command: cmd, message: "Copy failed. Select the command to copy it." });
