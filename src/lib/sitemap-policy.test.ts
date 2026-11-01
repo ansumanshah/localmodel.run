@@ -1,6 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { devices, models, imageModels } from "@/lib/data";
 import { featuredTextModelIds, inSitemap, TOP_DOWNLOADS } from "@/lib/sitemap-policy";
+import { FEATURED_MODEL_IDS } from "@/lib/featured";
 
 // The sitemap trim decides which pair pages Google is asked to crawl. These pin
 // that it only ever removes text-model pair pages, and that the kept set is the
@@ -13,6 +14,7 @@ describe("featuredTextModelIds", () => {
     { id: "new-month", release: "2026-09", hf_downloads: 0 },
     { id: "new-day", release: "2026-05-01", hf_downloads: null },
     { id: "just-too-old", release: "2026-04-28", hf_downloads: 0 },
+    { id: "month-edge", release: "2026-04", hf_downloads: 0 },
   ];
   // Pad with popular filler so "old-unpopular" falls outside the top N.
   const filler = Array.from({ length: TOP_DOWNLOADS }, (_, i) => ({
@@ -26,6 +28,13 @@ describe("featuredTextModelIds", () => {
     expect(ids.has("new-month")).toBe(true);
     expect(ids.has("new-day")).toBe(true);
     expect(ids.has("just-too-old")).toBe(false);
+  });
+
+  test("a bare month counts as its last day", () => {
+    // Cutoff is 2026-05-01; "2026-04" could mean 30 April, which is still too old.
+    expect(ids.has("month-edge")).toBe(false);
+    const later = featuredTextModelIds([...rows, ...filler], "2026-10-25");
+    expect(later.has("month-edge")).toBe(true);
   });
 
   test("keeps the most downloaded, drops old long-tail models", () => {
@@ -49,7 +58,11 @@ describe("inSitemap", () => {
     expect(inSitemap("/start/result/worked")).toBe(false);
   });
 
-  test("multimodal pair pages are never trimmed", () => {
+  test("curated front-page models keep their pair pages listed", () => {
+    for (const id of FEATURED_MODEL_IDS) expect(inSitemap(`/can-i-run/${id}/${devices[0].id}`)).toBe(true);
+  });
+
+    test("multimodal pair pages are never trimmed", () => {
     expect(inSitemap(`/can-i-run/${imageModels[0].id}/${devices[0].id}`)).toBe(true);
   });
 

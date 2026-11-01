@@ -47,7 +47,11 @@ const classAdvice: Record<string, string> = {
   iphone: `On-device models run through apps like PocketPal. Stay under about 4B parameters for usable speed and keep the context short to limit memory.`,
   android: `On-device models run through apps like PocketPal. Stay under about 4B parameters for usable speed and keep the context short to limit memory.`,
 };
-const advice = classAdvice[device.category] ?? classAdvice.laptop;
+const unifiedPcAdvice = `CPU and GPU share one ${device.memory_gb} GB pool, so there is no separate VRAM to spill out of. Memory bandwidth sets the speed: mixture-of-experts models run well here, while large dense models load but generate slowly.`;
+const advice =
+  device.memory_type === "unified" && device.category !== "mac"
+    ? unifiedPcAdvice
+    : (classAdvice[device.category] ?? classAdvice.laptop);
 const tierBlurb = `At ${device.memory_gb} GB of ${memWord}, ${device.name} runs ${score.runnable} of ${score.total} tracked local models, ${score.pct}% coverage that earns a ${score.grade}.${
   score.biggest ? ` The largest it handles is ${score.biggest.name} at ${score.biggest.params_b}B parameters;` : ""
 } anything bigger needs more memory or a lower quantization.`;

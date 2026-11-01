@@ -1,5 +1,6 @@
 import models from "../data/models.json";
 import meta from "../data/meta.json";
+import { FEATURED_MODEL_IDS } from "./featured";
 
 // Which model x device pair pages the sitemap advertises. Every pair page still
 // builds and stays linked; this only decides what we ASK Google to crawl.
@@ -8,7 +9,8 @@ import meta from "../data/meta.json";
 // currently not indexed", with ~7,400 of ~8,500 sitemap URLs being pair pages.
 // Listing every pair dilutes crawl demand across near-identical URLs. Pair
 // traffic (Cloudflare RUM, Aug to Oct 2026) concentrates on recent releases and
-// widely downloaded models, so those are the pairs we keep in the sitemap.
+// widely downloaded models, so those are the pairs we keep in the sitemap, plus
+// the curated front-page models.
 //
 // Image, video and audio models are few and their pairs only exist where the
 // model actually runs, so all of their pairs stay listed.
@@ -27,8 +29,13 @@ interface Row {
 
 function releaseTime(release: string | undefined): number | null {
   if (!release) return null;
-  // Catalog dates are "YYYY-MM" or "YYYY-MM-DD"; a bare month means its first day.
-  const t = Date.parse(release.length === 7 ? `${release}-01` : release);
+  // Catalog dates are "YYYY-MM" or "YYYY-MM-DD". A bare month counts as its last
+  // day, so a model is not aged out before 180 days could have passed.
+  if (release.length === 7) {
+    const [y, m] = release.split("-").map(Number);
+    return Number.isNaN(y) || Number.isNaN(m) ? null : Date.UTC(y, m, 0);
+  }
+  const t = Date.parse(release);
   return Number.isNaN(t) ? null : t;
 }
 
@@ -38,7 +45,7 @@ export function featuredTextModelIds(rows: Row[], updated: string): Set<string> 
   const popular = [...rows]
     .sort((a, b) => (b.hf_downloads ?? 0) - (a.hf_downloads ?? 0))
     .slice(0, TOP_DOWNLOADS);
-  return new Set([...recent, ...popular].map((m) => m.id));
+  return new Set([...recent, ...popular].map((m) => m.id).concat(FEATURED_MODEL_IDS));
 }
 
 const textIds = new Set((models as Row[]).map((m) => m.id));

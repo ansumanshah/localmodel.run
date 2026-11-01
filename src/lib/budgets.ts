@@ -38,7 +38,14 @@ export interface Interp {
  *  wins, ties broken by category preference then newest id, so the pick is
  *  stable and survives a cron data refresh without code edits. */
 export function interpretationsFor(size: number): Interp[] {
-  const pool = devices.filter((d) => d.memory_gb === size && DESKTOP_CATS.has(d.category));
+  // The "unified" slot is labelled Apple unified memory / Mac, so non-Mac unified
+  // boxes (DGX Spark, Ryzen AI Halo) never fill it; desktopDevicesAt still lists them.
+  const pool = devices.filter(
+    (d) =>
+      d.memory_gb === size &&
+      DESKTOP_CATS.has(d.category) &&
+      (d.memory_type !== "unified" || d.category === "mac"),
+  );
   const out: Interp[] = [];
   for (const t of TYPE_ORDER) {
     const cands = pool
