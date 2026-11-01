@@ -3,7 +3,7 @@ import { assertArenaSnapshot, fetchArenaSnapshot, type ArenaRow } from "./arena-
 
 const NOW = new Date("2026-09-12T12:00:00.000Z");
 const REVISION = "b9c5e261b09333707d0bcc5823b0fd0d8cd1bab2";
-const NAMES = ["gpt-6-astra-max", "gemma-4-31b"] as const;
+const NAMES = ["GPT-6 Astra (Max)", "Gemma 4 31B"] as const;
 
 function row(model_name: string, overrides: Partial<ArenaRow> = {}): ArenaRow {
   return {
@@ -70,6 +70,17 @@ describe("fetchArenaSnapshot", () => {
     expect(snapshot.rows.map((entry) => entry.model_name)).toEqual(NAMES);
   });
 
+  test("ignores other category scores even when their model name matches", async () => {
+    const first = fullPage(row(NAMES[0]));
+    first[1] = row(NAMES[1], { category: "coding" as any, rating: Number.NaN });
+    const snapshot = await fetchArenaSnapshot(
+      NAMES, fetchFixture([page(first, 101), page([row(NAMES[1])], 101)]), NOW,
+    );
+    expect(snapshot.rows[1].category).toBe("overall");
+    expect(snapshot.rows[1].rating).toBe(1234);
+    expect(new URL(snapshot.sourceApiUrl).pathname).toBe("/rows");
+  });
+
   test("rejects a response whose revision changes between pages", async () => {
     await expect(
       fetchArenaSnapshot(NAMES, fetchFixture([page(fullPage(row(NAMES[0])), 101), page([row(NAMES[1])], 101)], [REVISION, "a".repeat(40)]), NOW),
@@ -126,7 +137,7 @@ describe("assertArenaSnapshot", () => {
       schemaVersion: 1,
       source: "Arena",
       sourceUrl: `https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset/blob/${REVISION}/text_style_control/latest-00000-of-00001.parquet`,
-      sourceApiUrl: "https://datasets-server.huggingface.co/filter?dataset=lmarena-ai%2Fleaderboard-dataset&config=text_style_control&split=latest&where=%22category%22%3D%27overall%27&offset=0&length=100",
+      sourceApiUrl: "https://datasets-server.huggingface.co/rows?dataset=lmarena-ai%2Fleaderboard-dataset&config=text_style_control&split=latest&offset=0&length=100",
       license: "CC-BY-4.0",
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
       subset: "text_style_control",

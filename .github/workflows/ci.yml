@@ -1,17 +1,42 @@
 name: CI
 
-# Typechecks, validates the dataset, and builds the whole site on every PR and
-# every push to main. Cloudflare deploys straight off main, so this is the gate
-# that catches a broken build or bad data before it ships.
+# The PR gate. Cloudflare deploys straight off main, so this is what catches a
+# broken build, bad data or a mobile layout regression before it ships.
+#
+# Billed minutes are what matter here (jobs are rounded up to the whole minute),
+# so everything stays in ONE job: a second job would repeat checkout, bun setup,
+# install and cache restore. The savings come from not repeating work instead:
+#   - PR: full gate, but docs/non-site PRs skip entirely (paths-ignore), and PRs
+#     that touch nothing the site is built from run only the cheap checks.
+#   - push to main: every change on main arrives through a squash-merged PR that
+#     already passed the full gate, so main only re-runs the cheap gates, the
+#     build and the link audit, then submits IndexNow (which needs dist/).
+#     Typecheck and the mobile audit are not repeated.
+#   - Data-refresh cron commits are pushed with GITHUB_TOKEN, which GitHub never
+#     lets trigger workflows, so they never reach this file at all.
+#     (update-data.yml runs its own test/build/link gates and IndexNow.)
+# Nothing requires this check to pass for merging (no branch protection), so a
+# skipped run cannot block a PR.
 
 on:
   push:
     branches: [main]
     paths-ignore:
-      - "**.md"
+      - "*.md"
       - ".claude/**"
+      - ".codex/**"
+      - "docs/**"
+      - "hf-space/**"
+      - "LICENSE*"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "*.md"
+      - ".claude/**"
+      - ".codex/**"
+      - "docs/**"
+      - "hf-space/**"
+      - "LICENSE*"
   workflow_dispatch: {}
 
 # A newer push to the same ref cancels the in-flight run — no stale builds queueing up.
@@ -26,7 +51,41 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # PRs check out the merge commit; depth 2 reaches its first parent (the
+      # base) so the scope step below can diff exactly what the PR changes.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+
+      # Decide how much of the pipeline this run needs.
+      #   site   = something the built site depends on changed (or not a PR)
+      #   gates  = run the PR-only gates: typecheck + mobile render audit
+      #            (full on PRs that touch the site and on manual dispatch;
+      #            off for pushes to main, which already passed them as a PR)
+      # Both default to true so any unexpected event runs everything.
+      - name: Scope this run
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          # Anything that changes what `bun run build` emits, or the audits' own code.
+          SITE_RE: '^(src/|public/|astro\.config\.|package\.json$|bun\.lock$|tsconfig|scripts/(copy-ort-wasm|mobile-audit|audit-links)|\.github/workflows/ci\.yml$)'
+        run: |
+          site=true
+          gates=true
+          if [ "$EVENT" = "pull_request" ]; then
+            changed=$(git diff --name-only HEAD^1 HEAD)
+            echo "Changed files:"; echo "$changed"
+            if ! echo "$changed" | grep -Eq "$SITE_RE"; then
+              site=false
+              gates=false
+              echo "No site-affecting files changed: skipping typecheck, build and audits."
+            fi
+          elif [ "$EVENT" = "push" ]; then
+            gates=false
+            echo "Push to main: the PR already passed typecheck and the mobile audit."
+          fi
+          echo "site=$site" >> "$GITHUB_OUTPUT"
+          echo "gates=$gates" >> "$GITHUB_OUTPUT"
 
       # Pinned, not `latest`: a floating toolchain lets a bun release change this
       # build with zero commits, on a repo that auto-deploys off main.
@@ -58,15 +117,19 @@ jobs:
       - name: Validate dataset
         run: bun run validate-data
 
+      # Astro check and build both sync .astro/ types, so keep their writes serial.
       - name: Typecheck
+        if: steps.scope.outputs.gates == 'true'
         run: bun run check
 
       - name: Build
+        if: steps.scope.outputs.site == 'true'
         run: bun run build
 
       # Parse the built dist/ and fail on any broken internal link
       # (orphan pages are reported but don't fail). The OSS Screaming-Frog stand-in.
       - name: Audit internal links
+        if: steps.scope.outputs.site == 'true'
         run: bun scripts/audit-links.ts
 
       # Headless phone-viewport render check on the built dist/. Runs at 360px,
@@ -75,17 +138,23 @@ jobs:
       # or a blank page. Catches both the header `display` regression and the
       # grid/flex `min-w-0` overflow class (a table pinning a grid item wider
       # than its column on narrow screens).
-      # Read the pinned playwright range out of package.json so the cache key
-      # below depends on THAT and nothing else.
+      # Use the installed version: a lockfile upgrade can leave the manifest range unchanged.
       - name: Resolve Playwright version
         id: pw
-        run: echo "v=$(node -p "require('./package.json').devDependencies.playwright.replace(/[^0-9.]/g,'')")" >> "$GITHUB_OUTPUT"
+        if: steps.scope.outputs.gates == 'true' || github.event_name == 'push'
+        run: echo "v=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
 
+      # A PR can only restore caches saved by main (or by itself), so main has to
+      # keep the browser cache populated even though its own run never uses it.
+      # On push this is lookup-only: no 261 MB download, it only checks the entry
+      # exists, and the install below runs (and the entry is saved) just on a miss.
       - name: Cache Playwright browser
+        id: pwcache
+        if: steps.scope.outputs.gates == 'true' || github.event_name == 'push'
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
-          # Keyed on the playwright version ALONE. This used to hash the whole
+          # Keyed on the installed playwright version ALONE. This used to hash the whole
           # package.json, which sounds equivalent but is not: the pre-commit
           # hook bumps the version field on every single commit, so the key
           # never repeated, the primary cache never hit, and every run uploaded
@@ -94,19 +163,29 @@ jobs:
           # eventually evicts the bun cache too.
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.v }}
           restore-keys: playwright-${{ runner.os }}-
+          lookup-only: ${{ github.event_name == 'push' }}
 
       # No --with-deps: ubuntu-latest already ships the OS libs Chromium needs,
       # and --with-deps re-runs apt-get every build regardless of the binary cache.
+      # Skipped on an exact cache hit (the browser is already on disk).
       - name: Install Playwright Chromium
+        if: (steps.scope.outputs.gates == 'true' || github.event_name == 'push') && steps.pwcache.outputs.cache-hit != 'true'
         run: bunx playwright install chromium
 
+      # Sample caps: every route SHAPE is still tested (the 41 shapes with <= 40
+      # pages in full; the 8 big parametric families sampled, biased to the
+      # longest slugs, which is where overflow lives). 20/10 keeps all of that at
+      # about 40% of the old 60/40 page count.
       - name: Mobile render audit
+        if: steps.scope.outputs.gates == 'true'
         env:
           CONCURRENCY: 4
           VIEWPORT: 360x800
+          PAIR_CAP: 20
+          BIG_CAP: 10
         run: |
           bun run preview &
-          for i in $(seq 1 30); do curl -sf http://localhost:4321/ >/dev/null && break; sleep 1; done
+          for _ in $(seq 1 30); do curl -sf http://localhost:4321/ >/dev/null && break; sleep 1; done
           bun run audit:mobile
 
       - name: Upload mobile-audit failure screenshots

@@ -2,7 +2,7 @@
   {
     "id": "gpt-6-astra",
     "name": "GPT-6 Astra (Max)",
-    "arenaName": "gpt-6-astra-max",
+    "arenaName": "GPT-6 Astra (Max)",
     "access": "hosted",
     "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
     "providerModelId": "gpt-6-astra",
@@ -11,7 +11,7 @@
   {
     "id": "claude-opus-5",
     "name": "Claude Opus 5 (Legacy, High)",
-    "arenaName": "claude-opus-5-high",
+    "arenaName": "Claude Opus 5 (High)",
     "access": "hosted",
     "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
     "providerModelId": "claude-opus-5",
@@ -20,7 +20,7 @@
   {
     "id": "claude-sonnet-5",
     "name": "Claude Sonnet 5 (High)",
-    "arenaName": "claude-sonnet-5-high",
+    "arenaName": "Claude Sonnet 5 (High)",
     "access": "hosted",
     "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
     "providerModelId": "claude-sonnet-5",
@@ -29,7 +29,7 @@
   {
     "id": "gemini-3.8-flash",
     "name": "Gemini 3.8 Flash (High)",
-    "arenaName": "gemini-3.8-flash-high",
+    "arenaName": "Gemini 3.8 Flash (High)",
     "access": "hosted",
     "sourceUrl": "https://ai.google.dev/gemini-api/docs/latest-model",
     "providerModelId": "gemini-3.8-flash",
@@ -38,7 +38,7 @@
   {
     "id": "gemma-4-31b",
     "name": "Gemma 4 31B",
-    "arenaName": "gemma-4-31b",
+    "arenaName": "Gemma 4 31B",
     "access": "local",
     "sourceUrl": "https://huggingface.co/google/gemma-4-31B-it",
     "providerModelId": null,
@@ -48,7 +48,7 @@
   {
     "id": "gemma-4-26b-a4b",
     "name": "Gemma 4 26B-A4B",
-    "arenaName": "gemma-4-26b-a4b",
+    "arenaName": "Gemma 4 26B A4B",
     "access": "local",
     "sourceUrl": "https://huggingface.co/google/gemma-4-26B-A4B-it",
     "providerModelId": null,
@@ -58,7 +58,7 @@
   {
     "id": "qwen3-32b",
     "name": "Qwen3 32B",
-    "arenaName": "qwen3-32b",
+    "arenaName": "Qwen3-32B",
     "access": "local",
     "sourceUrl": "https://huggingface.co/Qwen/Qwen3-32B-GGUF",
     "providerModelId": null,
@@ -68,7 +68,7 @@
   {
     "id": "qwen3-30b-a3b",
     "name": "Qwen3 30B-A3B",
-    "arenaName": "qwen3-30b-a3b",
+    "arenaName": "Qwen3-30B-A3B",
     "access": "local",
     "sourceUrl": "https://huggingface.co/unsloth/Qwen3-30B-A3B-GGUF",
     "providerModelId": null,

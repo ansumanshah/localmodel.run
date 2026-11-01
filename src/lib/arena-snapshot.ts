@@ -9,7 +9,7 @@ export const ARENA_SUBSET = "text_style_control";
 export const ARENA_CATEGORY = "overall";
 export const ARENA_LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/";
 export const ARENA_SOURCE_URL = `https://huggingface.co/datasets/${ARENA_DATASET}`;
-export const ARENA_FILTER_ENDPOINT = "https://datasets-server.huggingface.co/filter";
+export const ARENA_ROWS_ENDPOINT = "https://datasets-server.huggingface.co/rows";
 
 const PAGE_SIZE = 100;
 const REQUEST_TIMEOUT_MS = 90_000;
@@ -103,12 +103,11 @@ function isPastIsoDate(value: unknown, now: Date): value is string {
   return Number.isFinite(parsed.getTime()) && parsed.getTime() <= now.getTime();
 }
 
-function filterUrl(offset: number): string {
-  const url = new URL(ARENA_FILTER_ENDPOINT);
+function rowsUrl(offset: number): string {
+  const url = new URL(ARENA_ROWS_ENDPOINT);
   url.searchParams.set("dataset", ARENA_DATASET);
   url.searchParams.set("config", ARENA_SUBSET);
   url.searchParams.set("split", "latest");
-  url.searchParams.set("where", '"category"=\'overall\'');
   url.searchParams.set("offset", String(offset));
   url.searchParams.set("length", String(PAGE_SIZE));
   return url.toString();
@@ -156,7 +155,10 @@ function parsePage(value: unknown, now: Date, page: number): DatasetApiPage {
       problem(`page ${page} row ${index} is missing truncated_cells`);
     if (truncatedCells.length !== 0)
       problem(`page ${page} row ${index} has truncated cells`);
-    parseArenaRow(apiRow.row, now, `page ${page} row ${index}`);
+    if (!isRecord(apiRow.row) || !isNonEmptyString(apiRow.row.category))
+      problem(`page ${page} row ${index} has invalid category`);
+    if (apiRow.row.category === ARENA_CATEGORY)
+      parseArenaRow(apiRow.row, now, `page ${page} row ${index}`);
   }
   return value as unknown as DatasetApiPage;
 }
@@ -170,7 +172,7 @@ async function responsePage(
   for (let attempt = 0; attempt <= TRANSIENT_RETRIES; attempt++) {
     let response: Response;
     try {
-      response = await fetcher(filterUrl(offset), {
+      response = await fetcher(rowsUrl(offset), {
         headers: { accept: "application/json", "user-agent": "localmodel.run-arena-import/1.0" },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
@@ -201,7 +203,9 @@ async function responsePage(
 }
 
 /**
- * Download filtered rows until all manifest entries are found. Every page we
+ * Download rows until all manifest entries are found. The cached /rows endpoint
+ * avoids the query engine used by /filter; only overall-category scores enter
+ * the snapshot. Every page we
  * consume is complete and strictly validated, but we do not fetch an unrelated
  * tail after the selected subset is complete. If a name is absent, we scan to
  * the final page before failing. There is intentionally no alias or fuzzy
@@ -224,6 +228,7 @@ export async function fetchArenaSnapshot(
     const expectedRows = Math.min(PAGE_SIZE, total - page * PAGE_SIZE);
     if (entries.length !== expectedRows) problem(`page ${page + 1} is missing rows`);
     for (const [index, entry] of entries.entries()) {
+      if (isRecord(entry.row) && entry.row.category !== ARENA_CATEGORY) continue;
       const row = parseArenaRow(entry.row, now, `page ${page + 1} row ${index}`);
       if (!expectedSet.has(row.model_name)) continue;
       if (selectedByName.has(row.model_name)) problem(`duplicate selected model name ${row.model_name}`);
@@ -251,7 +256,7 @@ export async function fetchArenaSnapshot(
     schemaVersion: 1,
     source: "Arena",
     sourceUrl: sourceUrl(revision),
-    sourceApiUrl: filterUrl(0),
+    sourceApiUrl: rowsUrl(0),
     license: "CC-BY-4.0",
     licenseUrl: ARENA_LICENSE_URL,
     subset: ARENA_SUBSET,
@@ -281,7 +286,7 @@ export function assertArenaSnapshot(
     problem("snapshot has invalid Arena scope");
   if (!isNonEmptyString(snapshot.revision) || !/^[0-9a-f]{40}$/i.test(snapshot.revision)) problem("snapshot revision is invalid");
   if (snapshot.sourceUrl !== sourceUrl(snapshot.revision)) problem("snapshot sourceUrl is not pinned to its revision");
-  if (snapshot.sourceApiUrl !== filterUrl(0)) problem("snapshot sourceApiUrl is invalid");
+  if (snapshot.sourceApiUrl !== rowsUrl(0)) problem("snapshot sourceApiUrl is invalid");
   if (!isPastIsoDate(snapshot.snapshotDate, now) || !isPastIsoDate(snapshot.retrievedAt, now))
     problem("snapshot dates are invalid or in the future");
   if (!Array.isArray(snapshot.rows) || snapshot.rows.length !== expectedNames.length) problem("snapshot has the wrong selected row count");
