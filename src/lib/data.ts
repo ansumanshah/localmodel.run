@@ -82,6 +82,10 @@ export function devicePlatform(device: DeviceRow): Platform {
       return "ios";
     case "android":
       return "android";
+    case "nvidia":
+    case "amd":
+      // Unified-memory AI boxes (DGX Spark, Ryzen AI Halo dev platform) ship Linux.
+      return device.memory_type === "unified" ? "linux" : "windows";
     default:
       return "windows"; // nvidia/amd/intel/laptop: Windows is the common case (Linux noted on page)
   }

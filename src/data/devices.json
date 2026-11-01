@@ -846,5 +846,114 @@
       "https://en.wikipedia.org/wiki/GeForce_20_series"
     ],
     "notes": "6GB GDDR6 on a 192-bit bus, 336 GB/s, Turing (Jan 2019, $349). The classic entry LLM card: ~1GB reserved for driver/display = ~5GB usable, which runs the 1B to 4B class at Q4_K_M; the 7B class needs CPU offload."
+  },
+  {
+    "id": "nvidia-rtx-5080-16gb",
+    "name": "Nvidia GeForce RTX 5080 (16GB)",
+    "category": "nvidia",
+    "memory_gb": 16,
+    "memory_type": "vram",
+    "usable_memory_gb": 15,
+    "bandwidth_gbs": 960,
+    "msrp_usd": 999,
+    "tdp_w": 360,
+    "best_runtime": "vLLM (Linux) / Ollama (CUDA)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5080/",
+      "https://nvidianews.nvidia.com/news/nvidia-blackwell-geforce-rtx-50-series-opens-new-world-of-ai-computer-graphics",
+      "https://en.wikipedia.org/wiki/GeForce_RTX_50_series"
+    ],
+    "notes": "16GB GDDR7 on a 256-bit bus at 30 Gbps (256 x 30 / 8 = 960 GB/s). ~1GB reserved = ~15GB usable. 360W total graphics power, $999 launch MSRP (Jan 2025). Same 16GB ceiling as the 4080 with about 34% more bandwidth. Fits 13B-14B Q4_K_M comfortably; 34B models need offloading."
+  },
+  {
+    "id": "nvidia-rtx-5070-ti-16gb",
+    "name": "Nvidia GeForce RTX 5070 Ti (16GB)",
+    "category": "nvidia",
+    "memory_gb": 16,
+    "memory_type": "vram",
+    "usable_memory_gb": 15,
+    "bandwidth_gbs": 896,
+    "msrp_usd": 749,
+    "tdp_w": 300,
+    "best_runtime": "vLLM (Linux) / Ollama (CUDA)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5070-family/",
+      "https://nvidianews.nvidia.com/news/nvidia-blackwell-geforce-rtx-50-series-opens-new-world-of-ai-computer-graphics",
+      "https://en.wikipedia.org/wiki/GeForce_RTX_50_series"
+    ],
+    "notes": "16GB GDDR7 on a 256-bit bus at 28 Gbps (256 x 28 / 8 = 896 GB/s). ~1GB reserved = ~15GB usable. 300W total graphics power, $749 launch MSRP (Feb 2025). Same VRAM as the 5080 at a lower price and about 7% less bandwidth. Fits 13B-14B Q4_K_M comfortably."
+  },
+  {
+    "id": "nvidia-rtx-5070-12gb",
+    "name": "Nvidia GeForce RTX 5070 (12GB)",
+    "category": "nvidia",
+    "memory_gb": 12,
+    "memory_type": "vram",
+    "usable_memory_gb": 11,
+    "bandwidth_gbs": 672,
+    "msrp_usd": 549,
+    "tdp_w": 250,
+    "best_runtime": "Ollama (CUDA) / vLLM (Linux)",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5070-family/",
+      "https://nvidianews.nvidia.com/news/nvidia-blackwell-geforce-rtx-50-series-opens-new-world-of-ai-computer-graphics",
+      "https://en.wikipedia.org/wiki/GeForce_RTX_50_series"
+    ],
+    "notes": "12GB GDDR7 on a 192-bit bus at 28 Gbps (192 x 28 / 8 = 672 GB/s). ~1GB reserved = ~11GB usable. 250W total graphics power, $549 launch MSRP (Feb 2025). More bandwidth than the 4070 (504 GB/s) but the same 12GB ceiling. Fits 7B-8B comfortably; 13B-14B Q4 is tight."
+  },
+  {
+    "id": "nvidia-rtx-5060-ti-16gb",
+    "name": "Nvidia GeForce RTX 5060 Ti (16GB)",
+    "category": "nvidia",
+    "memory_gb": 16,
+    "memory_type": "vram",
+    "usable_memory_gb": 15,
+    "bandwidth_gbs": 448,
+    "msrp_usd": 429,
+    "tdp_w": 180,
+    "best_runtime": "Ollama (CUDA) / llama.cpp CUDA",
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5060-family/",
+      "https://en.wikipedia.org/wiki/GeForce_RTX_50_series",
+      "https://www.engadget.com/gaming/pc/nvidia-rtx-5060-ti-16gb-review-a-solid-semi-budget-gpu-for-429-but-good-luck-scoring-that-price-130058124.html"
+    ],
+    "notes": "16GB GDDR7 on a 128-bit bus at 28 Gbps (128 x 28 / 8 = 448 GB/s). ~1GB reserved = ~15GB usable. 180W total graphics power; $429 launch MSRP for the 16GB model (the 8GB model was $379). The cheapest 16GB CUDA card, with about 56% more bandwidth than the 4060 Ti 16GB (288 GB/s). Fits 13B-14B Q4_K_M easily."
+  },
+  {
+    "id": "amd-rx-9070-xt-16gb",
+    "name": "AMD Radeon RX 9070 XT (16GB)",
+    "category": "amd",
+    "memory_gb": 16,
+    "memory_type": "vram",
+    "usable_memory_gb": 15,
+    "bandwidth_gbs": 640,
+    "msrp_usd": 599,
+    "tdp_w": 304,
+    "best_runtime": "llama.cpp (Vulkan/ROCm) / Ollama (ROCm)",
+    "sources": [
+      "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070xt.html",
+      "https://en.wikipedia.org/wiki/Radeon_RX_9000_series",
+      "https://hothardware.com/news/amd-radeon-rx-9070-xt-aggressive-pricing-launch-revealed"
+    ],
+    "notes": "16GB GDDR6 on a 256-bit bus at 20 Gbps (256 x 20 / 8 = 640 GB/s). ~1GB reserved = ~15GB usable. RDNA 4, 304W total board power, $599 launch MSRP (March 2025). ROCm and Vulkan support is less mature than CUDA. Fits 13B-14B Q4_K_M; 34B models need offloading."
+  },
+  {
+    "id": "nvidia-dgx-spark-128gb",
+    "name": "Nvidia DGX Spark (128GB)",
+    "category": "nvidia",
+    "memory_gb": 128,
+    "memory_type": "unified",
+    "usable_memory_gb": 112,
+    "bandwidth_gbs": 273,
+    "msrp_usd": 3999,
+    "tdp_w": 140,
+    "best_runtime": "llama.cpp (CUDA) / Ollama (CUDA)",
+    "sources": [
+      "https://www.nvidia.com/en-us/products/workstations/dgx-spark/",
+      "https://docs.nvidia.com/dgx/dgx-spark/hardware.html",
+      "https://nvidianews.nvidia.com/news/nvidia-dgx-spark-arrives-for-worlds-ai-developers",
+      "https://www.tomshardware.com/pc-components/gpus/nvidia-dgx-spark-review/2"
+    ],
+    "notes": "GB10 Grace Blackwell: 128GB LPDDR5X unified memory on a 256-bit bus, 273 GB/s (256 x 8533 / 8). tdp_w is NVIDIA's stated GB10 SoC TDP (CPU and GPU combined); the box ships with a 240W power supply. NVIDIA publishes no GPU-allocatable cap, so usable is an assumption: 128GB minus ~16GB for DGX OS and apps. $3,999 launch price (Oct 2025). Ships DGX OS (Linux). Bandwidth limits dense models; MoE models are the sweet spot."
   }
 ]
