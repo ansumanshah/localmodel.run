@@ -1,8 +1,8 @@
 name: Refresh model data
 
 # Pulls fresh GGUF sizes from Ollama + HuggingFace on a schedule and commits
-# any changes. The push triggers the deploy workflow, so the site rebuilds with
-# current numbers without manual work.
+# any changes only after test/build/link gates. GITHUB_TOKEN pushes deploy via
+# Cloudflare but cannot trigger CI, so this workflow also submits IndexNow.
 
 on:
   schedule:
@@ -24,10 +24,6 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
-      # No `bun install`: update-data, validate-data and update:arena import only
-      # Node/Bun builtins and files in this repo (verified from a clean archive
-      # with no node_modules), so the dependency install and its cache are dead
-      # weight. If one of them ever gains an npm import, it fails loudly here.
       - name: Refresh data from primary sources
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -38,17 +34,37 @@ jobs:
         id: arena
         continue-on-error: true
         run: bun run update:arena
+      - name: Cache bun install
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - name: Verify refreshed data before deployment
+        run: |
+          bun test
+          bun run check
+          bun run build
+          bun run audit:links
+      # A dispatch on a PR branch verifies the refresh without publishing data.
       - name: Commit changes if any
+        id: commit
+        if: github.ref == 'refs/heads/main'
         run: |
           if [[ -n "$(git status --porcelain src/data)" ]]; then
             git config user.name "data-bot"
             git config user.email "actions@users.noreply.github.com"
             git add src/data
             git commit -m "chore: refresh model data ($(date -u +%Y-%m-%d))"
-            git push || echo "push failed — check branch protection on main"
+            git push
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
           else
             echo "No data changes."
           fi
+      - name: Submit refreshed URLs to IndexNow
+        if: steps.commit.outputs.pushed == 'true'
+        run: node scripts/indexnow.mjs
       - name: Report an Arena refresh failure
         if: steps.arena.outcome == 'failure'
         run: |

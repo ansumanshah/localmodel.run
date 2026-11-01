@@ -3,7 +3,7 @@ import { assertArenaSnapshot, fetchArenaSnapshot, type ArenaRow } from "./arena-
 
 const NOW = new Date("2026-09-12T12:00:00.000Z");
 const REVISION = "b9c5e261b09333707d0bcc5823b0fd0d8cd1bab2";
-const NAMES = ["gpt-6-astra-max", "gemma-4-31b"] as const;
+const NAMES = ["GPT-6 Astra (Max)", "Gemma 4 31B"] as const;
 
 function row(model_name: string, overrides: Partial<ArenaRow> = {}): ArenaRow {
   return {

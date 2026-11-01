@@ -14,7 +14,7 @@ name: CI
 #     Typecheck and the mobile audit are not repeated.
 #   - Data-refresh cron commits are pushed with GITHUB_TOKEN, which GitHub never
 #     lets trigger workflows, so they never reach this file at all.
-#     (update-data.yml runs validate-data itself before it pushes.)
+#     (update-data.yml runs its own test/build/link gates and IndexNow.)
 # Nothing requires this check to pass for merging (no branch protection), so a
 # skipped run cannot block a PR.
 
@@ -22,7 +22,7 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "**.md"
+      - "*.md"
       - ".claude/**"
       - ".codex/**"
       - "docs/**"
@@ -31,7 +31,7 @@ on:
   pull_request:
     branches: [main]
     paths-ignore:
-      - "**.md"
+      - "*.md"
       - ".claude/**"
       - ".codex/**"
       - "docs/**"
@@ -117,30 +117,14 @@ jobs:
       - name: Validate dataset
         run: bun run validate-data
 
-      # Typecheck and build are independent and CPU-bound, so they share the
-      # runner concurrently instead of running back to back. Same job, same
-      # install: billed time drops by roughly the shorter of the two.
-      # `astro check` output is buffered and replayed so the log stays readable.
-      - name: Typecheck and build
+      # Astro check and build both sync .astro/ types, so keep their writes serial.
+      - name: Typecheck
+        if: steps.scope.outputs.gates == 'true'
+        run: bun run check
+
+      - name: Build
         if: steps.scope.outputs.site == 'true'
-        env:
-          GATES: ${{ steps.scope.outputs.gates }}
-        run: |
-          check_pid=""
-          if [ "$GATES" = "true" ]; then
-            bun run check > check.log 2>&1 &
-            check_pid=$!
-          fi
-          build_rc=0
-          bun run build || build_rc=$?
-          check_rc=0
-          if [ -n "$check_pid" ]; then
-            wait "$check_pid" || check_rc=$?
-            echo "::group::bun run check (rc=$check_rc)"
-            cat check.log
-            echo "::endgroup::"
-          fi
-          [ "$build_rc" -eq 0 ] && [ "$check_rc" -eq 0 ]
+        run: bun run build
 
       # Parse the built dist/ and fail on any broken internal link
       # (orphan pages are reported but don't fail). The OSS Screaming-Frog stand-in.
@@ -154,12 +138,11 @@ jobs:
       # or a blank page. Catches both the header `display` regression and the
       # grid/flex `min-w-0` overflow class (a table pinning a grid item wider
       # than its column on narrow screens).
-      # Read the pinned playwright range out of package.json so the cache key
-      # below depends on THAT and nothing else.
+      # Use the installed version: a lockfile upgrade can leave the manifest range unchanged.
       - name: Resolve Playwright version
         id: pw
         if: steps.scope.outputs.gates == 'true' || github.event_name == 'push'
-        run: echo "v=$(node -p "require('./package.json').devDependencies.playwright.replace(/[^0-9.]/g,'')")" >> "$GITHUB_OUTPUT"
+        run: echo "v=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
 
       # A PR can only restore caches saved by main (or by itself), so main has to
       # keep the browser cache populated even though its own run never uses it.
@@ -171,7 +154,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
-          # Keyed on the playwright version ALONE. This used to hash the whole
+          # Keyed on the installed playwright version ALONE. This used to hash the whole
           # package.json, which sounds equivalent but is not: the pre-commit
           # hook bumps the version field on every single commit, so the key
           # never repeated, the primary cache never hit, and every run uploaded
