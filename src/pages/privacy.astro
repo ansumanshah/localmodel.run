@@ -26,21 +26,21 @@ const jsonLd = [
     <div class="panel">
       <div class="panel-head">
         <span class="panel-label">policy overview</span>
-        <span class="panel-sub">static site &middot; no backend</span>
+        <span class="panel-sub">static site &middot; aggregate analytics</span>
       </div>
 
       <div class="px-5 py-5 space-y-6 text-muted-foreground">
         <p>
-          localmodel.run is a static site. There is no backend, no account, and no sign-up. It was built to collect as little as possible, and this page says exactly what that means in plain terms.
+          localmodel.run is a static site. There is no application backend, no account, and no sign-up. It was built to collect as little as possible, and this page says exactly what that means in plain terms.
         </p>
 
         <div class="wire"></div>
 
         <section>
           <p class="stat-label mb-2">What we don't do</p>
-          <p class="text-foreground font-semibold mb-2">No tracking. No data sales.</p>
+          <p class="text-foreground font-semibold mb-2">No accounts or visitor profiles.</p>
           <p>
-            No accounts, no logins, no email capture. No advertising, no third-party trackers, no tracking cookies. There is nothing here to sell or share, so we never sell or share your data.
+            No accounts, no logins, no email capture. No advertising, no third-party trackers, no tracking cookies. We do not sell visitor data.
           </p>
         </section>
 
@@ -56,7 +56,10 @@ const jsonLd = [
             Because each model and device combination has its own page, visiting one is counted as an aggregate page view. That tells us a page was popular, not who looked at it.
           </p>
           <p class="mt-3">
-            The guided setup offers voluntary “It worked” and “I got stuck” links. Each opens a separate feedback page counted by the same aggregate analytics. Those URLs contain no model or hardware choices. The counts are self-reported feedback, not verified successful installations.
+            The guided setup offers voluntary “It worked” and “I got stuck” links. These counts are self-reported feedback, not verified successful installations. Your choices stay in the URL fragment after the # so you can return to the same setup. Fragments are not sent in page requests or referrers.
+          </p>
+          <p class="mt-3">
+            Optional action counts use Cloudflare Zaraz with no added analytics SDK, cookies, or visitor IDs. Each request contains only a fixed action name, such as a fit check, setup link, successful command copy, runtime download link, browser demo load or completion, or setup feedback. No model, hardware, URL, prompt, image, audio, or output is attached. These are action totals, not unique people or a verified conversion rate. Action counts respect Do Not Track and Global Privacy Control.
           </p>
           <p class="mt-3">
             We also use Google Search Console and Bing Webmaster Tools. Those report aggregate search statistics from Google and Bing. They run on the search engine's side and are not scripts loaded on this page.
@@ -69,7 +72,7 @@ const jsonLd = [
           <p class="stat-label mb-2">Your hardware</p>
           <p class="text-foreground font-semibold mb-2">Stays on your device.</p>
           <p>
-            When you use the compatibility detector, the model and device you pick are used to compute the answer in your browser. They are not sent to us and not stored anywhere.
+            When you use the compatibility detector, the model and device you pick are used to compute the answer in your browser. The detector does not send these choices to us or save them in browser storage. Guided setup links keep the choices in the URL fragment, which can remain in your browser history until you clear it.
           </p>
         </section>
 
@@ -77,9 +80,9 @@ const jsonLd = [
 
         <section>
           <p class="stat-label mb-2">Local storage</p>
-          <p class="text-foreground font-semibold mb-2">Theme preference only.</p>
+          <p class="text-foreground font-semibold mb-2">Theme preference and a testing opt-out.</p>
           <p>
-            Your light or dark theme choice is saved in your browser's local storage so the site remembers it next time. That is the only thing kept on your device, and it never leaves your browser.
+            Your light or dark theme choice is saved in your browser's local storage so the site remembers it next time. If you use the qa=1 testing flag, a boolean in session storage disables action counting for that tab until you close it or use qa=0. Neither preference identifies you or leaves your browser.
           </p>
         </section>
 
@@ -104,7 +107,7 @@ const jsonLd = [
       </div>
 
       <div class="panel-foot">
-        <span class="panel-sub">last updated 2 october 2026</span>
+        <span class="panel-sub">last updated 1 november 2026</span>
       </div>
     </div>
   </article>

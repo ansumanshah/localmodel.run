@@ -1,3 +1,4 @@
+import { trackEvent } from "@/lib/analytics";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { fit, probe, refresh } from "localfit";
 import type { FitPlan } from "localfit";
@@ -151,6 +152,7 @@ export default function Playground({ model, task }: PlaygroundProps) {
     // button) between two rapid clicks, and the load below is expensive.
     if (!plan || startingRef.current) return;
     startingRef.current = true;
+    void trackEvent("demo_load_started");
     const agg = new ProgressAggregator();
     aggRef.current = agg;
     setPhase({ name: "loading", progress: agg.snapshot() });
@@ -167,12 +169,19 @@ export default function Playground({ model, task }: PlaygroundProps) {
       setDownloaded(agg.snapshot());
       setApi(loaded);
       setPhase({ name: "ready" });
+      void trackEvent("demo_loaded");
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setPhase({ name: "error", message });
+      void trackEvent("demo_failed");
     } finally {
       startingRef.current = false;
     }
+  }
+
+  function onMetrics(next: Metric[]) {
+    setMetrics(next);
+    if (next.length) void trackEvent("demo_succeeded");
   }
 
   const stamp = STAMP[plan?.verdict ?? "unknown"];
@@ -311,15 +320,15 @@ export default function Playground({ model, task }: PlaygroundProps) {
           <span className="sr-only" role="status">
             Model loaded and ready to run
           </span>
-          {task === "chat" && <ChatSection api={api as never} onMetrics={setMetrics} />}
-          {task === "asr" && <AsrSection api={api as never} onMetrics={setMetrics} />}
-          {task === "tts" && <TtsSection api={api as never} onMetrics={setMetrics} />}
-          {task === "rmbg" && <RmbgSection api={api as never} onMetrics={setMetrics} />}
-          {task === "embed" && <EmbedSection api={api as never} onMetrics={setMetrics} />}
-          {task === "vlm" && <VlmSection api={api as never} onMetrics={setMetrics} />}
-          {task === "pii" && <PiiSection api={api as never} onMetrics={setMetrics} />}
-          {task === "depth" && <DepthSection api={api as never} onMetrics={setMetrics} />}
-          {task === "clip" && <ClipSection api={api as never} onMetrics={setMetrics} />}
+          {task === "chat" && <ChatSection api={api as never} onMetrics={onMetrics} />}
+          {task === "asr" && <AsrSection api={api as never} onMetrics={onMetrics} />}
+          {task === "tts" && <TtsSection api={api as never} onMetrics={onMetrics} />}
+          {task === "rmbg" && <RmbgSection api={api as never} onMetrics={onMetrics} />}
+          {task === "embed" && <EmbedSection api={api as never} onMetrics={onMetrics} />}
+          {task === "vlm" && <VlmSection api={api as never} onMetrics={onMetrics} />}
+          {task === "pii" && <PiiSection api={api as never} onMetrics={onMetrics} />}
+          {task === "depth" && <DepthSection api={api as never} onMetrics={onMetrics} />}
+          {task === "clip" && <ClipSection api={api as never} onMetrics={onMetrics} />}
 
           {metrics.length > 0 && (
             <div className="mt-5">

@@ -1,6 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Detector from "@/components/Detector.tsx";
+import { playgroundTaskFor } from "@/components/playground/registry";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import {
@@ -70,6 +71,9 @@ const heroDemos = [
   return { model: m, action, size: formatBytes(m.headline.webgpu.bytes) };
 });
 
+const liveBrowserCount = browserModels.filter((model) => playgroundTaskFor(model) !== null).length;
+const discoveryDevices = devices.filter((device) => ["nvidia-rtx-2060-6gb", "apple-m5-pro-48gb"].includes(device.id));
+
 const path = "/";
 // Homepage only: brand-first (the homepage IS the brand page). pSEO/content
 // pages deliberately keep their keyword-first titles for SERP CTR.
@@ -81,7 +85,7 @@ const description = truncate(
 const faqs: FaqItem[] = [
   {
     q: "Can I run AI models in my browser without installing anything?",
-    a: `Yes. ${browserModels.length} models in the catalog run entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. ${heroDemos[0].model.name} transcribes speech after a ${heroDemos[0].size} download, ${heroDemos[1].model.name} chats after ${heroDemos[1].size}, ${heroDemos[2].model.name} speaks after ${heroDemos[2].size}. Nine pages run them live with one click; every download size is measured from the HuggingFace file tree, not estimated.`,
+    a: `Yes. ${liveBrowserCount} catalog models have a live playground that runs entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. ${heroDemos[0].model.name} transcribes speech after a ${heroDemos[0].size} download, ${heroDemos[1].model.name} chats after ${heroDemos[1].size}, ${heroDemos[2].model.name} speaks after ${heroDemos[2].size}. Every download size is measured from the HuggingFace file tree, not estimated.`,
   },
   {
     q: "How do I know if my computer can run a local AI model?",
@@ -149,7 +153,7 @@ const jsonLd = [
             <div class="stat"><dt class="stat-label">Free</dt><dd class="stat-val stat-yes">Always</dd></div>
           </dl>
           <div class="cta">
-            <a href="/start" class="cta-link">Set up a local model →</a>
+            <a href="/start" data-setup-context class="cta-link">Set up a local model →</a>
             <a href="/browser" class="cta-link">All browser models →</a>
             <a href="/play" class="cta-link">Play the daily quiz →</a>
             <a href="/methodology" class="cta-link cta-link--muted">How we calculate →</a>
@@ -444,6 +448,10 @@ const jsonLd = [
           );
         })}
       </div>
+      <p class="mt-5 text-sm text-muted-foreground">Worked memory budgets:
+        {discoveryDevices.map((device, index) => <><span>{index > 0 ? " · " : " "}</span><a href={`/best-llm-for/${device.id}#choose-model`} class="text-[var(--brand-ink)] hover:underline">{device.name}</a></>)}.
+        Compare a short chat with a longer context before downloading.
+      </p>
     </div>
   </section>
 

@@ -7,23 +7,28 @@ export type SetupTask = "chat" | "coding" | "reasoning";
 
 export type SetupModel = { model: ModelRow; result: RunResult };
 
+export function supportsSetupModel(model: ModelRow): boolean {
+  return (model.modality ?? "text") === "text"
+    && model.subtype !== "embedding" && model.subtype !== "vlm"
+    && Number.isFinite(model.q4_k_m_gb) && (model.q4_k_m_gb ?? 0) > 0
+    && hfRepo(model) !== null;
+}
+
 /** A small, fit-first starter list. Ordering is recorded Ollama pulls, not quality. */
 export function setupModels(
   device: DeviceRow,
   task: SetupTask,
   contextK: number,
   catalog: ModelRow[] = models,
+  preferredModelId?: string,
 ): SetupModel[] {
   if (!Number.isInteger(contextK) || contextK <= 0) {
     throw new RangeError("contextK must be a positive integer");
   }
 
-  return catalog
+  const eligible = catalog
     .filter((model) => {
-      if ((model.modality ?? "text") !== "text") return false;
-      if (model.subtype === "embedding" || model.subtype === "vlm") return false;
-      if (!Number.isFinite(model.q4_k_m_gb) || (model.q4_k_m_gb ?? 0) <= 0) return false;
-      if (!hfRepo(model) || contextK > (model.default_context_k ?? 0)) return false;
+      if (!supportsSetupModel(model) || contextK > (model.default_context_k ?? 0)) return false;
 
       const tags = useCasesFor(model);
       if (task === "chat") return !tags.includes("coding") && !tags.includes("reasoning");
@@ -36,6 +41,9 @@ export function setupModels(
       || (b.model.pulls ?? 0) - (a.model.pulls ?? 0)
       || b.model.q4_k_m_gb! - a.model.q4_k_m_gb!
       || a.model.id.localeCompare(b.model.id),
-    )
-    .slice(0, 3);
+    );
+  const shortlist = eligible.slice(0, 3);
+  const preferred = eligible.find(({ model }) => model.id === preferredModelId);
+  if (preferred && !shortlist.includes(preferred)) shortlist.splice(2, 1, preferred);
+  return shortlist;
 }

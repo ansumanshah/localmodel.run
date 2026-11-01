@@ -1,6 +1,7 @@
-import { useMemo, useState, type ReactNode } from "react";
-import { devices, devicePlatform, hfRepo } from "@/lib/data";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { allModels, devices, devicePlatform, hfRepo } from "@/lib/data";
 import { setupModels, type SetupTask } from "@/lib/setup";
+import { parseSetupHash, setupHref } from "@/lib/setup-link";
 
 const TASKS: { value: SetupTask; label: string; help: string }[] = [
   { value: "chat", label: "Chat and writing", help: "Everyday questions, drafting, and summaries." },
@@ -62,21 +63,63 @@ export default function SetupGuide() {
   const [deviceId, setDeviceId] = useState("apple-m4-16gb");
   const [task, setTask] = useState<SetupTask>("chat");
   const [contextK, setContextK] = useState(4);
+  const [linkedContextK, setLinkedContextK] = useState(4);
   const [desktopPlatform, setDesktopPlatform] = useState<"windows" | "linux">("windows");
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
+  const [needsModelChoice, setNeedsModelChoice] = useState(false);
+  const [linkError, setLinkError] = useState<string | undefined>();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const readSelection = () => {
+      const input = parseSetupHash(window.location.hash);
+      setDeviceId(input.deviceId ?? "apple-m4-16gb");
+      setTask(input.task ?? "chat");
+      setContextK(input.contextK ?? 4);
+      setLinkedContextK(input.contextK ?? 4);
+      setSelectedModelId(input.modelId ?? null);
+      setLinkError(input.error);
+      setNeedsModelChoice(new URLSearchParams(window.location.hash.slice(1)).has("model") && !input.modelId);
+      setHydrated(true);
+    };
+    readSelection();
+    window.addEventListener("hashchange", readSelection);
+    return () => window.removeEventListener("hashchange", readSelection);
+  }, []);
 
   const device = devices.find((row) => row.id === deviceId) ?? devices[0]!;
   const isConfigurableDesktop =
     ["nvidia", "amd", "intel", "laptop"].includes(device.category) && device.memory_type !== "unified";
   const platform = isConfigurableDesktop ? desktopPlatform : devicePlatform(device);
   const candidates = useMemo(
-    () => setupModels(device, task, contextK),
-    [device, task, contextK],
+    () => setupModels(device, task, contextK, undefined, selectedModelId ?? undefined),
+    [device, task, contextK, selectedModelId],
   );
-  const selected = candidates.find((candidate) => candidate.model.id === selectedModelId) ?? candidates[0];
+  const selected = !hydrated || linkError || needsModelChoice ? undefined : selectedModelId
+    ? candidates.find((candidate) => candidate.model.id === selectedModelId)
+    : candidates[0];
+  const requestedModel = allModels.find((model) => model.id === selectedModelId);
+  const rejectionMessage = needsModelChoice
+    ? "The linked model is not in the catalog. Choose an alternative below to see installation steps."
+    : requestedModel && !candidates.some(({ model }) => model.id === requestedModel.id)
+    ? `${requestedModel.name} is not a supported, comfortable Q4 fit for this device, task, and context. It has not been replaced. Choose an alternative below, or change your settings.`
+    : undefined;
+  const contextOptions = [...new Set([2, 4, 8, 16, 32, contextK, linkedContextK])].sort((a, b) => a - b);
+  const selectionHash = setupHref({ deviceId, modelId: selectedModelId ?? selected?.model.id, contextK, task }).replace("/start", "");
   const isPhone = platform === "ios" || platform === "android";
   const selectedTask = TASKS.find((entry) => entry.value === task)!;
   const selectedRepo = selected ? hfRepo(selected.model) ?? selected.model.hf_repo : null;
+
+  useEffect(() => {
+    if (!hydrated || linkError || needsModelChoice) return;
+    const params = new URLSearchParams(selectionHash.slice(1));
+    const current = new URLSearchParams(window.location.hash.slice(1));
+    if (current.has("qa")) params.set("qa", current.get("qa")!);
+    const hash = `#${params}`;
+    if (window.location.hash !== hash) {
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}${hash}`);
+    }
+  }, [hydrated, linkError, needsModelChoice, selectionHash]);
 
   return (
     <section className="panel-hero" aria-labelledby="setup-guide-title">
@@ -94,18 +137,18 @@ export default function SetupGuide() {
         <p className="mt-3 text-sm text-muted-foreground">Choose your own hardware below. The initial device is an example, not detected hardware.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <Select id="setup-device" label="Your device" value={deviceId} displayValue={device.name} onChange={(value) => { setDeviceId(value); setSelectedModelId(null); }}>
+          <Select id="setup-device" label="Your device" value={deviceId} displayValue={device.name} onChange={(value) => { setDeviceId(value); setLinkError(undefined); }}>
             {DEVICE_GROUPS.map((group) => (
               <optgroup key={group.category} label={group.label}>
                 {group.rows.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
               </optgroup>
             ))}
           </Select>
-          <Select id="setup-task" label="What are you doing?" value={task} displayValue={selectedTask.label} onChange={(value) => { setTask(value as SetupTask); setSelectedModelId(null); }}>
+          <Select id="setup-task" label="What are you doing?" value={task} displayValue={selectedTask.label} onChange={(value) => { setTask(value as SetupTask); setLinkError(undefined); }}>
             {TASKS.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
           </Select>
-          <Select id="setup-context" label="Context window" value={contextK} displayValue={`${contextK}k tokens`} onChange={(value) => { setContextK(Number(value)); setSelectedModelId(null); }}>
-            {[2, 4, 8, 16, 32].map((value) => <option key={value} value={value}>{value}k tokens</option>)}
+          <Select id="setup-context" label="Context window" value={contextK} displayValue={`${contextK}k tokens`} onChange={(value) => { setContextK(Number(value)); setLinkError(undefined); }}>
+            {contextOptions.map((value) => <option key={value} value={value}>{value}k tokens</option>)}
           </Select>
         </div>
 
@@ -118,6 +161,12 @@ export default function SetupGuide() {
           </div>
         )}
         <p className="mt-3 text-sm text-muted-foreground">{selectedTask.help} Context is how much chat and text the runtime keeps available.</p>
+
+        {(linkError || rejectionMessage) && (
+          <p className="mt-5 text-sm text-muted-foreground" role="status">
+            {linkError || rejectionMessage}
+          </p>
+        )}
 
         {candidates.length === 0 ? (
           <div className="mt-6 border-t border-border pt-5">
@@ -135,7 +184,7 @@ export default function SetupGuide() {
                 const checked = selected?.model.id === model.id;
                 return (
                   <label key={model.id} className="flex cursor-pointer items-start gap-3 rounded border border-border bg-card p-3 hover:border-[var(--color-brand)]">
-                    <input type="radio" name="setup-model" checked={checked} onChange={() => setSelectedModelId(model.id)} className="mt-1" />
+                    <input type="radio" name="setup-model" checked={checked} onChange={() => { setSelectedModelId(model.id); setLinkError(undefined); setNeedsModelChoice(false); }} className="mt-1" />
                     <span className="min-w-0 flex-1">
                       <span className="block font-medium">{model.name}</span>
                       <span className="mt-1 block text-sm text-muted-foreground">
@@ -157,7 +206,7 @@ export default function SetupGuide() {
             {isPhone ? (
               <>
                 <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-                  <li>Install <a className="text-[var(--brand-ink)]" href="https://github.com/a-ghorbani/pocketpal-ai">PocketPal AI</a>.</li>
+                  <li>Install <a className="text-[var(--brand-ink)]" href="https://github.com/a-ghorbani/pocketpal-ai" data-track="install_click">PocketPal AI</a>.</li>
                   <li>{selectedRepo ? <>Download <a className="text-[var(--brand-ink)]" href={`https://huggingface.co/${selectedRepo}`}>{selectedRepo}</a> as a Q4_K_M GGUF through its built-in Hugging Face browser, or import that file.</> : <>Download the Q4_K_M GGUF from the model’s listed source, then import it.</>}</li>
                   <li>Set context to <span className="font-mono tabular-nums">{contextK * 1000}</span> tokens in model settings before loading it.</li>
                   <li>Send one real prompt you use.</li>
@@ -168,7 +217,7 @@ export default function SetupGuide() {
             ) : (
               <>
                 <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-                  <li><a className="text-[var(--brand-ink)]" href="https://lmstudio.ai/download">Install and open LM Studio.</a></li>
+                  <li><a className="text-[var(--brand-ink)]" href="https://lmstudio.ai/download" data-track="install_click">Install and open LM Studio.</a></li>
                   <li>{selectedRepo ? <>Search for <a className="text-[var(--brand-ink)]" href={`https://huggingface.co/${selectedRepo}`}>{selectedRepo}</a>, then choose the Q4_K_M GGUF file.</> : <>Open the model details and use its listed GGUF source to choose the Q4_K_M file.</>}</li>
                   <li>In My Models, open the gear icon and set the context window to <span className="font-mono tabular-nums">{contextK * 1000}</span> tokens before loading it.</li>
                   <li>Open a chat and test one task you actually use.</li>
@@ -181,10 +230,10 @@ export default function SetupGuide() {
             <a className="mt-4 block text-sm text-[var(--brand-ink)]" href={`/can-i-run/${selected.model.id}/${device.id}`}>Inspect this device estimate</a>
             <div className="mt-6 border-t border-border pt-5">
               <h3 className="m-0 text-[1.25rem] font-semibold">Did it work?</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Your voluntary response records one aggregate page view. It does not include your device or model choice.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Your voluntary response contributes to aggregate feedback. It does not send your device or model choice. These are self-reports, not verified installations.</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <a className="btn btn--primary" href="/start/result/worked" data-astro-prefetch="false">It worked</a>
-                <a className="btn" href="/start/result/blocked" data-astro-prefetch="false">I got stuck</a>
+                <a className="btn btn--primary" href={`/start/result/worked${selectionHash}`} data-track="setup_worked" data-astro-prefetch="false">It worked</a>
+                <a className="btn" href={`/start/result/blocked${selectionHash}`} data-track="setup_blocked" data-astro-prefetch="false">I got stuck</a>
               </div>
             </div>
           </div>

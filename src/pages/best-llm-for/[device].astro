@@ -1,5 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
+import { setupHref } from "@/lib/setup-link";
+import { supportsSetupModel } from "@/lib/setup";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import Sources from "@/components/Sources.astro";
@@ -13,7 +15,7 @@ import {
   dedupeSources,
   meta,
 } from "@/lib/data";
-import { canRun, usableGb, QUANT_LABEL } from "@/lib/compute";
+import { canRun, estimateMemory, usableGb, QUANT_LABEL } from "@/lib/compute";
 import {
   breadcrumbLd,
   faqLd,
@@ -43,14 +45,25 @@ const notFitting = ranked.filter((r) => r.result.verdict === "no");
 const yesCount = ranked.filter((r) => r.result.verdict === "yes").length;
 const tightCount = ranked.filter((r) => r.result.verdict === "tight").length;
 const noCount = notFitting.length;
-// "Best" pick = the highest-quality model that runs comfortably (LMArena Elo where
-// we have it), not just the biggest. Falls back to fast-and-fitting, then anything that fits.
+// Prefer a recorded Arena score among comfortable fits; coverage is partial.
+// Fall back to the existing size-ordered list when no scored fit is available.
 const topPick =
   [...fitting]
     .filter((r) => r.result.verdict === "yes" && r.model.arena_elo != null)
     .sort((a, b) => (b.model.arena_elo ?? 0) - (a.model.arena_elo ?? 0))[0] ??
   fitting.find((r) => r.result.speed === "fast" || r.result.speed === "ok") ??
   fitting[0];
+
+const setupPick = [topPick, ...fitting].find((row) => row && supportsSetupModel(row.model) && row.result.verdict === "yes" && (row.model.default_context_k ?? 0) >= 4);
+const selectionIds: Record<string, string[]> = {
+  "nvidia-rtx-2060-6gb": ["qwen3-4b", "qwen3-8b"],
+  "apple-m5-pro-48gb": ["qwen3-14b", "qwen3-32b"],
+};
+const selection = (selectionIds[device.id] ?? []).map((id) => {
+  const model = modelsBySize.find((model) => model.id === id);
+  if (!model) throw new Error(`Hardware selection model missing: ${id}`);
+  return { model, short: estimateMemory(model, "q4_k_m", 4), long: estimateMemory(model, "q4_k_m", 16), result: canRun(model, device, 4) };
+});
 
 // Nearby devices for lateral navigation: the closest usable-memory peers in the
 // same broad class (computers vs phones/tablets), so "similar GB, similar story"
@@ -75,14 +88,14 @@ const path = `/best-llm-for/${device.id}`;
 const year = new Date(meta.updated).getFullYear();
 const title = `Best local LLMs for ${device.name} (${year}) · localmodel.run`;
 const description = truncate(
-  `${device.name} has ~${usable} GB usable and runs ${fitting.length} of ${ranked.length} popular models locally.${topPick ? ` Top pick: ${topPick.model.name}.` : ""} Best tool: ${tool?.beginner.name ?? "Ollama"}. Ranked list with sizes and commands.`,
+  `${device.name} has ~${usable} GB usable; ${fitting.length} of ${ranked.length} tracked models fit the estimated memory budget.${topPick ? ` Suggested fit: ${topPick.model.name}.` : ""} Best tool: ${tool?.beginner.name ?? "Ollama"}. Ranked list with sizes and commands.`,
 );
 
 const faqs: FaqItem[] = [
   {
     q: `What is the best local LLM for ${device.name}?`,
     a: topPick
-      ? `${topPick.model.name} is the strongest model that runs comfortably, using ~${topPick.result.estimate?.totalGb} GB at ${topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"} of the ~${usable} GB usable on ${device.name}.`
+      ? `${topPick.model.name} is a suggested fit, using ~${topPick.result.estimate?.totalGb} GB at ${topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"} of the ~${usable} GB usable on ${device.name}.`
       : `${device.name} has limited memory; stick to 1B-4B models at Q4_K_M.`,
   },
   {
@@ -95,7 +108,7 @@ const faqs: FaqItem[] = [
   },
 ];
 
-const sources = dedupeSources(device.sources, tool?.sources ?? [], topPick?.model.sources ?? []);
+const sources = dedupeSources(device.sources, tool?.sources ?? [], topPick?.model.sources ?? [], ...selection.map((row) => row.model.sources));
 const jsonLd = [
   breadcrumbLd(
     [
@@ -135,7 +148,7 @@ const jsonLd = [
             },
             {
               name: "Pick a model that fits",
-              text: `${device.name} has about ${usable} GB usable for a model. ${topPick.model.name} is the strongest that runs comfortably, using ~${topPick.result.estimate?.totalGb} GB at ${topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"}. Stay under ~${usable} GB.`,
+              text: `${device.name} has about ${usable} GB usable for a model. ${topPick.model.name} is a suggested fit, using ~${topPick.result.estimate?.totalGb} GB at ${topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"}. Stay under ~${usable} GB.`,
             },
             {
               name: `Run ${topPick.model.name}`,
@@ -163,8 +176,8 @@ const jsonLd = [
       <span>Best local LLMs for {device.name}</span>
     </h1>
     <p class="mt-4 text-pretty text-lg text-muted-foreground">
-      {device.name} has <strong class="text-foreground">~{usable} GB</strong> usable for model weights and runs
-      <strong class="text-foreground">{fitting.length}</strong> of {ranked.length} popular models.
+      {device.name} has <strong class="num text-foreground">~{usable} GB</strong> estimated usable for weights, cache and runtime;
+      <strong class="num text-foreground">{fitting.length}</strong> of <span class="num">{ranked.length}</span> tracked models fit at the estimated <span class="num">4K</span> baseline.
       {tool && <> Best tool: <strong class="text-foreground">{tool.beginner.name}</strong>.</>}
     </p>
 
@@ -174,14 +187,14 @@ const jsonLd = [
       <div
         class="flex h-3 w-full overflow-hidden rounded-[3px] border border-border"
         role="img"
-        aria-label={`On ${device.name}: ${yesCount} run well, ${tightCount} a tight fit, ${noCount} too heavy, of ${ranked.length} tracked models`}
+        aria-label={`On ${device.name}: ${yesCount} estimated fits with room, ${tightCount} a tight fit, ${noCount} too heavy, of ${ranked.length} tracked models`}
       >
         {yesCount > 0 && <div style={`flex:${yesCount};background:var(--color-verdict-yes)`}></div>}
         {tightCount > 0 && <div style={`flex:${tightCount};background:var(--color-verdict-tight)`}></div>}
         {noCount > 0 && <div style={`flex:${noCount};background:var(--color-verdict-no)`}></div>}
       </div>
       <div class="mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5 font-mono text-xs">
-        <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-yes)"></span><b class="text-foreground">{yesCount}</b> <span class="text-muted-foreground">run well</span></span>
+        <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-yes)"></span><b class="text-foreground">{yesCount}</b> <span class="text-muted-foreground">fit with room</span></span>
         <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-tight)"></span><b class="text-foreground">{tightCount}</b> <span class="text-muted-foreground">tight fit</span></span>
         <span class="inline-flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-[1px]" style="background:var(--color-verdict-no)"></span><b class="text-foreground">{noCount}</b> <span class="text-muted-foreground">too heavy</span></span>
       </div>
@@ -195,7 +208,7 @@ const jsonLd = [
         <dd class="stat-val">~{usable} GB</dd>
       </div>
       <div class="stat">
-        <dt class="stat-label">Models run</dt>
+        <dt class="stat-label">Estimated fits</dt>
         <dd class="stat-val">{fitting.length}</dd>
       </div>
       <div class="stat">
@@ -204,7 +217,7 @@ const jsonLd = [
       </div>
       {topPick && (
         <div class="stat">
-          <dt class="stat-label">Top pick</dt>
+          <dt class="stat-label">Suggested fit</dt>
           <dd class="stat-val stat-yes">{topPick.model.params_b}B</dd>
         </div>
       )}
@@ -213,7 +226,7 @@ const jsonLd = [
     {topPick && (
       <div class="panel mt-6">
         <div class="panel-head">
-          <span class="panel-label">Top pick</span>
+          <span class="panel-label">Suggested fit</span>
           <span class="panel-label">{topPick.result.quant ? QUANT_LABEL[topPick.result.quant] : "Q4_K_M"}</span>
         </div>
         <div class="p-4">
@@ -226,8 +239,35 @@ const jsonLd = [
       </div>
     )}
 
+    <p class="mt-3 text-sm text-muted-foreground">The suggested model uses recorded Arena scores where available, then estimated fit and speed. Score coverage is partial; it does not establish the best model for every task. Fit is an estimate, not a benchmark on this device.</p>
+    {setupPick && <p class="mt-3"><a href={setupHref({ deviceId: device.id, modelId: setupPick.model.id, contextK: 4 })} class="cta-link">Set up {setupPick.model.name} on this device &rarr;</a></p>}
+
+    {selection.length > 0 && (
+      <section id="choose-model" class="mt-8" aria-labelledby="selection-heading">
+        <h2 id="selection-heading" class="text-xl font-semibold">Choose a model before downloading</h2>
+        <p class="mt-2 text-sm text-muted-foreground">{device.memory_type === "vram"
+          ? <>The <span class="num">{device.memory_gb} GB</span> VRAM pool leaves an estimated <span class="num">{usable} GB</span> after display and driver headroom. Start with Qwen3 4B; Qwen3 8B exceeds this GPU budget even before a longer conversation.</>
+          : <>The <span class="num">{device.memory_gb} GB</span> unified pool has an estimated <span class="num">{usable} GB</span> available to the model. Qwen3 14B leaves more room for other apps; Qwen3 32B is a larger option when you can spare the memory.</>}
+        </p>
+        <div class="panel mt-4 overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <caption class="px-4 py-3 text-left text-muted-foreground">Estimated Q4_K_M memory: weights + KV cache + runtime overhead. Context is the total token budget.</caption>
+            <thead><tr class="border-b border-border"><th scope="col" class="p-3">Model</th><th scope="col" class="p-3"><span class="num">4K</span> calculation (GB)</th><th scope="col" class="p-3"><span class="num">16K</span> total (GB)</th><th scope="col" class="p-3"><span class="num">4K</span> headroom (GB)</th></tr></thead>
+            <tbody>{selection.map((row) => <tr class="border-b border-border last:border-0">
+              <th scope="row" class="p-3 font-medium"><a href={`/can-i-run/${row.model.id}/${device.id}`} class="text-[var(--brand-ink)] hover:underline">{row.model.name}</a></th>
+              <td class="num whitespace-nowrap p-3">{row.short.weightsGb} + {row.short.kvGb} + {row.short.overheadGb} ≈ {row.short.totalGb}</td>
+              <td class="num p-3">{row.long.totalGb}</td>
+              <td class="num p-3">{row.result.headroomGb}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-sm text-muted-foreground">These are calculator estimates, not measured performance or tested setups. More context raises KV-cache use. Start at <span class="num">4K</span>, check actual runtime memory, and increase only with spare headroom. See the <a href="/methodology" class="underline">memory assumptions</a>.</p>
+        <a href={setupHref({ deviceId: device.id, modelId: selection[0].model.id, contextK: 4 })} class="cta-link mt-3 inline-block">Set up {selection[0].model.name} at <span class="num">4K</span> &rarr;</a>
+      </section>
+    )}
+
     <section class="mt-8">
-      <h2 class="mb-3 text-lg font-semibold">Runs on {device.name}</h2>
+      <h2 class="mb-3 text-lg font-semibold">Estimated memory fits on {device.name}</h2>
       <div class="panel overflow-hidden">
         <div class="panel-head">
           <span class="panel-label">Compatible models</span>

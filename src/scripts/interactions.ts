@@ -1,3 +1,5 @@
+import { syncAnalyticsOptOut, trackEvent } from "@/lib/analytics";
+
 /* The Calibrated Instrument — shared micro-interactions.
  *
  * The instrument rule: a needle moves once, settles, and stops. Everything
@@ -27,6 +29,7 @@ const buzz = (pattern: number | number[]): void => {
 };
 
 function initInteractions(): void {
+  syncAnalyticsOptOut();
   // Count-up on .num[data-count] when scrolled into view.
   const counters = document.querySelectorAll<HTMLElement>(
     ".num[data-count]:not([data-init-count])",
@@ -67,25 +70,6 @@ function initInteractions(): void {
       io.observe(c);
     });
   }
-
-  // Copy-to-clipboard on command chips.
-  document.querySelectorAll<HTMLElement>(".cmd-chip .copy").forEach((b) => {
-    if (b.dataset.initCopy) return;
-    b.dataset.initCopy = "1";
-    b.addEventListener("click", () => {
-      const chip = b.closest(".cmd-chip");
-      if (!chip) return;
-      const txt =
-        chip.getAttribute("data-cmd") ||
-        (chip.textContent || "").replace(/\s*copy\s*$/i, "").trim();
-      if (navigator.clipboard) navigator.clipboard.writeText(txt);
-      const old = b.textContent;
-      b.textContent = "copied";
-      setTimeout(() => {
-        b.textContent = old;
-      }, 1200);
-    });
-  });
 
   // How-it-works diagram: add .in to start the SVG line-draw when scrolled in.
   const diagrams = document.querySelectorAll<SVGElement>(".hiw-diagram:not([data-init-hiw])");
@@ -183,6 +167,39 @@ declare global {
 
 if (!window.__initBound) {
   window.__initBound = true;
+  // One delegated handler survives Astro swaps and dynamically rendered controls.
+  document.addEventListener("click", async (event) => {
+    if (!(event.target instanceof Element)) return;
+    const anchor = event.target.closest<HTMLAnchorElement>("a[href]");
+    if (event.isTrusted && anchor) {
+      if (anchor.origin === window.location.origin && anchor.pathname === "/start") {
+        void trackEvent("setup_open");
+      } else if (anchor.dataset.track) {
+        void trackEvent(anchor.dataset.track);
+      }
+    }
+    const button = event.target.closest<HTMLElement>("[data-copy], .cmd-chip .copy");
+    // React command chips own their clipboard handler and feedback.
+    if (!button || button.dataset.initCopy || button.dataset.copyPending) return;
+    const chip = button.closest(".cmd-chip");
+    const text = button.getAttribute("data-copy") ?? chip?.getAttribute("data-cmd") ??
+      chip?.querySelector(".cmd-text")?.textContent ?? "";
+    const previous = Array.from(button.childNodes);
+    button.dataset.copyPending = "1";
+    button.setAttribute("aria-live", "polite");
+    try {
+      await navigator.clipboard.writeText(text);
+      button.textContent = "Copied";
+      if (event.isTrusted) void trackEvent("command_copy");
+    } catch {
+      button.textContent = "Copy failed. Select text to copy.";
+    } finally {
+      setTimeout(() => {
+        button.replaceChildren(...previous);
+        delete button.dataset.copyPending;
+      }, 2400);
+    }
+  });
   // Esc closes any open modal (document-level, bound once).
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape")
