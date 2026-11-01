@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "source": "Arena",
   "sourceUrl": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset/blob/323062f70843f40e3f739865c3fe9d806126e412/text_style_control/latest-00000-of-00001.parquet",
-  "sourceApiUrl": "https://datasets-server.huggingface.co/filter?dataset=lmarena-ai%2Fleaderboard-dataset&config=text_style_control&split=latest&where=%22category%22%3D%27overall%27&offset=0&length=100",
+  "sourceApiUrl": "https://datasets-server.huggingface.co/rows?dataset=lmarena-ai%2Fleaderboard-dataset&config=text_style_control&split=latest&offset=0&length=100",
   "license": "CC-BY-4.0",
   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
   "subset": "text_style_control",
@@ -10,7 +10,7 @@
   "metric": "Bradley-Terry rating",
   "snapshotDate": "2026-10-28",
   "revision": "323062f70843f40e3f739865c3fe9d806126e412",
-  "retrievedAt": "2026-11-01T15:15:42.232Z",
+  "retrievedAt": "2026-11-01T15:39:33.161Z",
   "rows": [
     {
       "model_name": "GPT-6 Astra (Max)",
