@@ -47,7 +47,11 @@ describe("interpretationsFor", () => {
         const maxUsable = Math.max(
           ...devices
             .filter(
-              (d) => d.memory_gb === size && DESKTOP_CATS.has(d.category) && d.memory_type === type,
+              (d) =>
+                d.memory_gb === size &&
+                DESKTOP_CATS.has(d.category) &&
+                d.memory_type === type &&
+                (type !== "unified" || d.category === "mac"),
             )
             .map((d) => d.usable_memory_gb ?? 0),
         );
@@ -120,5 +124,13 @@ describe("desktopDevicesAt", () => {
 
   test("returns nothing for a size with no devices", () => {
     expect(desktopDevicesAt(9999)).toEqual([]);
+  });
+});
+
+describe("unified slot", () => {
+  test("only Macs fill the Apple-unified interpretation", () => {
+    for (const size of BUDGETS)
+      for (const { type, device } of interpretationsFor(size))
+        if (type === "unified") expect(device.category).toBe("mac");
   });
 });

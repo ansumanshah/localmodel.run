@@ -15,6 +15,7 @@ import type {
   ToolRow,
 } from "@/data/types";
 import { modalityRunsOnDevice } from "@/lib/compute-mm";
+import { FEATURED_DEVICE_IDS, FEATURED_MODEL_IDS } from "@/lib/featured";
 
 // `models` is the validated TEXT array; every text-calibrated surface (rig
 // score, leaderboard, best-llm-for, popularity) iterates this and is untouched
@@ -82,6 +83,10 @@ export function devicePlatform(device: DeviceRow): Platform {
       return "ios";
     case "android":
       return "android";
+    case "nvidia":
+    case "amd":
+      // Unified-memory AI boxes (DGX Spark, Ryzen AI Halo dev platform) ship Linux.
+      return device.memory_type === "unified" ? "linux" : "windows";
     default:
       return "windows"; // nvidia/amd/intel/laptop: Windows is the common case (Linux noted on page)
   }
@@ -95,23 +100,6 @@ export function platformLabel(p: Platform): string {
 export const modelsBySize = [...models].sort((a, b) => a.params_b - b.params_b);
 export const devicesByMemory = [...devices].sort((a, b) => a.memory_gb - b.memory_gb);
 
-/** Curated front-page subsets (the highest-search models/devices). */
-const FEATURED_MODEL_IDS = [
-  "llama-3.1-8b",
-  "deepseek-r1-distill-qwen-7b",
-  "qwen3-8b",
-  "gemma-3-4b",
-  "llama-3.3-70b",
-  "qwen3-30b-a3b",
-];
-const FEATURED_DEVICE_IDS = [
-  "apple-m4-16gb",
-  "apple-m4-pro-48gb",
-  "nvidia-rtx-4090-24gb",
-  "nvidia-rtx-3060-12gb",
-  "laptop-16gb",
-  "iphone-16-pro",
-];
 
 export const featuredModels = FEATURED_MODEL_IDS.map(getModel).filter((m): m is ModelRow => !!m);
 export const featuredDevices = FEATURED_DEVICE_IDS.map(getDevice).filter(

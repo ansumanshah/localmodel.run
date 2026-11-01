@@ -26,6 +26,12 @@ if (existsSync("dist/sitemap-index.xml")) {
   const files = readdirSync("dist").filter((f) => /^sitemap-\d+\.xml$/.test(f));
   all = files.flatMap((f) => extractLocs(readFileSync(`dist/${f}`, "utf8")));
   console.log(`Read ${all.length} URLs from ${files.length} local dist/ sitemap(s).`);
+  // The sitemap lists only a subset of model x device pages (src/lib/sitemap-policy.ts,
+  // aimed at Google's crawl). Bing reads IndexNow, so submit every built pair page too.
+  const pairDir = "dist/can-i-run";
+  for (const model of readdirSync(pairDir, { withFileTypes: true }).filter((e) => e.isDirectory()))
+    for (const f of readdirSync(`${pairDir}/${model.name}`).filter((n) => n.endsWith(".html")))
+      all.push(`https://${HOST}/can-i-run/${model.name}/${f.slice(0, -5)}`);
 } else {
   const children = await fetchLocs(SITEMAP_INDEX);
   for (const child of children) all.push(...(await fetchLocs(child)));

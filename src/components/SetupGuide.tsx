@@ -66,7 +66,8 @@ export default function SetupGuide() {
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
 
   const device = devices.find((row) => row.id === deviceId) ?? devices[0]!;
-  const isConfigurableDesktop = ["nvidia", "amd", "intel", "laptop"].includes(device.category);
+  const isConfigurableDesktop =
+    ["nvidia", "amd", "intel", "laptop"].includes(device.category) && device.memory_type !== "unified";
   const platform = isConfigurableDesktop ? desktopPlatform : devicePlatform(device);
   const candidates = useMemo(
     () => setupModels(device, task, contextK),
