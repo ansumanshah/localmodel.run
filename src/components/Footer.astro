@@ -3,7 +3,7 @@ import { meta } from "@/lib/data";
 import { getLangFromUrl, useTranslations } from "@/i18n/utils";
 import type { Lang } from "@/i18n/ui";
 import { BUILD_VERSION, BUILD_COMMIT, BUILD_DATE, humanDate } from "@/lib/build-info";
-const siteUpdated = humanDate(meta.site_updated ?? meta.updated);
+const buildDate = humanDate(BUILD_DATE);
 interface Props {
   year: number;
   lang?: Lang;
@@ -76,7 +76,7 @@ const cols = [
   </div>
   <div class="border-t border-border/60">
     <div class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-      <span>&copy; {year} localmodel.run. Estimates, not guarantees, always verify before a large download. <span class="font-mono" title={`${BUILD_COMMIT} · built ${BUILD_DATE} UTC`}>Updated {siteUpdated} &middot; v{BUILD_VERSION}</span></span>
+      <span>&copy; {year} localmodel.run. Estimates, not guarantees, always verify before a large download. <span class="font-mono" title={`${BUILD_COMMIT} · built ${BUILD_DATE} UTC`}>Built {buildDate} &middot; v{BUILD_VERSION}</span></span>
       <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
         <span>Built by Ansuman Shah</span>
         <a href="https://github.com/ansumanshah" rel="me noopener nofollow" aria-label="Ansuman Shah on GitHub" class="inline-flex p-2 text-muted-foreground transition-colors hover:text-foreground">

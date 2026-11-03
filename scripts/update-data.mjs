@@ -31,10 +31,28 @@ const HF_TOKEN = process.env.HF_TOKEN || "";
 const round2 = (n) => Math.round(n * 100) / 100;
 const today = () => new Date().toISOString().slice(0, 10);
 
+export async function fetchWithRetry(url, options) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let response;
+    try {
+      response = await fetch(url, { ...options, signal: AbortSignal.timeout(30_000) });
+    } catch (error) {
+      if (attempt === 2) throw error;
+    }
+    if (response) {
+      if (response.status !== 429 && (response.status < 500 || response.status > 599))
+        return response;
+      if (attempt === 2) return response;
+      await response.body?.cancel().catch(() => {});
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
+}
+
 async function ollamaDefaultGb(ollamaTag) {
   const [lib, tag = "latest"] = ollamaTag.split(":");
   const url = `https://registry.ollama.ai/v2/library/${lib}/manifests/${tag}`;
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     headers: { Accept: "application/vnd.docker.distribution.manifest.v2+json" },
   });
   if (!res.ok) throw new Error(`ollama ${ollamaTag}: HTTP ${res.status}`);
@@ -91,7 +109,7 @@ const exactQuant = (quant) => new RegExp(`(?:^|[-_.])${quant}(?=$|[-_.])`, "i");
 export async function hfQuantSizes(repo) {
   const url = `https://huggingface.co/api/models/${repo}?blobs=true`;
   const headers = HF_TOKEN ? { Authorization: `Bearer ${HF_TOKEN}` } : {};
-  const res = await fetch(url, { headers });
+  const res = await fetchWithRetry(url, { headers });
   if (!res.ok) throw new Error(`hf ${repo}: HTTP ${res.status}`);
   const info = await res.json();
   const files = (info.siblings || []).map((s) => ({
@@ -163,7 +181,7 @@ async function main() {
     if (m.hf_id) {
       try {
         const headers = HF_TOKEN ? { Authorization: `Bearer ${HF_TOKEN}` } : {};
-        const res = await fetch(
+        const res = await fetchWithRetry(
           `https://huggingface.co/api/models/${m.hf_id}?expand[]=downloads&expand[]=likes`,
           { headers },
         );
