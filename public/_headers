@@ -32,6 +32,7 @@ https://localmodel-run.pages.dev/*
 # policy above forbids. This rule detaches and replaces exactly two headers,
 # scoped to /browser/*; everything else keeps the strict global policy.
 #   CSP deltas vs global (each one load-bearing, verified against a live run):
+#   - connect-src blob: / data:: local input reads and image warm-ups
 #   - connect-src + huggingface.co / *.huggingface.co / *.hf.co: model weights
 #     (HF 302s resolve/ downloads to regional CDN hosts under hf.co, e.g.
 #     us.aws.cdn.hf.co; CSP checks every hop of the redirect chain)
@@ -50,7 +51,7 @@ https://localmodel-run.pages.dev/*
 /browser/*
   ! Content-Security-Policy
   ! Permissions-Policy
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://localmodel.run https://cloudflareinsights.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' blob: data: https://localmodel.run https://cloudflareinsights.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
   Permissions-Policy: interest-cohort=(), camera=(), microphone=(self), geolocation=(), payment=(), usb=()
 
 # Self-hosted onnxruntime WASM runtimes (see scripts/copy-ort-wasm.mjs).
@@ -65,8 +66,14 @@ https://localmodel-run.pages.dev/*
   ! Cache-Control
   Cache-Control: public, max-age=86400
 
-# Hashed assets are immutable
+# ORT's CPU proxy imports a hashed module as a worker. Workers use their
+# script response's CSP, so the global page policy would block blob imports
+# and WASM compilation. Allow only local runtime resources in this context.
+# The /browser page policy above still governs normal module execution.
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#csp_in_workers
 /_astro/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval'; connect-src 'self' blob:; worker-src 'self' blob:; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'none'
   Cache-Control: public, max-age=31536000, immutable
 
 /og/*
