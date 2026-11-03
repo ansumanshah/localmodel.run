@@ -115,41 +115,6 @@
   min-width: 0;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   HERO H1 model-name rotator (zero-CLS crossfade, unchanged mechanics)
-   ══════════════════════════════════════════════════════════════════════════ */
-.hero-rot {
-  position: relative;
-  display: inline-block;
-  vertical-align: bottom;
-  /* The rotator is presentation only (aria-hidden): keep it out of text
-     selection so copying the headline yields the sr-only sentence, not the
-     sizer + current name mashed together. */
-  -webkit-user-select: none;
-  user-select: none;
-}
-.hero-rot-sizer {
-  visibility: hidden;
-}
-.hero-rot-word {
-  position: absolute;
-  left: 0;
-  top: 0;
-  white-space: nowrap;
-  transition:
-    opacity 0.3s var(--spring),
-    transform 0.3s var(--spring);
-}
-.hero-rot-word.hr-out {
-  opacity: 0;
-  transform: translateY(-0.14em);
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-rot-word {
-    transition: none;
-  }
-}
-
 /* ── Footer chrome: a flat closing plate with a ruler contact edge on top ── */
 .site-footer {
   background-color: var(--card);

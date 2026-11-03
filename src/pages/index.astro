@@ -2,6 +2,8 @@
 import Base from "@/layouts/Base.astro";
 import Detector from "@/components/Detector.tsx";
 import { playgroundTaskFor } from "@/components/playground/registry";
+import { localTasks } from "@/lib/local-tasks";
+import { setupHref } from "@/lib/setup-link";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import {
@@ -57,35 +59,21 @@ const extremes = [
   };
 });
 
-// Hero "browser check" rows: flagship playground pages a visitor can run
-// with one click. Sizes come from the catalog (the same measured bytes the
-// pages promise); fails the build if a slug leaves the catalog.
-const heroDemos = [
-  { id: "whisper-tiny", action: "Transcribe speech" },
-  { id: "smollm2-135m-instruct", action: "Chat with an LLM" },
-  { id: "kokoro-82m", action: "Synthesize a voice" },
-  { id: "piiranha-v1", action: "Redact PII from text" },
-].map(({ id, action }) => {
-  const m = browserModels.find((x) => x.id === id);
-  if (!m) throw new Error(`index.astro heroDemos: browser model ${id} not found`);
-  return { model: m, action, size: formatBytes(m.headline.webgpu.bytes) };
-});
-
 const liveBrowserCount = browserModels.filter((model) => playgroundTaskFor(model) !== null).length;
 const discoveryDevices = devices.filter((device) => ["nvidia-rtx-2060-6gb", "apple-m5-pro-48gb"].includes(device.id));
 
 const path = "/";
 // Homepage only: brand-first (the homepage IS the brand page). pSEO/content
 // pages deliberately keep their keyword-first titles for SERP CTR.
-const title = "LocalModel.run | Run AI models in your browser, or check any device";
+const title = "LocalModel.run | Remove backgrounds, transcribe and speak locally";
 const description = truncate(
-  `Run Whisper, SmolLM2 and Kokoro live in your browser tab, no install: ${browserModels.length} browser models with download sizes measured to the byte. Underneath, the reference layer: can-my-device-run-it math for ${allModels.length} local AI models across text, image, video and audio on Mac, Windows, Linux, iOS and Android. Free, no signup.`,
+  "Remove portrait backgrounds, turn speech into text, or make text speak in your browser. Try a local AI task, learn how to implement it, or set up a model for your hardware.",
 );
 
 const faqs: FaqItem[] = [
   {
     q: "Can I run AI models in my browser without installing anything?",
-    a: `Yes. ${liveBrowserCount} catalog models have a live playground that runs entirely in the tab with Transformers.js, on the GPU over WebGPU (Chrome, Edge, Safari 26+) with an automatic WebAssembly fallback elsewhere. ${heroDemos[0].model.name} transcribes speech after a ${heroDemos[0].size} download, ${heroDemos[1].model.name} chats after ${heroDemos[1].size}, ${heroDemos[2].model.name} speaks after ${heroDemos[2].size}. Every download size is measured from the HuggingFace file tree, not estimated.`,
+    a: `Yes. Start with portrait background removal, speech transcription or text to speech below. Each task has instructions, a live browser tool and an implementation example. Model files download when you press Run or Remove background; your input is processed in the tab. ${liveBrowserCount} catalog models have a live playground, using WebGPU where available or WebAssembly on the CPU.`,
   },
   {
     q: "How do I know if my computer can run a local AI model?",
@@ -113,58 +101,39 @@ const jsonLd = [
 ---
 
 <Base title={title} description={description} path={path} jsonLd={jsonLd} altLocales={["en", "es"]}>
-  <!-- Hero: browser-first. The story is "models run in the tab now"; the
-       panel is a live check of THIS browser plus one-click demo rows. The
-       GGUF fit-check (the reference layer) follows right below. -->
+  <!-- Lead with a useful result; model and hardware details support the task. -->
   <section class="hero">
     <div class="hero-inner">
       <!-- Copy column -->
       <div class="hero-copy">
         <p class="eyebrow stagger" style="--delay:0ms">
           <span class="dot" aria-hidden="true"></span>
-          No install, no server
+          Useful AI, on your device
         </p>
         <h1 class="hero-title stagger" style="--delay:80ms">
-          {/* Two fixed lines: the rotating name ENDS line 1, so its width can
-              change without ever reflowing the headline (the sizer reserves the
-              widest name once; leftover space hides at line end). The rotator is
-              aria-hidden + select-none, so screen readers and copy/paste both
-              get exactly "Run AI models in your browser." */}
-          <span class="block">
-            Run{" "}
-            <span class="hero-rot" id="hero-rot" aria-hidden="true">
-              <span class="hero-rot-sizer">SmolVLM</span>
-              <span class="hero-rot-word accent">Whisper</span>
-            </span>
-          </span>
-          <span class="sr-only"> AI models </span>
-          <span class="block">in your browser.</span>
+          <span class="block">Cut out a portrait.</span>
+          <span class="block">Transcribe speech.</span>
+          <span class="block accent">Keep it local.</span>
         </h1>
         <p class="hero-sub stagger" style="--delay:180ms">
-          Live demos one click away, download sizes measured to the byte.
-          The fit math for every local model sits right below.
+          Choose a task, try it in this browser, and take the result with you.
+          Follow the implementation example to add it to your own app, or set up
+          a larger model for your hardware.
         </p>
         <div class="stats stagger" style="--delay:280ms">
           <div class="wire" aria-hidden="true"></div>
-          <dl class="stat-grid">
-            <div class="stat"><dt class="stat-label">In-browser</dt><dd class="stat-val">{browserModels.length}</dd></div>
-            <div class="stat"><dt class="stat-label">Local models</dt><dd class="stat-val">{allModels.length}</dd></div>
-            <div class="stat"><dt class="stat-label">Devices</dt><dd class="stat-val">{devices.length}</dd></div>
-            <div class="stat"><dt class="stat-label">Free</dt><dd class="stat-val stat-yes">Always</dd></div>
-          </dl>
           <div class="cta">
-            <a href="/start" data-setup-context class="cta-link">Set up a local model →</a>
-            <a href="/browser" class="cta-link">All browser models →</a>
-            <a href="/play" class="cta-link">Play the daily quiz →</a>
-            <a href="/methodology" class="cta-link cta-link--muted">How we calculate →</a>
+            <a href="#local-tasks" class="cta-link">Choose a task →</a>
+            <a href={setupHref({ task: "coding" })} class="cta-link">Set up local coding →</a>
+            <a href="#fit-check" class="cta-link cta-link--muted">Check hardware fit →</a>
           </div>
         </div>
       </div>
 
       <!-- Instrument panel: this browser, checked live; then one-click demos -->
-      <div class="panel-hero stagger" style="--delay:120ms">
+      <div id="local-tasks" class="panel-hero stagger scroll-mt-20" style="--delay:120ms">
         <div class="panel-head">
-          <span class="panel-label">Browser check</span>
+          <span class="panel-label">What would you like to do?</span>
           <span class="panel-status"><span class="status-dot"></span>LIVE</span>
         </div>
         <div class="p-5">
@@ -180,60 +149,27 @@ const jsonLd = [
             <p class="text-sm text-muted-foreground">The demos below need JavaScript to run; enable it and this panel also checks the browser for WebGPU (they fall back to WebAssembly without it).</p>
           </noscript>
           <div class="mt-4 divide-y divide-border border-t border-border">
-            {heroDemos.map((d) => (
-              <a href={`/browser/${d.model.id}`} class="group flex items-center justify-between gap-3 py-2.5 text-sm transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
-                <span class="min-w-0">
-                  <span class="block truncate font-semibold">{d.action}</span>
-                  <span class="text-xs text-muted-foreground">{d.model.name}</span>
+            {localTasks.map((task) => (
+              <a href={task.href} class="group block py-4 transition-colors hover:bg-[color-mix(in_oklch,var(--color-brand)_6%,transparent)]">
+                <span class="block text-xl font-semibold">{task.title}</span>
+                <span class="mt-1 block text-sm text-muted-foreground">{task.description}</span>
+                <span class="mt-2 block text-xs text-muted-foreground">
+                  Model download: <span class="font-mono">{formatBytes(task.run.webgpu.bytes)}</span> on GPU ·
+                  <span class="font-mono"> {formatBytes(task.run.wasm.bytes)}</span> on CPU
                 </span>
-                <span class="flex shrink-0 items-center gap-3">
-                  <span class="num text-xs text-muted-foreground">{d.size}</span>
-                  <span class="text-[var(--brand-ink)] group-hover:underline">Run it →</span>
-                </span>
+                <span class="mt-2 block text-sm text-[var(--brand-ink)] group-hover:underline">Try it and learn how →</span>
               </a>
             ))}
           </div>
-          <p class="mt-3 text-xs text-muted-foreground">Nothing downloads until you press Run on the model's page.</p>
+          <p class="mt-3 text-xs text-muted-foreground">Model files download only after you press Run or Remove background. Runtime, configuration and voice files are additional downloads. Your images, text and audio stay in the tab.</p>
           <p class="mt-2 text-xs"><a href="/browser/check" class="text-[var(--brand-ink)] underline">Full capability report for this browser &rarr;</a></p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Hero H1 rotator (CLS-safe crossfade; static under reduced-motion; the
-       sr-only "AI models" carries meaning) + the live browser check. Both run
-       from astro:page-load: the ClientRouter executes an identical inline
-       script only ONCE per SPA session, so immediate IIFEs freeze on any
-       revisit to the homepage; the event fires on initial load AND on every
-       swap (same pattern as interactions.ts and play.astro). -->
+  <!-- Recheck browser capabilities after client-side navigation back home. -->
   <script is:inline>
-    function lmHeroRotInit() {
-      if (window.__heroRotInt) {
-        clearInterval(window.__heroRotInt);
-        window.__heroRotInt = null;
-      }
-      var el = document.getElementById("hero-rot");
-      if (!el) return;
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      var word = el.querySelector(".hero-rot-word");
-      // The sizer stays pinned to the WIDEST name so the slot never changes
-      // width: no reflow, no line-count jump.
-      var models = ["Whisper", "SmolLM2", "Kokoro", "RMBG", "MiniLM", "SmolVLM"];
-      var i = 0;
-      window.__heroRotInt = setInterval(function () {
-        if (!document.body.contains(word)) {
-          clearInterval(window.__heroRotInt);
-          window.__heroRotInt = null;
-          return;
-        }
-        word.classList.add("hr-out");
-        setTimeout(function () {
-          i = (i + 1) % models.length;
-          word.textContent = models[i];
-          word.classList.remove("hr-out");
-        }, 360);
-      }, 2400);
-    }
     function lmBrowserCheckInit() {
       var ICONS = {
         yes: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
@@ -277,7 +213,6 @@ const jsonLd = [
       check();
     }
     document.addEventListener("astro:page-load", function () {
-      lmHeroRotInit();
       lmBrowserCheckInit();
     });
   </script>
@@ -328,7 +263,7 @@ const jsonLd = [
 
   <!-- The reference layer: the original fit-check instrument. The browser
        demos above are the launch surface; this is the catalog's core math. -->
-  <section class="mx-auto max-w-5xl px-4 py-16">
+  <section id="fit-check" class="mx-auto max-w-5xl scroll-mt-20 px-4 py-16">
     <div class="grid items-start gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div>
         <p class="eyebrow"><span class="dot" aria-hidden="true"></span>The reference layer</p>

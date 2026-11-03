@@ -7,18 +7,11 @@ import {
   PLAYGROUND_EXTRA,
   PLAYGROUND_RUN_OVERRIDES,
   playgroundTaskFor,
+  playgroundRunConfig,
 } from "./registry";
 
 const catalog = browserModelsData as BrowserModelRow[];
 const byId = new Map(catalog.map((m) => [m.id, m]));
-
-// The variant a model's live run actually loads for a backend: an override
-// if one names this model, otherwise the catalog's headline pick. Mirrors
-// the runPick() logic in src/pages/browser/[model].astro exactly, so this
-// test locks the same invariant the page relies on at build time.
-function runVariant(model: BrowserModelRow, backend: "webgpu" | "wasm"): string {
-  return PLAYGROUND_RUN_OVERRIDES[model.id]?.[backend] ?? model.headline[backend].variant;
-}
 
 describe("PLAYGROUND_EXTRA", () => {
   test("every id exists in the catalog", () => {
@@ -108,7 +101,8 @@ describe("playgroundTaskFor", () => {
       if (!playgroundTaskFor(model)) continue;
       enabledCount += 1;
       for (const backend of ["webgpu", "wasm"] as const) {
-        const variant = runVariant(model, backend);
+        const { variant, bytes } = playgroundRunConfig(model)[backend];
+        expect(bytes).toBeGreaterThan(0);
         expect(
           model.variants[variant],
           `${model.id} (${backend}) run variant "${variant}" is not a measured entry`,
@@ -127,4 +121,11 @@ describe("playgroundTaskFor", () => {
       expect(presentTasks.has(task), `no catalog row uses pipeline_task "${task}"`).toBe(true);
     }
   });
+});
+
+test("live download sizes use runtime overrides and reject missing measurements", () => {
+  const model = byId.get("kokoro-82m")!;
+  expect(playgroundRunConfig(model).webgpu).toEqual({ variant: "fp32", bytes: model.variants.fp32! });
+  expect(playgroundRunConfig(model).wasm).toEqual(model.headline.wasm);
+  expect(() => playgroundRunConfig({ ...model, variants: {} })).toThrow("not measured");
 });
