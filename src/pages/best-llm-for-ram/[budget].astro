@@ -4,8 +4,10 @@ import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import Sources from "@/components/Sources.astro";
-import { devices, modelsBySize, dedupeSources, meta } from "@/lib/data";
-import { canRun } from "@/lib/compute";
+import { devices, modelsBySize, dedupeSources, getModel, meta } from "@/lib/data";
+import { canRun, estimateMemory } from "@/lib/compute";
+import { setupModels, type SetupTask } from "@/lib/setup";
+import { setupHref } from "@/lib/setup-link";
 import type { DeviceRow, ModelRow } from "@/data/types";
 import { BUDGETS, desktopDevicesAt, interpretationsFor, TYPE_LABEL, TYPE_SHORT, type Interp } from "@/lib/budgets";
 import {
@@ -57,7 +59,7 @@ const rows: Row[] = modelsBySize.map((model) => {
   return { model, verdicts, fits, q4Gb: q4 };
 });
 
-// Biggest first: the page answers "what is the strongest model that fits?"
+// Parameter count orders memory ceilings, not model quality.
 const fitting = rows.filter((r) => r.fits).sort((a, b) => b.model.params_b - a.model.params_b);
 const tooLarge = rows.filter((r) => !r.fits).sort((a, b) => a.model.params_b - b.model.params_b);
 
@@ -69,12 +71,32 @@ function ceilingFor(device: DeviceRow): ModelRow | null {
 }
 const ceilings = interps.map((i) => ({ interp: i, model: ceilingFor(i.device) }));
 
-// Top pick: strongest model that runs comfortably on the most generous reading.
-const topPick =
+// Largest comfortable fit on the most generous reading, not a quality ranking.
+const largestFit =
   fitting.find((r) => {
     const v = r.verdicts.find((x) => x.interp === mostGenerous);
     return v?.result.verdict === "yes";
-  }) ?? fitting[0];
+  });
+
+const tasks: { task: SetupTask; label: string }[] = [
+  { task: "chat", label: "Chat and writing" },
+  { task: "coding", label: "Coding" },
+  { task: "reasoning", label: "Math and reasoning" },
+];
+const starters = gb === 16 ? interps.map((interp) => ({
+  interp,
+  choices: tasks.flatMap(({ task, label }) => {
+    const pick = setupModels(interp.device, task, 4)[0];
+    return pick ? [{ task, label, ...pick }] : [];
+  }),
+})) : [];
+const contextModel = gb === 16 ? getModel("qwen2.5-coder-14b") : undefined;
+if (gb === 16 && !contextModel) throw new Error("16GB guide: context example model is missing");
+const contextExamples = contextModel ? [4, 16].map((contextK) => ({
+  contextK,
+  estimate: estimateMemory(contextModel, "q4_k_m", contextK),
+  verdicts: interps.map((interp) => ({ interp, result: canRun(contextModel, interp.device, contextK) })),
+})) : [];
 
 const usableList = interps.map((i) => `~${i.usable} GB on ${TYPE_SHORT[i.type]}`).join(", ");
 // Phrases built from the memory types that ACTUALLY exist at this size (some
@@ -91,9 +113,12 @@ const typesPhrase =
     : typeNouns[0];
 const path = `/best-llm-for-ram/${gb}gb`;
 const year = new Date(meta.updated).getFullYear();
-const title = `Best local LLMs for ${gb}GB (${year}) · localmodel.run`;
+const headline = gb === 16 ? "Best local LLMs for 16GB RAM and VRAM" : `Best local LLMs for ${gb}GB`;
+const title = `${headline} (${year}) · localmodel.run`;
 const description = truncate(
-  interps.length > 1
+  gb === 16
+    ? "Choose a local LLM for 16GB RAM, a Mac or a 16GB GPU. Compare chat, coding and reasoning starters, Q4 memory at 4K and 16K context, and setup steps."
+    : interps.length > 1
     ? `${gb}GB is not one number: ${usableList} usable. See which of ${rows.length} local LLMs fit ${gb}GB, ranked by size with a ${typesSlash} verdict each.`
     : `${fitting.length} of ${rows.length} local LLMs fit ${gb}GB: ${usableList} usable on the ${mostGenerous.device.name}. Ranked by size, with a verdict for each.`,
 );
@@ -107,8 +132,10 @@ const faqs: FaqItem[] = [
   },
   {
     q: `What is the best local LLM for ${gb}GB?`,
-    a: topPick
-      ? `${topPick.model.name} (${topPick.model.params_b}B) is the strongest model that runs comfortably at Q4_K_M on the most capable ${gb}GB setup (${mostGenerous.device.name}, ~${mostGenerous.usable} GB usable). On a tighter ${gb}GB device the ceiling is lower, shown per row above.`
+    a: gb === 16
+      ? "Choose for your task and memory type first. The starter lists below use recorded Ollama popularity among models estimated to fit comfortably at Q4_K_M and 4K context. They are starting points, not quality rankings or tested speed results. A 16GB Mac, CPU laptop and GPU have different usable budgets."
+      : largestFit
+      ? `${largestFit.model.name} (${largestFit.model.params_b}B) is the largest model by parameter count estimated to fit comfortably at Q4_K_M on the ${mostGenerous.device.name} (~${mostGenerous.usable} GB usable). This is a memory ceiling, not a quality recommendation. On a tighter ${gb}GB device the ceiling is lower.`
       : `At ${gb}GB, stick to the smallest models; see the ranked list above.`,
   },
   // Only when a GPU interpretation actually appears at this size (no 8 GB or
@@ -121,11 +148,17 @@ const faqs: FaqItem[] = [
         },
       ]
     : []),
+  ...(gb === 16 ? [
+    { q: "Can I run a local LLM on a 16GB laptop without a dedicated GPU?", a: "Yes, the CPU-only laptop examples below have estimated comfortable fits. That does not establish generation speed. Start at 4K context, keep other applications in mind, and use the setup guide to choose a smaller model if replies are too slow." },
+    { q: "Does a model that fits at 4K context also fit at 16K?", a: "Not necessarily. The download size stays the same, but the KV cache grows with context. The worked example below shows estimated weights, cache and runtime overhead at both settings. Recheck your exact device before increasing context." },
+  ] : []),
 ];
 
 const sources = dedupeSources(
   ...interps.map((i) => i.device.sources),
-  topPick?.model.sources ?? [],
+  largestFit?.model.sources ?? [],
+  ...starters.flatMap(({ choices }) => choices.map(({ model }) => model.sources)),
+  contextModel?.sources ?? [],
 );
 
 const jsonLd = [
@@ -138,7 +171,7 @@ const jsonLd = [
     Astro.site!.href,
   ),
   techArticleLd({
-    headline: `Best local LLMs for ${gb}GB`,
+    headline,
     description,
     url: path,
     origin: Astro.site!.href,
@@ -163,7 +196,7 @@ const jsonLd = [
   description={description}
   path={path}
   jsonLd={jsonLd}
-  ogTitle={`Best local LLMs for ${gb}GB`}
+  ogTitle={headline}
   ogType="article"
   articleModified={meta.updated}
   ogImageAlt={`Local LLMs that fit in ${gb}GB of memory, ranked`}
@@ -182,10 +215,17 @@ const jsonLd = [
       Memory budget &middot; {gb} GB
     </p>
     <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-      Best local LLMs for {gb}GB
+      {headline}
     </h1>
     <p class="budget-lede mt-4 text-pretty text-lg text-muted-foreground">
-      {interps.length > 1 ? (
+      {gb === 16 ? (
+        <>
+          <span class="font-mono">16GB</span> leaves about {interps.map((interp, index) => (
+            <>{index > 0 ? ", " : ""}<span class="font-mono">{interp.usable} GB</span> on {TYPE_SHORT[interp.type]}</>
+          ))} usable in our representative memory budgets. Choose a starter for your task below, then check the
+          model, context and runtime on your own device. These are memory estimates, not hardware test results.
+        </>
+      ) : interps.length > 1 ? (
         <>
           {gb}GB is not a single ceiling. {typesPhrase.charAt(0).toUpperCase() + typesPhrase.slice(1)} each
           leave a different amount free for model weights, so the largest model you can run changes with the
@@ -216,13 +256,107 @@ const jsonLd = [
         <dt class="stat-label">Memory types</dt>
         <dd class="stat-val">{interps.length}</dd>
       </div>
-      {topPick && (
+      {largestFit && (
         <div class="stat">
-          <dt class="stat-label">Top pick</dt>
-          <dd class="stat-val stat-yes">{topPick.model.params_b}B</dd>
+          <dt class="stat-label">Largest comfortable fit</dt>
+          <dd class="stat-val stat-yes">{largestFit.model.params_b}B</dd>
         </div>
       )}
     </dl>
+
+    {gb === 16 && (
+      <>
+        <nav class="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-sm" aria-label="In this guide">
+          <a href="#choose-model" class="underline">Choose by task</a>
+          <a href="#context" class="underline">Context and memory</a>
+          <a href="#setup" class="underline">Set it up</a>
+          <a href="#models" class="underline">All models that fit</a>
+        </nav>
+        <section id="choose-model" class="mt-8 scroll-mt-20" aria-labelledby="choose-model-heading">
+          <h2 id="choose-model-heading" class="text-xl font-semibold">Which local model should you try first?</h2>
+          <p class="mt-3 text-sm text-muted-foreground">
+            These starters reuse the setup guide's task filters and recorded Ollama popularity.
+            Each has a measured Q4_K_M download and an estimated comfortable fit at <span class="font-mono">4K</span> context.
+            Popularity and parameter count do not establish answer quality. Compare
+            <a href="/leaderboard" class="underline">recorded benchmarks</a> separately.
+          </p>
+          <div class="mt-4 space-y-4">
+            {starters.map(({ interp, choices }) => (
+              <div class="panel p-4">
+                <h3 class="text-xl font-semibold">{TYPE_LABEL[interp.type]}</h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  <a href={`/best-llm-for/${interp.device.id}`} class="underline">{interp.device.name}</a>
+                  {" · "}<span class="font-mono">~{interp.usable} GB</span> usable
+                </p>
+                <ul class="mt-3 divide-y divide-border">
+                  {choices.map(({ task, label, model, result }) => (
+                    <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+                      <div>
+                        <p class="text-sm font-medium">{label}: <a href={`/model/${model.id}`} class="underline">{model.name}</a></p>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                          <span class="font-mono">{model.q4_k_m_gb} GB</span> Q4 download ·
+                          <span class="font-mono"> ~{result.estimate!.totalGb} GB</span> estimated memory ·
+                          <span class="font-mono"> {result.headroomGb} GB</span> headroom
+                        </p>
+                      </div>
+                      <a class="btn" href={setupHref({ deviceId: interp.device.id, modelId: model.id, task, contextK: 4 })}
+                        aria-label={`Set up ${model.name} for ${label.toLowerCase()} on ${interp.device.name}`}>Set up this model →</a>
+                    </li>
+                  ))}
+                  {choices.length === 0 && <li class="py-3 text-sm text-muted-foreground">No comfortable starter is recorded for this device. Try the <a href="/calculator" class="underline">fit calculator</a>.</li>}
+                </ul>
+                {interp.type === "ram" && <p class="mt-2 text-sm text-muted-foreground">CPU memory fit does not guarantee usable speed. If replies are too slow, try a smaller model in the setup guide.</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        {contextModel && (
+          <section id="context" class="mt-8 scroll-mt-20" aria-labelledby="context-heading">
+            <h2 id="context-heading" class="text-xl font-semibold">Why context changes what fits in 16GB</h2>
+            <p class="mt-3 text-sm text-muted-foreground">
+              <a href={`/model/${contextModel.id}`} class="underline">{contextModel.name}</a> has a
+              <span class="font-mono"> {contextModel.q4_k_m_gb} GB</span> Q4_K_M download. The download stays the same
+              when you increase context, but the KV cache grows. The shared memory engine estimates:
+            </p>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              {contextExamples.map(({ contextK, estimate, verdicts }) => (
+                <div class="panel p-4">
+                  <h3 class="text-xl font-semibold"><span class="font-mono">{contextK}K</span> context</h3>
+                  <p class="mt-2 text-sm text-muted-foreground">
+                    <span class="font-mono">{estimate.weightsGb} GB</span> weights +
+                    <span class="font-mono"> {estimate.kvGb} GB</span> KV cache +
+                    <span class="font-mono"> {estimate.overheadGb} GB</span> runtime =
+                    <strong class="font-mono text-foreground"> ~{estimate.totalGb} GB</strong>
+                  </p>
+                  <ul class="mt-3 space-y-2">
+                    {verdicts.map(({ interp, result }) => (
+                      <li class="flex items-center justify-between gap-2 text-sm">
+                        <span>{TYPE_SHORT[interp.type]}</span><VerdictBadge verdict={result.verdict} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <p class="mt-3 text-sm text-muted-foreground">
+              The device examples are the same ones named above. KV cache and runtime memory are estimates;
+              actual use depends on the runtime and cache settings. Long documents and coding sessions need
+              room for both input and output. Read the <a href="/methodology" class="underline">calculation method</a>
+              or check another configuration in the <a href="/calculator" class="underline">calculator</a>.
+            </p>
+          </section>
+        )}
+        <section id="setup" class="mt-8 scroll-mt-20" aria-labelledby="setup-heading">
+          <h2 id="setup-heading" class="text-xl font-semibold">Run your first model on a 16GB machine</h2>
+          <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+            <li>Use a starter's setup link to carry its device, model, task and <span class="font-mono">4K</span> context into the guide. Change the representative device to your actual hardware if needed.</li>
+            <li>Follow the <a href="/tools" class="underline">runtime instructions</a>, download the linked Q4_K_M GGUF and set the same context window. A different quantization or context needs another fit check.</li>
+            <li>Try one real task. If it runs out of memory, lower context or choose a smaller model. Report whether it worked in the setup guide.</li>
+          </ol>
+          <p class="mt-3 text-sm text-muted-foreground">These configurations have not been inference-tested here. No tokens-per-second or task-quality result is claimed.</p>
+        </section>
+      </>
+    )}
 
     <!-- What N GB means: the unique-math centerpiece, anchored to real devices -->
     <section class="mt-8">
@@ -285,30 +419,31 @@ const jsonLd = [
       </section>
     )}
 
-    {topPick && (
+    {largestFit && (
       <div class="panel mt-8">
         <div class="panel-head">
-          <span class="panel-label">Top pick for {gb}GB</span>
+          <span class="panel-label">Largest comfortable fit for {gb}GB</span>
           <span class="panel-label">Q4_K_M</span>
         </div>
         <div class="p-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <a href={`/model/${topPick.model.id}`} class="text-xl font-bold hover:underline">
-              {topPick.model.name}
+            <a href={`/model/${largestFit.model.id}`} class="text-xl font-bold hover:underline">
+              {largestFit.model.name}
             </a>
-            <span class="stat-label">{topPick.model.params_b}B{topPick.model.is_moe ? " MoE" : ""}</span>
+            <span class="stat-label">{largestFit.model.params_b}B{largestFit.model.is_moe ? " MoE" : ""}</span>
           </div>
           <p class="mt-1 text-sm text-muted-foreground">
-            Runs comfortably on the most capable {gb}GB setup ({mostGenerous.device.name},
-            ~{mostGenerous.usable} GB usable) at ~{topPick.q4Gb} GB. Check it against your exact
-            device on its <a href={`/model/${topPick.model.id}`} class="underline">model page</a>.
+            Estimated to fit comfortably on {mostGenerous.device.name} (~{mostGenerous.usable} GB usable)
+            at ~{largestFit.q4Gb} GB with Q4_K_M and 4K context. This is the largest by parameter count,
+            not a quality or speed recommendation. Check your exact device on its
+            <a href={`/model/${largestFit.model.id}`} class="underline">model page</a>.
           </p>
         </div>
       </div>
     )}
 
     <!-- Ranked fit matrix: one verdict per memory-type interpretation -->
-    <section class="mt-8">
+    <section id="models" class="mt-8 scroll-mt-20">
       <h2 class="mb-3 text-lg font-semibold">Models ranked for {gb}GB</h2>
       <div class="panel overflow-hidden">
         <div class="panel-head">
@@ -445,7 +580,7 @@ const jsonLd = [
     <Sources urls={sources} />
 
     <p class="mt-6 text-xs text-muted-foreground">
-      Memory figures are estimates at Q4_K_M with a small context. See
+      Memory figures are estimates at Q4_K_M with 4K context unless stated otherwise. See
       <a href="/methodology" class="underline">methodology</a>.
     </p>
   </div>

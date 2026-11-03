@@ -11,6 +11,7 @@ import type {
   PlaygroundModel,
   PlaygroundTask,
   ProgressSnapshot,
+  RmbgApi,
   TaskApi,
 } from "./types";
 import ChatSection from "./sections/Chat";
@@ -147,10 +148,11 @@ export default function Playground({ model, task }: PlaygroundProps) {
 
   const startingRef = useRef(false);
 
-  async function start() {
+  async function start(): Promise<TaskApi | null> {
+    if (api) return api;
     // Synchronous re-entrancy guard: React may not re-render (and hide the
     // button) between two rapid clicks, and the load below is expensive.
-    if (!plan || startingRef.current) return;
+    if (!plan || plan.verdict === "no" || startingRef.current) return null;
     startingRef.current = true;
     void trackEvent("demo_load_started");
     const agg = new ProgressAggregator();
@@ -170,10 +172,12 @@ export default function Playground({ model, task }: PlaygroundProps) {
       setApi(loaded);
       setPhase({ name: "ready" });
       void trackEvent("demo_loaded");
+      return loaded;
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setPhase({ name: "error", message });
       void trackEvent("demo_failed");
+      return null;
     } finally {
       startingRef.current = false;
     }
@@ -191,20 +195,30 @@ export default function Playground({ model, task }: PlaygroundProps) {
   // lines that matter carry role="status" individually.
   return (
     <div className="pg">
+      {task === "rmbg" && (
+        <RmbgSection
+          loadApi={() => start() as Promise<RmbgApi | null>}
+          downloadBytes={plan ? promisedBytes : undefined}
+          canRun={!!plan && plan.verdict !== "no"}
+          onMetrics={onMetrics}
+        />
+      )}
       {phase.name === "idle" && (
-        <div>
+        <div className={task === "rmbg" ? "mt-5" : undefined}>
           {plan ? (
             <>
-              <span className="verdict-stamp" data-v={plan.verdict} style={{ color: stamp.fg }}>
+              {(task !== "rmbg" || plan.verdict !== "yes") && <span className="verdict-stamp" data-v={plan.verdict} style={{ color: stamp.fg }}>
                 <StampIcon kind={stamp.icon} />
                 <span>{stamp.word}</span>
-              </span>
+              </span>}
               <p className="mt-3 text-sm text-muted-foreground">
-                Pressing Run downloads{" "}
-                <span className="num text-foreground">{formatBytes(promisedBytes)}</span> ({dtype})
-                from HuggingFace and runs it{" "}
-                {backend === "webgpu" ? "on your GPU over WebGPU" : "on your CPU over WebAssembly"},
-                entirely in this tab. Nothing downloads until you press it.
+                {task === "rmbg" ? (
+                  <>{model.name} runs {backend === "webgpu" ? "on your GPU over WebGPU" : "on your CPU over WebAssembly"} in this tab.</>
+                ) : (
+                  <>Pressing Run downloads <span className="num text-foreground">{formatBytes(promisedBytes)}</span> ({dtype})
+                  from HuggingFace and runs it {backend === "webgpu" ? "on your GPU over WebGPU" : "on your CPU over WebAssembly"},
+                  entirely in this tab. Nothing downloads until you press it.</>
+                )}
               </p>
               {promisedBytes > BIG_DOWNLOAD_BYTES && (
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -216,8 +230,8 @@ export default function Playground({ model, task }: PlaygroundProps) {
               {model.runNote && dtype !== model.headline[backend].variant && (
                 <p className="mt-2 text-xs text-muted-foreground">{model.runNote}</p>
               )}
-              {plan.verdict !== "no" && (
-                <button type="button" onClick={start} className="btn btn--primary mt-4">
+              {task !== "rmbg" && plan.verdict !== "no" && (
+                <button type="button" onClick={() => void start()} className="btn btn--primary mt-4">
                   Run {model.name} here
                 </button>
               )}
@@ -252,7 +266,7 @@ export default function Playground({ model, task }: PlaygroundProps) {
       )}
 
       {phase.name === "loading" && (
-        <div>
+        <div className={task === "rmbg" ? "mt-4" : undefined}>
           {/* Static text, announced once; the visible line below mutates too often for a live region. */}
           <span className="sr-only" role="status">
             Downloading model weights
@@ -303,15 +317,15 @@ export default function Playground({ model, task }: PlaygroundProps) {
       )}
 
       {phase.name === "error" && (
-        <div>
+        <div className={task === "rmbg" ? "mt-4" : undefined} role="alert">
           <span className="verdict-stamp" data-v="no" style={{ color: "var(--verdict-no-fg)" }}>
             <StampIcon kind="no" />
             <span>Run failed</span>
           </span>
           <p className="mt-3 text-sm text-muted-foreground">{phase.message}</p>
-          <button type="button" onClick={start} className="btn mt-3 text-xs">
+          {task !== "rmbg" && <button type="button" onClick={() => void start()} className="btn mt-3 text-xs">
             Try again
-          </button>
+          </button>}
         </div>
       )}
 
@@ -323,7 +337,6 @@ export default function Playground({ model, task }: PlaygroundProps) {
           {task === "chat" && <ChatSection api={api as never} onMetrics={onMetrics} />}
           {task === "asr" && <AsrSection api={api as never} onMetrics={onMetrics} />}
           {task === "tts" && <TtsSection api={api as never} onMetrics={onMetrics} />}
-          {task === "rmbg" && <RmbgSection api={api as never} onMetrics={onMetrics} />}
           {task === "embed" && <EmbedSection api={api as never} onMetrics={onMetrics} />}
           {task === "vlm" && <VlmSection api={api as never} onMetrics={onMetrics} />}
           {task === "pii" && <PiiSection api={api as never} onMetrics={onMetrics} />}

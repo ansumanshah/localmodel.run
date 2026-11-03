@@ -1,5 +1,5 @@
 import type { BrowserModelRow } from "@/data/types";
-import type { PlaygroundTask } from "./types";
+import type { PlaygroundModel, PlaygroundTask } from "./types";
 
 // Which /browser models get a live "Run it" island, and why. Resolution
 // order (see playgroundTaskFor at the bottom): PLAYGROUND_DENY wins over
@@ -103,6 +103,14 @@ export const PLAYGROUND_RUN_OVERRIDES: Record<
   string,
   { webgpu?: string; wasm?: string; note: string }
 > = {
+  "modnet": {
+    webgpu: "fp32",
+    note: "The q4f16 WebGPU build produced a damaged portrait mask on the sample photo. The live GPU run uses the full-precision fp32 build instead.",
+  },
+  "whisper-tiny": {
+    wasm: "fp32",
+    note: "The uint8 WebAssembly build fails ONNX session creation with a missing quantization scale. The live CPU run uses the larger fp32 build instead.",
+  },
   "smolvlm-256m-instruct": {
     webgpu: "fp32",
     note: "Both the q4f16 and fp16 builds generate garbled text over WebGPU today (verified in Chrome on Apple silicon, 2026-08-01), which is why the official demo ships fp32. The live run loads the fp32 build: big, but it is the one that works.",
@@ -112,6 +120,17 @@ export const PLAYGROUND_RUN_OVERRIDES: Record<
     note: "The live run loads the bigger fp32 build over WebGPU rather than the catalog's q4f16 pick, which sounds audibly degraded there (details in the reading above). The WebAssembly fallback keeps the small q8 build.",
   },
 };
+
+/** Advertise the measured build the runner loads, including runtime overrides. */
+export function playgroundRunConfig(model: BrowserModelRow): PlaygroundModel["run"] {
+  const pick = (backend: "webgpu" | "wasm") => {
+    const variant = PLAYGROUND_RUN_OVERRIDES[model.id]?.[backend] ?? model.headline[backend].variant;
+    const bytes = model.variants[variant];
+    if (!Number.isFinite(bytes) || bytes <= 0) throw new Error(`Playground variant "${variant}" not measured for ${model.id}`);
+    return { variant, bytes };
+  };
+  return { webgpu: pick("webgpu"), wasm: pick("wasm") };
+}
 
 /**
  * The single resolver: which playground task (if any) drives this model's

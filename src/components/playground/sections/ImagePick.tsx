@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 
 interface ImagePickProps {
   disabled: boolean;
@@ -16,8 +16,12 @@ export default function ImagePick({ disabled, onPick, sampleUrl, sampleLabel }: 
   const urlRef = useRef<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
+  useEffect(() => () => {
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+  }, []);
+
   function pickFile(file: File | undefined) {
-    if (!file || !file.type.startsWith("image/")) return;
+    if (disabled || !file || !file.type.startsWith("image/")) return;
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
     const url = URL.createObjectURL(file);
     urlRef.current = url;
