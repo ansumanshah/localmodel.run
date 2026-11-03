@@ -73,7 +73,7 @@ const description = truncate(
 const faqs: FaqItem[] = [
   {
     q: "Can I run AI models in my browser without installing anything?",
-    a: `Yes. Start with portrait background removal, speech transcription or text to speech below. Each task has instructions, a live browser tool and an implementation example. Model files download when you press Run; your input is processed in the tab. ${liveBrowserCount} catalog models have a live playground, using WebGPU where available or WebAssembly on the CPU.`,
+    a: `Yes. Start with portrait background removal, speech transcription or text to speech below. Each task has instructions, a live browser tool and an implementation example. Model files download when you press Run or Remove background; your input is processed in the tab. ${liveBrowserCount} catalog models have a live playground, using WebGPU where available or WebAssembly on the CPU.`,
   },
   {
     q: "How do I know if my computer can run a local AI model?",
@@ -161,7 +161,7 @@ const jsonLd = [
               </a>
             ))}
           </div>
-          <p class="mt-3 text-xs text-muted-foreground">Nothing downloads until you press Run. Runtime, configuration and voice files are additional downloads. Your images, text and audio stay in the tab.</p>
+          <p class="mt-3 text-xs text-muted-foreground">Model files download only after you press Run or Remove background. Runtime, configuration and voice files are additional downloads. Your images, text and audio stay in the tab.</p>
           <p class="mt-2 text-xs"><a href="/browser/check" class="text-[var(--brand-ink)] underline">Full capability report for this browser &rarr;</a></p>
         </div>
       </div>

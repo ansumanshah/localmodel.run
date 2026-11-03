@@ -8,7 +8,7 @@ const tasks = [
     runner: "rmbg" as PlaygroundTask,
     title: "Remove a portrait background",
     description: "Choose a portrait photo and download a transparent PNG. The image stays in your browser.",
-    steps: ["Press Run below to load the model on this device.", "Choose a portrait photo or use the sample photo. Wait for the cutout.", "Check the edges, then download the transparent PNG."],
+    steps: ["Choose a portrait photo or use the sample to preview it without loading a model.", "Press Remove background to load the model and process your photo on this device.", "Compare the result, check the edges, then download the transparent PNG."],
     caveat: "This model is designed for portraits. Hair, transparent objects and busy backgrounds can need manual cleanup.",
     package: "@huggingface/transformers",
     docs: "https://huggingface.co/docs/transformers.js/api/pipelines#module_pipelines.BackgroundRemovalPipeline",

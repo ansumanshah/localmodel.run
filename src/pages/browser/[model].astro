@@ -146,9 +146,27 @@ const playgroundModel = playgroundTask
         <><strong>{model.name} downloads {webgpuSize}</strong> over WebGPU ({model.headline.webgpu.variant}), or {wasmSize} over WebAssembly ({model.headline.wasm.variant}), to {ledeAction} entirely in the tab with <a href="https://huggingface.co/docs/transformers.js" rel="noopener nofollow" class="underline">Transformers.js</a>. No install, no server.</>
       )}
     </p>
-    <p class="mt-2 text-pretty text-muted-foreground">
+    <p class="mt-2 text-pretty text-muted-foreground" hidden={localTask?.runner === "rmbg"}>
       {taskLabel} &middot; <code class="rounded bg-card px-1.5 py-0.5 text-sm">{model.hf_repo}</code>
     </p>
+
+    {playgroundTask && playgroundModel && (
+      <section class="mt-8">
+        <h2 class="sr-only">Run it in your browser</h2>
+        <div class="panel-hero scroll-mt-20" id="playground">
+          <div class="panel-head">
+            <span class="panel-label">{localTask?.title ?? "Live run"}</span>
+            <span class="panel-label">this browser</span>
+          </div>
+          <div class="p-5">
+            <Playground client:idle model={playgroundModel} task={playgroundTask} />
+            <noscript>
+              <p class="text-sm text-muted-foreground">Enable JavaScript to run {model.name} live in this tab. The numbers above stand either way.</p>
+            </noscript>
+          </div>
+        </div>
+      </section>
+    )}
 
     {localTask && (
       <section class="mt-6" aria-labelledby="task-steps-heading">
@@ -157,9 +175,9 @@ const playgroundModel = playgroundTask
           {localTask.steps.map((step) => <li>{step}</li>)}
         </ol>
         <p class="mt-3 text-sm text-muted-foreground">{localTask.caveat}</p>
-        <p class="mt-3 text-sm text-muted-foreground">The model downloads from Hugging Face when you press Run. Your input is processed in this tab.</p>
+        <p class="mt-3 text-sm text-muted-foreground">The model downloads from Hugging Face when you press {localTask.runner === "rmbg" ? "Remove background" : "Run"}. Your input is processed in this tab.</p>
         <div class="mt-4 flex flex-wrap gap-3">
-          <a href="#playground" class="btn btn--primary">Try this task →</a>
+          <a href="#playground" class="btn">Back to the tool ↑</a>
           <a href="#implement" class="btn">Implement it in your app →</a>
         </div>
       </section>
@@ -205,24 +223,6 @@ const playgroundModel = playgroundTask
           ))}
         </div>
       </details>
-    )}
-
-    {playgroundTask && playgroundModel && (
-      <section class="mt-8">
-        <h2 class="sr-only">Run it in your browser</h2>
-        <div class="panel-hero scroll-mt-20" id="playground">
-          <div class="panel-head">
-            <span class="panel-label">{localTask?.title ?? "Live run"}</span>
-            <span class="panel-label">this browser</span>
-          </div>
-          <div class="p-5">
-            <Playground client:idle model={playgroundModel} task={playgroundTask} />
-            <noscript>
-              <p class="text-sm text-muted-foreground">Enable JavaScript to run {model.name} live in this tab. The numbers above stand either way.</p>
-            </noscript>
-          </div>
-        </div>
-      </section>
     )}
 
     {!playgroundTask && (

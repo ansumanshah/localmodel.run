@@ -1662,6 +1662,11 @@
   border-radius: 3px;
   border: 1px solid var(--border);
 }
+.pg-img--portrait {
+  height: 20rem;
+  object-fit: contain;
+  background-color: var(--well);
+}
 .pg-img--sm {
   max-width: 14rem;
 }
