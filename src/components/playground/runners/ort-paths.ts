@@ -26,7 +26,8 @@ export function useSelfHostedOrt(device: "webgpu" | "wasm"): void {
   // Overwrites, not set-if-unset: transformers.js assigns its jsdelivr
   // default at module load, so an unset check would never fire. Assigning
   // the same paths again on later calls is harmless.
-  const base = "/ort/v4/";
+  // Absolute runtime URLs also refresh the worker bundle cached under the old CSP.
+  const base = new URL("/ort/v4/", globalThis.location.href).href;
   wasm.wasmPaths = isSafari()
     ? { mjs: `${base}ort-wasm-simd-threaded.mjs`, wasm: `${base}ort-wasm-simd-threaded.wasm` }
     : {
