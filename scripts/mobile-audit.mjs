@@ -180,6 +180,38 @@ async function checkMobileMenu(browser, url) {
   return out;
 }
 
+// Browser tools must load a new document to apply their scoped security headers.
+async function checkBrowserNavigation(browser) {
+  const ctx = await browser.newContext({ ...CTX_OPTS });
+  const page = await ctx.newPage();
+  const out = { ok: false, reason: null };
+  try {
+    await page.goto(BASE + "/");
+    await page.waitForFunction(() => window.__initBound === true);
+    const tasks = await page.locator("#local-tasks a[href]").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    if (!tasks.length) throw new Error("homepage has no local task links");
+    for (const href of tasks) {
+      await page.goto(BASE + "/");
+      await page.waitForFunction(() => window.__initBound === true);
+      await page.evaluate(() => { window.__navigationProbe = true; });
+      await page.locator(`#local-tasks a[href="${href}"]`).click();
+      await page.waitForURL(BASE + href);
+      if (await page.evaluate(() => window.__navigationProbe)) throw new Error(`${href} retained the homepage document and security policy`);
+    }
+    await page.goto(BASE + "/");
+    await page.waitForFunction(() => window.__initBound === true);
+    await page.evaluate(() => { window.__navigationProbe = true; });
+    await page.locator('footer a[href="/about"]').first().click();
+    await page.waitForURL(BASE + "/about");
+    if (!await page.evaluate(() => window.__navigationProbe)) throw new Error("ordinary pages lost client navigation");
+    out.ok = true;
+  } catch (error) {
+    out.reason = String(error).slice(0, 200);
+  }
+  await ctx.close();
+  return out;
+}
+
 async function main() {
   rmSync(SHOT, { recursive: true, force: true });
   const { urls, total, shapes } = enumerateUrls();
@@ -205,11 +237,13 @@ async function main() {
       urls.find((u) => u.startsWith("/model/")),
       urls.find((u) => u.startsWith("/can-i-run/") && u.split("/").length === 4),
       urls.find((u) => u.startsWith("/leaderboard")),
+      urls.find((u) => u.startsWith("/browser/")),
     ].filter(Boolean)),
   ];
   console.log(`\nChecking mobile hamburger dropdown on ${menuUrls.length} pages...`);
   const menuResults = [];
   for (const u of menuUrls) menuResults.push(await checkMobileMenu(browser, u));
+  const browserNavigation = await checkBrowserNavigation(browser);
   await browser.close();
 
   const menuFails = menuResults.filter((m) => !m.ok);
@@ -223,6 +257,7 @@ async function main() {
   console.log(`  non-200 status:              ${tally((r) => r.status !== 200)}`);
   console.log(`  thin/blank body:             ${tally((r) => r.status === 200 && r.bodyLen <= 200)}`);
   console.log(`  hamburger dropdown:          ${menuResults.length - menuFails.length}/${menuResults.length} pages OK`);
+  console.log(`  browser security navigation: ${browserNavigation.ok ? "OK" : browserNavigation.reason}`);
   if (fails.length) {
     console.log("\n--- FAILURES ---");
     for (const f of fails.slice(0, 60)) {
@@ -237,7 +272,7 @@ async function main() {
     console.log("\n--- HAMBURGER DROPDOWN FAILURES ---");
     for (const m of menuFails) console.log(`  ${m.url}\n      ${m.reason}`);
   }
-  if (fails.length || menuFails.length) {
+  if (fails.length || menuFails.length || !browserNavigation.ok) {
     process.exitCode = 1;
   } else {
     console.log("\n✓ All sampled pages render cleanly at mobile width; hamburger dropdown OK.");
