@@ -30,7 +30,7 @@ https://localmodel-run.pages.dev/*
 
 # /browser pages run models IN the tab (the playground), which the global
 # policy above forbids. This rule detaches and replaces exactly two headers,
-# scoped to /browser/*; everything else keeps the strict global policy.
+# scoped to /browser/*; ordinary pages keep the strict global policy.
 #   CSP deltas vs global (each one load-bearing, verified against a live run):
 #   - connect-src blob: / data:: local input reads and image warm-ups
 #   - connect-src + huggingface.co / *.huggingface.co / *.hf.co: model weights
