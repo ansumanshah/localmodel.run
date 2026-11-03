@@ -96,6 +96,7 @@ export default function TtsSection({ api, onMetrics }: SectionProps) {
         <div className="mt-4">
           {/* biome-ignore lint: captions do not apply to generated speech of user-typed text */}
           <audio controls src={audioUrl} className="w-full" />
+          <a href={audioUrl} download="speech.wav" className="btn mt-3">Download WAV</a>
         </div>
       )}
       {error && <p className="mt-3 text-sm text-muted-foreground">{error}</p>}

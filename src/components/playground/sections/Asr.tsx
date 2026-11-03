@@ -16,6 +16,7 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const recRef = useRef<Recorder | null>(null);
   // Synchronous guard across the getUserMedia await: without it, two rapid
   // clicks both pass the `recording` check and the first mic stream is
@@ -28,6 +29,7 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
     setBusy(true);
     setError(null);
     setText(null);
+    setCopied(false);
     onMetrics([]);
     try {
       const { audio, seconds } = await blobToMono16k(blob);
@@ -87,6 +89,17 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
     }
   }
 
+  async function copyTranscript() {
+    if (!text) return;
+    setError(null);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      setError("Clipboard write was blocked. Select the transcript to copy it, or download the text file.");
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
@@ -122,9 +135,13 @@ export default function AsrSection({ api, onMetrics }: SectionProps) {
         </p>
       )}
       {text != null && (
-        <div className="pg-output mt-4" aria-label="Transcript">
-          {text || "(no speech detected)"}
-        </div>
+        <>
+          <div className="pg-output mt-4" aria-label="Transcript">{text || "(no speech detected)"}</div>
+          {text && <div className="mt-3 flex flex-wrap gap-3">
+            <button type="button" className="btn" onClick={copyTranscript} aria-live="polite">{copied ? "Copied" : "Copy transcript"}</button>
+            <a className="btn" href={`data:text/plain;charset=utf-8,${encodeURIComponent(text)}`} download="transcript.txt">Download text</a>
+          </div>}
+        </>
       )}
       {error && <p className="mt-3 text-sm text-muted-foreground">{error}</p>}
     </div>
