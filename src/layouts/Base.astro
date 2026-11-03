@@ -177,7 +177,8 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
 
     <!-- SPA-style cross-document view transitions (shared-element morphs). Astro
          disables these automatically under prefers-reduced-motion. -->
-    <ClientRouter />
+    {/* Browser tools need a document load to apply their scoped CSP and microphone policy. */}
+    {!enPath.startsWith("/browser/") && <ClientRouter />}
   </head>
   <body class="aurora min-h-screen flex flex-col">
     <!-- Page backdrop wrapper: since the instrument reskin this is the bare
