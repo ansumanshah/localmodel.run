@@ -26,8 +26,8 @@
     "arena_elo": 1211,
     "arena_rank": 293,
     "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
-    "hf_downloads": 4475436,
-    "hf_likes": 8772,
+    "hf_downloads": 4504499,
+    "hf_likes": 8858,
     "license": "Llama 3.1 Community",
     "commercial_use": "conditional",
     "license_note": "Llama 3.1 Community License: free under 700M MAU.",
@@ -61,8 +61,8 @@
     "arena_elo": 1318,
     "arena_rank": 215,
     "hf_id": "meta-llama/Llama-3.3-70B-Instruct",
-    "hf_downloads": 363283,
-    "hf_likes": 3185,
+    "hf_downloads": 350898,
+    "hf_likes": 3197,
     "license": "Llama 3.3 Community",
     "commercial_use": "conditional",
     "license_note": "Llama 3.3 Community License: free under 700M MAU.",
@@ -96,8 +96,8 @@
     "arena_elo": 1166,
     "arena_rank": 319,
     "hf_id": "meta-llama/Llama-3.2-3B-Instruct",
-    "hf_downloads": 969636,
-    "hf_likes": 2937,
+    "hf_downloads": 872223,
+    "hf_likes": 2972,
     "license": "Llama 3.2 Community",
     "commercial_use": "conditional",
     "license_note": "Llama 3.2 Community License: free under 700M MAU.",
@@ -131,8 +131,8 @@
     "arena_elo": 1110,
     "arena_rank": 348,
     "hf_id": "meta-llama/Llama-3.2-1B-Instruct",
-    "hf_downloads": 1814774,
-    "hf_likes": 1940,
+    "hf_downloads": 1331481,
+    "hf_likes": 1965,
     "license": "Llama 3.2 Community",
     "commercial_use": "conditional",
     "license_note": "Llama 3.2 Community License: free under 700M MAU.",
@@ -165,8 +165,8 @@
     "arena_elo": 1149,
     "arena_rank": 327,
     "hf_id": "mistralai/Mistral-7B-Instruct-v0.3",
-    "hf_downloads": 1677319,
-    "hf_likes": 3829,
+    "hf_downloads": 1748286,
+    "hf_likes": 3835,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 4.07
@@ -198,8 +198,8 @@
     "arena_elo": 1357,
     "arena_rank": 163,
     "hf_id": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-    "hf_downloads": 118879,
-    "hf_likes": 643,
+    "hf_downloads": 105133,
+    "hf_likes": 644,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 14.14
@@ -231,8 +231,8 @@
     "arena_elo": 1256,
     "arena_rank": 270,
     "hf_id": "microsoft/phi-4",
-    "hf_downloads": 327031,
-    "hf_likes": 2336,
+    "hf_downloads": 275580,
+    "hf_likes": 2340,
     "license": "MIT",
     "commercial_use": "yes",
     "bfcl_v3_acc": 28.8,
@@ -263,8 +263,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "microsoft/Phi-4-mini-instruct",
-    "hf_downloads": 343554,
-    "hf_likes": 878,
+    "hf_downloads": 331860,
+    "hf_likes": 886,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 2.32
@@ -295,8 +295,8 @@
     "arena_elo": 1266,
     "arena_rank": 263,
     "hf_id": "google/gemma-2-9b-it",
-    "hf_downloads": 131430,
-    "hf_likes": 1164,
+    "hf_downloads": 107972,
+    "hf_likes": 1167,
     "license": "Gemma",
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
@@ -328,7 +328,7 @@
     "arena_elo": 1289,
     "arena_rank": 244,
     "hf_id": "google/gemma-2-27b-it",
-    "hf_downloads": 20961,
+    "hf_downloads": 22840,
     "hf_likes": 577,
     "license": "Gemma",
     "commercial_use": "conditional",
@@ -362,8 +362,8 @@
     "arena_elo": 1303,
     "arena_rank": 237,
     "hf_id": "google/gemma-3-4b-it",
-    "hf_downloads": 981969,
-    "hf_likes": 1616,
+    "hf_downloads": 1008800,
+    "hf_likes": 1640,
     "license": "Gemma",
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
@@ -397,8 +397,8 @@
     "arena_elo": 1342,
     "arena_rank": 186,
     "hf_id": "google/gemma-3-12b-it",
-    "hf_downloads": 359698,
-    "hf_likes": 902,
+    "hf_downloads": 362809,
+    "hf_likes": 908,
     "license": "Gemma",
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
@@ -433,8 +433,8 @@
     "arena_elo": 1366,
     "arena_rank": 156,
     "hf_id": "google/gemma-3-27b-it",
-    "hf_downloads": 359413,
-    "hf_likes": 2065,
+    "hf_downloads": 361121,
+    "hf_likes": 2066,
     "license": "Gemma",
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
@@ -467,8 +467,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen2.5-7B-Instruct",
-    "hf_downloads": 6087870,
-    "hf_likes": 2485,
+    "hf_downloads": 6037480,
+    "hf_likes": 2488,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 4.36
@@ -498,8 +498,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen2.5-14B-Instruct",
-    "hf_downloads": 751724,
-    "hf_likes": 380,
+    "hf_downloads": 679049,
+    "hf_likes": 383,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 8.37
@@ -529,8 +529,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen2.5-32B-Instruct",
-    "hf_downloads": 925769,
-    "hf_likes": 375,
+    "hf_downloads": 775418,
+    "hf_likes": 377,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 18.49
@@ -561,8 +561,8 @@
     "arena_elo": 1303,
     "arena_rank": 238,
     "hf_id": "Qwen/Qwen2.5-72B-Instruct",
-    "hf_downloads": 190635,
-    "hf_likes": 1038,
+    "hf_downloads": 166748,
+    "hf_likes": 1044,
     "license": "Qwen License",
     "commercial_use": "conditional",
     "license_note": "Qwen License: free for commercial use under 100M monthly active users.",
@@ -594,8 +594,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen3-8B",
-    "hf_downloads": 7537607,
-    "hf_likes": 2165,
+    "hf_downloads": 6837564,
+    "hf_likes": 2180,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "bfcl_v3_acc": 42.6,
@@ -627,8 +627,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen3-14B",
-    "hf_downloads": 12993294,
-    "hf_likes": 533,
+    "hf_downloads": 12904408,
+    "hf_likes": 535,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "bfcl_v3_acc": 41,
@@ -662,8 +662,8 @@
     "arena_elo": 1347,
     "arena_rank": 177,
     "hf_id": "Qwen/Qwen3-32B",
-    "hf_downloads": 2959925,
-    "hf_likes": 791,
+    "hf_downloads": 2980175,
+    "hf_likes": 792,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "aider_polyglot_pct": 40,
@@ -697,7 +697,7 @@
     "arena_elo": 1383,
     "arena_rank": 140,
     "hf_id": "Qwen/Qwen3-30B-A3B",
-    "hf_downloads": 1071932,
+    "hf_downloads": 1115081,
     "hf_likes": 982,
     "license": "Apache-2.0",
     "commercial_use": "yes",
@@ -728,8 +728,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
-    "hf_downloads": 321506,
-    "hf_likes": 950,
+    "hf_downloads": 321610,
+    "hf_likes": 955,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 4.36
@@ -759,8 +759,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
-    "hf_downloads": 236926,
-    "hf_likes": 735,
+    "hf_downloads": 189567,
+    "hf_likes": 739,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 8.37
@@ -790,8 +790,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
-    "hf_downloads": 79766,
-    "hf_likes": 916,
+    "hf_downloads": 74478,
+    "hf_likes": 919,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 4.87
@@ -821,8 +821,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-    "hf_downloads": 348235,
-    "hf_likes": 1667,
+    "hf_downloads": 357538,
+    "hf_likes": 1673,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 18.49
@@ -853,7 +853,7 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepseek-ai/DeepSeek-V2-Lite",
-    "hf_downloads": 131364,
+    "hf_downloads": 117685,
     "hf_likes": 210,
     "license": "DeepSeek License",
     "commercial_use": "yes",
@@ -887,8 +887,8 @@
     "arena_elo": 1114,
     "arena_rank": 347,
     "hf_id": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
-    "hf_downloads": 307347,
-    "hf_likes": 767,
+    "hf_downloads": 266820,
+    "hf_likes": 771,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 1.7
@@ -918,8 +918,8 @@
     "pulls": 23200000,
     "pulls_text": "23.2M",
     "hf_id": "Qwen/Qwen2.5-0.5B-Instruct",
-    "hf_downloads": 4843432,
-    "hf_likes": 728,
+    "hf_downloads": 4524207,
+    "hf_likes": 737,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 0.37
@@ -949,8 +949,8 @@
     "pulls": 23200000,
     "pulls_text": "23.2M",
     "hf_id": "Qwen/Qwen2.5-1.5B-Instruct",
-    "hf_downloads": 4625029,
-    "hf_likes": 928,
+    "hf_downloads": 5017129,
+    "hf_likes": 937,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 0.92
@@ -980,8 +980,8 @@
     "pulls": 23200000,
     "pulls_text": "23.2M",
     "hf_id": "Qwen/Qwen2.5-3B-Instruct",
-    "hf_downloads": 2991488,
-    "hf_likes": 633,
+    "hf_downloads": 2587484,
+    "hf_likes": 638,
     "license": "Qwen Research License",
     "commercial_use": "no",
     "license_note": "Qwen Research License: non-commercial use only.",
@@ -1014,8 +1014,8 @@
     "pulls": 23000000,
     "pulls_text": "23M",
     "hf_id": "Qwen/Qwen3-0.6B",
-    "hf_downloads": 22876234,
-    "hf_likes": 1871,
+    "hf_downloads": 20728069,
+    "hf_likes": 1887,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "bfcl_v3_acc": 23.9,
@@ -1048,8 +1048,8 @@
     "pulls": 23000000,
     "pulls_text": "23M",
     "hf_id": "Qwen/Qwen3-1.7B",
-    "hf_downloads": 4252162,
-    "hf_likes": 612,
+    "hf_downloads": 3732406,
+    "hf_likes": 616,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "bfcl_v3_acc": 28.4,
@@ -1080,8 +1080,8 @@
     "pulls": 23000000,
     "pulls_text": "23M",
     "hf_id": "Qwen/Qwen3-4B",
-    "hf_downloads": 8421019,
-    "hf_likes": 782,
+    "hf_downloads": 4013632,
+    "hf_likes": 794,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 2.33
@@ -1112,8 +1112,8 @@
     "pulls": 17200000,
     "pulls_text": "17.2M",
     "hf_id": "google/gemma-2-2b-it",
-    "hf_downloads": 141350,
-    "hf_likes": 1604,
+    "hf_downloads": 121130,
+    "hf_likes": 1612,
     "license": "Gemma",
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
@@ -1146,8 +1146,8 @@
     "pulls": 32800000,
     "pulls_text": "32.8M",
     "hf_id": "google/gemma-3-1b-it",
-    "hf_downloads": 212644,
-    "hf_likes": 1292,
+    "hf_downloads": 205972,
+    "hf_likes": 1309,
     "license": "Gemma",
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
@@ -1179,8 +1179,8 @@
     "pulls": 2600000,
     "pulls_text": "2.6M",
     "hf_id": "HuggingFaceTB/SmolLM2-135M-Instruct",
-    "hf_downloads": 838455,
-    "hf_likes": 468,
+    "hf_downloads": 847496,
+    "hf_likes": 471,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 0.25
@@ -1210,8 +1210,8 @@
     "pulls": 2600000,
     "pulls_text": "2.6M",
     "hf_id": "HuggingFaceTB/SmolLM2-360M-Instruct",
-    "hf_downloads": 207558,
-    "hf_likes": 240,
+    "hf_downloads": 217826,
+    "hf_likes": 243,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 0.68
@@ -1241,8 +1241,8 @@
     "pulls": 3800000,
     "pulls_text": "3.8M",
     "hf_id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-    "hf_downloads": 944190,
-    "hf_likes": 1898,
+    "hf_downloads": 943863,
+    "hf_likes": 1907,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 0.59
@@ -1273,7 +1273,7 @@
     "pulls": 450100,
     "pulls_text": "450.1K",
     "hf_id": "ibm-granite/granite-3.1-2b-instruct",
-    "hf_downloads": 21382,
+    "hf_downloads": 24709,
     "hf_likes": 57,
     "license": "Apache-2.0",
     "commercial_use": "yes",
@@ -1305,8 +1305,8 @@
     "pulls": 588600,
     "pulls_text": "588.6K",
     "hf_id": "microsoft/Phi-3.5-mini-instruct",
-    "hf_downloads": 392577,
-    "hf_likes": 1293,
+    "hf_downloads": 367275,
+    "hf_likes": 1296,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 2.03
@@ -1337,8 +1337,8 @@
     "arena_rank": null,
     "modality": "text",
     "hf_id": "sarvamai/sarvam-m",
-    "hf_downloads": 4177,
-    "hf_likes": 356,
+    "hf_downloads": 4407,
+    "hf_likes": 357,
     "license": "Apache-2.0",
     "commercial_use": "yes"
   },
@@ -1370,8 +1370,8 @@
     "license": "Sarvam non-commercial",
     "license_note": "Non-commercial use only per the Sarvam license. Check the current HuggingFace model card for updates.",
     "hf_id": "sarvamai/sarvam-1",
-    "hf_downloads": 6038,
-    "hf_likes": 153
+    "hf_downloads": 6047,
+    "hf_likes": 154
   },
   {
     "id": "sarvam-30b",
@@ -1399,8 +1399,8 @@
     "arena_rank": null,
     "modality": "text",
     "hf_id": "sarvamai/sarvam-30b",
-    "hf_downloads": 4954,
-    "hf_likes": 234,
+    "hf_downloads": 4329,
+    "hf_likes": 235,
     "license": "Apache-2.0",
     "commercial_use": "yes"
   },
@@ -1430,8 +1430,8 @@
     "arena_rank": null,
     "modality": "text",
     "hf_id": "sarvamai/sarvam-105b",
-    "hf_downloads": 6383,
-    "hf_likes": 321,
+    "hf_downloads": 5765,
+    "hf_likes": 325,
     "license": "Apache-2.0",
     "commercial_use": "yes"
   },
@@ -1462,8 +1462,8 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Qwen2.5-Coder-0.5B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
-    "hf_downloads": 87186,
-    "hf_likes": 92,
+    "hf_downloads": 77117,
+    "hf_likes": 95,
     "ollama_default_gb": 0.37
   },
   {
@@ -1493,8 +1493,8 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
-    "hf_downloads": 421552,
-    "hf_likes": 169,
+    "hf_downloads": 401851,
+    "hf_likes": 170,
     "ollama_default_gb": 0.92
   },
   {
@@ -1525,8 +1525,8 @@
     "hf_repo": "bartowski/Qwen2.5-Coder-3B-Instruct-GGUF",
     "license_note": "Qwen Research License: non-commercial use only.",
     "hf_id": "Qwen/Qwen2.5-Coder-3B-Instruct",
-    "hf_downloads": 427268,
-    "hf_likes": 153,
+    "hf_downloads": 440702,
+    "hf_likes": 157,
     "ollama_default_gb": 1.8
   },
   {
@@ -1556,8 +1556,8 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen2.5-Coder-7B-Instruct",
-    "hf_downloads": 1347926,
-    "hf_likes": 859,
+    "hf_downloads": 1313849,
+    "hf_likes": 867,
     "ollama_default_gb": 4.36
   },
   {
@@ -1587,8 +1587,8 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen2.5-Coder-14B-Instruct",
-    "hf_downloads": 1984216,
-    "hf_likes": 211,
+    "hf_downloads": 1936983,
+    "hf_likes": 213,
     "ollama_default_gb": 8.37
   },
   {
@@ -1618,8 +1618,8 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen2.5-Coder-32B-Instruct",
-    "hf_downloads": 552600,
-    "hf_likes": 2203,
+    "hf_downloads": 547542,
+    "hf_likes": 2207,
     "ollama_default_gb": 18.49
   },
   {
@@ -1649,8 +1649,8 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Mistral-Nemo-Instruct-2407-GGUF",
     "hf_id": "mistralai/Mistral-Nemo-Instruct-2407",
-    "hf_downloads": 121328,
-    "hf_likes": 1740,
+    "hf_downloads": 96582,
+    "hf_likes": 1739,
     "ollama_default_gb": 6.59
   },
   {
@@ -1680,8 +1680,8 @@
     "commercial_use": "yes",
     "hf_repo": "MaziyarPanahi/Mixtral-8x7B-Instruct-v0.1-GGUF",
     "hf_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-    "hf_downloads": 290841,
-    "hf_likes": 4775,
+    "hf_downloads": 307446,
+    "hf_likes": 4779,
     "ollama_default_gb": 24.63
   },
   {
@@ -1712,8 +1712,8 @@
     "commercial_use": "yes",
     "hf_repo": "unsloth/DeepSeek-R1-GGUF",
     "hf_id": "deepseek-ai/DeepSeek-R1",
-    "hf_downloads": 1681132,
-    "hf_likes": 14427,
+    "hf_downloads": 1618845,
+    "hf_likes": 14442,
     "aider_polyglot_pct": 56.9,
     "ollama_default_gb": 376.65
   },
@@ -1745,8 +1745,8 @@
     "commercial_use": "yes",
     "hf_repo": "unsloth/DeepSeek-V3-0324-GGUF",
     "hf_id": "deepseek-ai/DeepSeek-V3-0324",
-    "hf_downloads": 225055,
-    "hf_likes": 3223,
+    "hf_downloads": 149937,
+    "hf_likes": 3224,
     "aider_polyglot_pct": 55.1,
     "ollama_default_gb": 376.65
   },
@@ -1778,7 +1778,7 @@
     "commercial_use": "yes",
     "hf_repo": "unsloth/Qwen3-235B-A22B-GGUF",
     "hf_id": "Qwen/Qwen3-235B-A22B",
-    "hf_downloads": 337890,
+    "hf_downloads": 306653,
     "hf_likes": 1128,
     "aider_polyglot_pct": 59.6,
     "ollama_default_gb": 132.39
@@ -1812,8 +1812,8 @@
     "license_note": "Llama 4 Community License: free under 700M MAU, with use restrictions.",
     "hf_repo": "unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF",
     "hf_id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
-    "hf_downloads": 108045,
-    "hf_likes": 1385,
+    "hf_downloads": 109776,
+    "hf_likes": 1387,
     "bfcl_v3_acc": 28.1,
     "ollama_default_gb": 62.81
   },
@@ -1844,8 +1844,8 @@
     "commercial_use": "yes",
     "hf_repo": "ggml-org/gpt-oss-20b-GGUF",
     "hf_id": "openai/gpt-oss-20b",
-    "hf_downloads": 5957662,
-    "hf_likes": 5264,
+    "hf_downloads": 5830063,
+    "hf_likes": 5291,
     "ollama_default_gb": 12.85
   },
   {
@@ -1876,8 +1876,8 @@
     "commercial_use": "yes",
     "hf_repo": "ggml-org/gpt-oss-120b-GGUF",
     "hf_id": "openai/gpt-oss-120b",
-    "hf_downloads": 2479052,
-    "hf_likes": 5485,
+    "hf_downloads": 2417644,
+    "hf_likes": 5502,
     "aider_polyglot_pct": 41.8,
     "ollama_default_gb": 60.88
   },
@@ -1906,7 +1906,7 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Yi-1.5-34B-Chat-GGUF",
     "hf_id": "01-ai/Yi-1.5-34B-Chat",
-    "hf_downloads": 14183,
+    "hf_downloads": 13979,
     "hf_likes": 280
   },
   {
@@ -1937,7 +1937,7 @@
     "license_note": "CC BY-NC 4.0: non-commercial use only.",
     "hf_repo": "bartowski/c4ai-command-r-v01-GGUF",
     "hf_id": "CohereForAI/c4ai-command-r-v01",
-    "hf_downloads": 48756,
+    "hf_downloads": 83304,
     "hf_likes": 1128,
     "ollama_default_gb": 17.43
   },
@@ -1969,7 +1969,7 @@
     "license_note": "GLM-4 Model License: review terms for commercial use.",
     "hf_repo": "bartowski/glm-4-9b-chat-GGUF",
     "hf_id": "THUDM/glm-4-9b-chat",
-    "hf_downloads": 30629,
+    "hf_downloads": 29700,
     "hf_likes": 1334,
     "ollama_default_gb": 5.08
   },
@@ -2001,7 +2001,7 @@
     "commercial_use": "yes",
     "hf_repo": "bartowski/Falcon3-10B-Instruct-GGUF",
     "hf_id": "tiiuae/Falcon3-10B-Instruct",
-    "hf_downloads": 7675,
+    "hf_downloads": 7959,
     "hf_likes": 117,
     "bfcl_v3_acc": 27,
     "ollama_default_gb": 5.86
@@ -2033,8 +2033,8 @@
     "commercial_use": "yes",
     "hf_repo": "unsloth/granite-4.0-h-small-GGUF",
     "hf_id": "ibm-granite/granite-4.0-h-small",
-    "hf_downloads": 21173,
-    "hf_likes": 312,
+    "hf_downloads": 23859,
+    "hf_likes": 313,
     "ollama_default_gb": 18.14
   },
   {
@@ -2062,8 +2062,8 @@
     "commercial_use": "yes",
     "hf_repo": "unsloth/SmolLM3-3B-GGUF",
     "hf_id": "HuggingFaceTB/SmolLM3-3B",
-    "hf_downloads": 567606,
-    "hf_likes": 1072
+    "hf_downloads": 386350,
+    "hf_likes": 1076
   },
   {
     "id": "qwen2.5-vl-3b",
@@ -2092,8 +2092,8 @@
     "vision_encoder_gb": 1.25,
     "hf_repo": "ggml-org/Qwen2.5-VL-3B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen2.5-VL-3B-Instruct",
-    "hf_downloads": 1579654,
-    "hf_likes": 743
+    "hf_downloads": 1736195,
+    "hf_likes": 744
   },
   {
     "id": "qwen2.5-vl-7b",
@@ -2122,8 +2122,8 @@
     "vision_encoder_gb": 1.26,
     "hf_repo": "ggml-org/Qwen2.5-VL-7B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen2.5-VL-7B-Instruct",
-    "hf_downloads": 5961559,
-    "hf_likes": 1763
+    "hf_downloads": 5980572,
+    "hf_likes": 1767
   },
   {
     "id": "qwen3-vl-4b",
@@ -2153,8 +2153,8 @@
     "vision_encoder_gb": 0.78,
     "hf_repo": "Qwen/Qwen3-VL-4B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen3-VL-4B-Instruct",
-    "hf_downloads": 3916846,
-    "hf_likes": 523,
+    "hf_downloads": 3747873,
+    "hf_likes": 528,
     "ollama_default_gb": 2.33
   },
   {
@@ -2185,8 +2185,8 @@
     "vision_encoder_gb": 1.08,
     "hf_repo": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen3-VL-8B-Instruct",
-    "hf_downloads": 6966612,
-    "hf_likes": 1238,
+    "hf_downloads": 7092774,
+    "hf_likes": 1247,
     "ollama_default_gb": 4.68
   },
   {
@@ -2217,7 +2217,7 @@
     "vision_encoder_gb": 1.01,
     "hf_repo": "Qwen/Qwen3-VL-30B-A3B-Instruct-GGUF",
     "hf_id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
-    "hf_downloads": 448907,
+    "hf_downloads": 441422,
     "hf_likes": 627,
     "ollama_default_gb": 18.25
   },
@@ -2251,8 +2251,8 @@
     "vision_encoder_gb": 1.81,
     "hf_repo": "leafspark/Llama-3.2-11B-Vision-Instruct-GGUF",
     "hf_id": "meta-llama/Llama-3.2-11B-Vision-Instruct",
-    "hf_downloads": 52555,
-    "hf_likes": 1687,
+    "hf_downloads": 51329,
+    "hf_likes": 1694,
     "ollama_default_gb": 7.28
   },
   {
@@ -2285,7 +2285,7 @@
     "hf_id": "zai-org/GLM-4.5-Air",
     "license": "MIT",
     "commercial_use": "yes",
-    "hf_downloads": 1289813,
+    "hf_downloads": 1262683,
     "hf_likes": 649
   },
   {
@@ -2348,7 +2348,7 @@
     "hf_id": "THUDM/GLM-4-9B-0414",
     "license": "MIT",
     "commercial_use": "yes",
-    "hf_downloads": 19850,
+    "hf_downloads": 20922,
     "hf_likes": 111
   },
   {
@@ -2381,8 +2381,8 @@
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
     "ollama_default_gb": 0.27,
-    "hf_downloads": 78834,
-    "hf_likes": 1135
+    "hf_downloads": 90471,
+    "hf_likes": 1144
   },
   {
     "id": "lfm2-350m",
@@ -2414,7 +2414,7 @@
     "license": "LFM Open License v1.0",
     "commercial_use": "conditional",
     "license_note": "LFM Open License: free under $10M revenue; larger companies need a commercial license.",
-    "hf_downloads": 19069,
+    "hf_downloads": 16459,
     "hf_likes": 261
   },
   {
@@ -2447,7 +2447,7 @@
     "license": "LFM Open License v1.0",
     "commercial_use": "conditional",
     "license_note": "LFM Open License: free under $10M revenue; larger companies need a commercial license.",
-    "hf_downloads": 4470,
+    "hf_downloads": 4061,
     "hf_likes": 124
   },
   {
@@ -2480,7 +2480,7 @@
     "license": "LFM Open License v1.0",
     "commercial_use": "conditional",
     "license_note": "LFM Open License: free under $10M revenue; larger companies need a commercial license.",
-    "hf_downloads": 16721,
+    "hf_downloads": 15109,
     "hf_likes": 370
   },
   {
@@ -2513,7 +2513,7 @@
     "license": "apple-amlr",
     "commercial_use": "no",
     "license_note": "apple-amlr license; non-commercial / research use only.",
-    "hf_downloads": 1468,
+    "hf_downloads": 1178,
     "hf_likes": 35
   },
   {
@@ -2546,7 +2546,7 @@
     "license": "apple-amlr",
     "commercial_use": "no",
     "license_note": "apple-amlr license; non-commercial / research use only.",
-    "hf_downloads": 1191,
+    "hf_downloads": 946,
     "hf_likes": 132
   },
   {
@@ -2578,7 +2578,7 @@
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 10.35,
-    "hf_downloads": 35473,
+    "hf_downloads": 36894,
     "hf_likes": 234
   },
   {
@@ -2610,7 +2610,7 @@
     "license": "apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 14.42,
-    "hf_downloads": 181546,
+    "hf_downloads": 159325,
     "hf_likes": 1408
   },
   {
@@ -2641,7 +2641,7 @@
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 13.35,
-    "hf_downloads": 65491,
+    "hf_downloads": 52953,
     "hf_likes": 622
   },
   {
@@ -2673,7 +2673,7 @@
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 13.35,
-    "hf_downloads": 6839,
+    "hf_downloads": 6809,
     "hf_likes": 377
   },
   {
@@ -2707,8 +2707,8 @@
     "commercial_use": "conditional",
     "license_note": "Gemma Terms of Use apply to commercial use.",
     "ollama_default_gb": 7.1,
-    "hf_downloads": 12725,
-    "hf_likes": 936
+    "hf_downloads": 12310,
+    "hf_likes": 938
   },
   {
     "id": "llama-4-maverick",
@@ -2744,7 +2744,7 @@
     "aider_polyglot_pct": 15.6,
     "bfcl_v3_acc": 37.3,
     "ollama_default_gb": 228.03,
-    "hf_downloads": 11920,
+    "hf_downloads": 11894,
     "hf_likes": 520
   },
   {
@@ -2782,8 +2782,8 @@
     "commercial_use": "yes",
     "aider_polyglot_pct": 71.4,
     "ollama_default_gb": 376.65,
-    "hf_downloads": 109795,
-    "hf_likes": 2494
+    "hf_downloads": 120680,
+    "hf_likes": 2497
   },
   {
     "id": "deepseek-r1-0528-qwen3-8b",
@@ -2815,7 +2815,7 @@
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 4.87,
-    "hf_downloads": 357730,
+    "hf_downloads": 370533,
     "hf_likes": 1126
   },
   {
@@ -2847,8 +2847,8 @@
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 17.28,
-    "hf_downloads": 1203664,
-    "hf_likes": 1318
+    "hf_downloads": 1624686,
+    "hf_likes": 1323
   },
   {
     "id": "nemotron-super-49b",
@@ -2879,7 +2879,7 @@
     "license": "NVIDIA Open Model License + Llama 3.3 Community License",
     "commercial_use": "conditional",
     "license_note": "NVIDIA Open Model + Llama 3.3 Community License; check the terms for commercial use.",
-    "hf_downloads": 34055,
+    "hf_downloads": 35760,
     "hf_likes": 332
   },
   {
@@ -2911,7 +2911,7 @@
     "license": "EXAONE AI Model License Agreement 1.2 - NC",
     "commercial_use": "no",
     "license_note": "EXAONE AI Model License Agreement 1.2 - NC: non-commercial / research use only.",
-    "hf_downloads": 14796,
+    "hf_downloads": 14016,
     "hf_likes": 283
   },
   {
@@ -2944,7 +2944,7 @@
     "hf_id": "allenai/OLMo-2-0325-32B-Instruct",
     "license": "Apache-2.0",
     "commercial_use": "yes",
-    "hf_downloads": 9085,
+    "hf_downloads": 9222,
     "hf_likes": 148
   },
   {
@@ -2983,8 +2983,8 @@
     "aider_polyglot_pct": 12,
     "bfcl_v3_acc": 46.5,
     "ollama_default_gb": 62.52,
-    "hf_downloads": 1593,
-    "hf_likes": 398
+    "hf_downloads": 1691,
+    "hf_likes": 397
   },
   {
     "id": "glm-4.6",
@@ -3015,7 +3015,7 @@
     "hf_id": "zai-org/GLM-4.6",
     "license": "MIT",
     "commercial_use": "yes",
-    "hf_downloads": 25857,
+    "hf_downloads": 27363,
     "hf_likes": 1247
   },
   {
@@ -3048,8 +3048,8 @@
     "license": "apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 270.14,
-    "hf_downloads": 58422,
-    "hf_likes": 1386
+    "hf_downloads": 57916,
+    "hf_likes": 1387
   },
   {
     "id": "kimi-k2",
@@ -3085,8 +3085,8 @@
     "license_note": "Modified MIT; commercial use allowed below a large-user threshold.",
     "aider_polyglot_pct": 59.1,
     "bfcl_v3_acc": 59.1,
-    "hf_downloads": 311373,
-    "hf_likes": 3008
+    "hf_downloads": 277334,
+    "hf_likes": 3010
   },
   {
     "id": "hunyuan-a13b",
@@ -3119,7 +3119,7 @@
     "license": "tencent-hunyuan-community",
     "commercial_use": "conditional",
     "license_note": "Tencent Hunyuan Community License; restricted in the EU and above 100M MAU.",
-    "hf_downloads": 66772,
+    "hf_downloads": 68666,
     "hf_likes": 795
   },
   {
@@ -3149,7 +3149,7 @@
     "hf_id": "ByteDance-Seed/Seed-OSS-36B-Instruct",
     "license": "apache-2.0",
     "commercial_use": "yes",
-    "hf_downloads": 40687,
+    "hf_downloads": 40976,
     "hf_likes": 506
   },
   {
@@ -3180,7 +3180,7 @@
     "hf_id": "baidu/ERNIE-4.5-21B-A3B-PT",
     "license": "Apache-2.0",
     "commercial_use": "yes",
-    "hf_downloads": 14708,
+    "hf_downloads": 15407,
     "hf_likes": 178
   },
   {
@@ -3211,7 +3211,7 @@
     "hf_id": "MiniMaxAI/MiniMax-M1-80k",
     "license": "Apache-2.0",
     "commercial_use": "yes",
-    "hf_downloads": 1850,
+    "hf_downloads": 1951,
     "hf_likes": 692
   },
   {
@@ -3244,7 +3244,7 @@
     "license": "nvidia-open-model-license",
     "commercial_use": "conditional",
     "license_note": "NVIDIA Open Model License; check the terms for commercial use.",
-    "hf_downloads": 141137,
+    "hf_downloads": 104737,
     "hf_likes": 532
   },
   {
@@ -3276,7 +3276,7 @@
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 2.94,
-    "hf_downloads": 37513,
+    "hf_downloads": 36464,
     "hf_likes": 252
   },
   {
@@ -3311,7 +3311,7 @@
     "license": "falcon-llm",
     "commercial_use": "conditional",
     "license_note": "Falcon LLM license; permissive but check the terms.",
-    "hf_downloads": 2943,
+    "hf_downloads": 3303,
     "hf_likes": 53
   },
   {
@@ -3342,7 +3342,7 @@
     "hf_id": "rednote-hilab/dots.llm1.inst",
     "license": "MIT",
     "commercial_use": "yes",
-    "hf_downloads": 1103,
+    "hf_downloads": 981,
     "hf_likes": 181
   },
   {
@@ -3370,8 +3370,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "google/gemma-4-E2B-it",
-    "hf_downloads": 3265354,
-    "hf_likes": 1102,
+    "hf_downloads": 3129495,
+    "hf_likes": 1117,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 3.26
@@ -3401,8 +3401,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "google/gemma-4-E4B-it",
-    "hf_downloads": 4137884,
-    "hf_likes": 1823,
+    "hf_downloads": 4219071,
+    "hf_likes": 1844,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 5.12
@@ -3432,8 +3432,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "google/gemma-4-12B-it",
-    "hf_downloads": 1757887,
-    "hf_likes": 1714,
+    "hf_downloads": 1813366,
+    "hf_likes": 1729,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 6.87
@@ -3464,8 +3464,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "google/gemma-4-26B-A4B-it",
-    "hf_downloads": 5871104,
-    "hf_likes": 1731,
+    "hf_downloads": 5506751,
+    "hf_likes": 1749,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 15.9
@@ -3495,8 +3495,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "google/gemma-4-31B-it",
-    "hf_downloads": 8012782,
-    "hf_likes": 4280,
+    "hf_downloads": 7079469,
+    "hf_likes": 4324,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 17.39
@@ -3526,8 +3526,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen3.6-27B",
-    "hf_downloads": 2274606,
-    "hf_likes": 2345,
+    "hf_downloads": 2349158,
+    "hf_likes": 2351,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 15.68
@@ -3558,8 +3558,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen3.6-35B-A3B",
-    "hf_downloads": 4530442,
-    "hf_likes": 3072,
+    "hf_downloads": 4209694,
+    "hf_likes": 3108,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 20.23
@@ -3590,8 +3590,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "Qwen/Qwen-AgentWorld-35B-A3B",
-    "hf_downloads": 9803,
-    "hf_likes": 744,
+    "hf_downloads": 10043,
+    "hf_likes": 747,
     "license": "Apache-2.0",
     "commercial_use": "yes"
   },
@@ -3621,8 +3621,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "zai-org/GLM-5.2",
-    "hf_downloads": 318820,
-    "hf_likes": 5197,
+    "hf_downloads": 320374,
+    "hf_likes": 5205,
     "license": "MIT",
     "commercial_use": "yes"
   },
@@ -3650,8 +3650,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "poolside/Laguna-XS-2.1",
-    "hf_downloads": 761943,
-    "hf_likes": 265,
+    "hf_downloads": 699747,
+    "hf_likes": 267,
     "license": "OpenMDW-1.1",
     "commercial_use": "yes",
     "ollama_default_gb": 18.88
@@ -3682,8 +3682,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepreinforce-ai/Ornith-1.0-9B",
-    "hf_downloads": 802499,
-    "hf_likes": 566,
+    "hf_downloads": 813991,
+    "hf_likes": 568,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 5.24
@@ -3714,7 +3714,7 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepreinforce-ai/Ornith-1.0-35B",
-    "hf_downloads": 1457294,
+    "hf_downloads": 1477918,
     "hf_likes": 519,
     "license": "MIT",
     "commercial_use": "yes",
@@ -3745,8 +3745,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "CohereLabs/North-Mini-Code-1.0",
-    "hf_downloads": 8228,
-    "hf_likes": 586,
+    "hf_downloads": 8301,
+    "hf_likes": 588,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 17.32
@@ -3777,8 +3777,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "LiquidAI/LFM2.5-8B-A1B",
-    "hf_downloads": 30764,
-    "hf_likes": 805,
+    "hf_downloads": 27543,
+    "hf_likes": 807,
     "license": "LFM Open License v1.0",
     "commercial_use": "conditional",
     "license_note": "LFM Open License: free under $10M revenue; larger companies need a commercial license.",
@@ -3809,8 +3809,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "LiquidAI/LFM2.5-1.2B-Instruct",
-    "hf_downloads": 122702,
-    "hf_likes": 684,
+    "hf_downloads": 113839,
+    "hf_likes": 685,
     "license": "LFM Open License v1.0",
     "commercial_use": "conditional",
     "license_note": "LFM Open License: free under $10M revenue; larger companies need a commercial license."
@@ -3839,8 +3839,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "ibm-granite/granite-4.1-3b",
-    "hf_downloads": 542955,
-    "hf_likes": 119,
+    "hf_downloads": 524488,
+    "hf_likes": 118,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 1.96
@@ -3869,7 +3869,7 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "ibm-granite/granite-4.1-8b",
-    "hf_downloads": 95264,
+    "hf_downloads": 95390,
     "hf_likes": 257,
     "license": "Apache-2.0",
     "commercial_use": "yes",
@@ -3899,7 +3899,7 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "ibm-granite/granite-4.1-30b",
-    "hf_downloads": 14291,
+    "hf_downloads": 12525,
     "hf_likes": 148,
     "license": "Apache-2.0",
     "commercial_use": "yes",
@@ -3930,8 +3930,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "openbmb/MiniCPM-V-4_6",
-    "hf_downloads": 199239,
-    "hf_likes": 1249,
+    "hf_downloads": 182931,
+    "hf_likes": 1250,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 0.49
@@ -3960,8 +3960,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "moonshotai/Kimi-K2.6",
-    "hf_downloads": 246985,
-    "hf_likes": 1640,
+    "hf_downloads": 222709,
+    "hf_likes": 1641,
     "license": "Modified MIT",
     "commercial_use": "conditional",
     "license_note": "Modified MIT; commercial use allowed below a large-user threshold, attribution above it."
@@ -3990,8 +3990,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "moonshotai/Kimi-K2.7-Code",
-    "hf_downloads": 79446,
-    "hf_likes": 1428,
+    "hf_downloads": 90281,
+    "hf_likes": 1430,
     "license": "Modified MIT",
     "commercial_use": "conditional",
     "license_note": "Modified MIT; commercial use allowed below a large-user threshold, attribution above it."
@@ -4021,8 +4021,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepseek-ai/DeepSeek-V4-Flash",
-    "hf_downloads": 1080069,
-    "hf_likes": 2365,
+    "hf_downloads": 1151336,
+    "hf_likes": 2381,
     "license": "MIT",
     "commercial_use": "yes"
   },
@@ -4050,8 +4050,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "deepseek-ai/DeepSeek-V4-Pro",
-    "hf_downloads": 353642,
-    "hf_likes": 5694,
+    "hf_downloads": 335647,
+    "hf_likes": 5700,
     "license": "MIT",
     "commercial_use": "yes"
   },
@@ -4079,8 +4079,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "MiniMaxAI/MiniMax-M3",
-    "hf_downloads": 183944,
-    "hf_likes": 1601,
+    "hf_downloads": 148023,
+    "hf_likes": 1600,
     "license": "MiniMax Community License",
     "commercial_use": "conditional",
     "license_note": "MiniMax Community License: free for most uses; very large deployments need a separate license."
@@ -4111,7 +4111,7 @@
     "arena_rank": null,
     "hf_repo": "nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF",
     "hf_id": "nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF",
-    "hf_downloads": 21795,
+    "hf_downloads": 21586,
     "hf_likes": 224,
     "license": "nvidia-nemotron-open-model-license",
     "commercial_use": "conditional",
@@ -4144,7 +4144,7 @@
     "arena_rank": null,
     "hf_repo": "bartowski/nvidia_Nemotron-3-Nano-30B-A3B-GGUF",
     "hf_id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
-    "hf_downloads": 1685362,
+    "hf_downloads": 1586743,
     "hf_likes": 840,
     "license": "nvidia-nemotron-open-model-license",
     "commercial_use": "conditional",
@@ -4177,8 +4177,8 @@
     "arena_rank": null,
     "hf_repo": "unsloth/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF",
     "hf_id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
-    "hf_downloads": 1109701,
-    "hf_likes": 440,
+    "hf_downloads": 1042412,
+    "hf_likes": 439,
     "license": "nvidia-nemotron-open-model-license",
     "commercial_use": "conditional",
     "license_note": "NVIDIA Nemotron Open Model License; check the terms for commercial use.",
@@ -4210,8 +4210,8 @@
     "arena_rank": null,
     "hf_repo": "unsloth/NVIDIA-Nemotron-3-Ultra-550B-A55B-GGUF",
     "hf_id": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
-    "hf_downloads": 1351170,
-    "hf_likes": 381,
+    "hf_downloads": 1067799,
+    "hf_likes": 384,
     "license": "OpenMDW-1.1",
     "commercial_use": "yes"
   },
@@ -4241,8 +4241,8 @@
     "arena_rank": null,
     "hf_repo": "bartowski/nvidia_Nemotron-Cascade-2-30B-A3B-GGUF",
     "hf_id": "nvidia/Nemotron-Cascade-2-30B-A3B",
-    "hf_downloads": 10129,
-    "hf_likes": 532,
+    "hf_downloads": 10029,
+    "hf_likes": 530,
     "license": "nvidia-open-model-license",
     "commercial_use": "conditional",
     "license_note": "NVIDIA Open Model License; check the terms for commercial use.",
@@ -4273,7 +4273,7 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "LiquidAI/LFM2-24B-A2B",
-    "hf_downloads": 3547,
+    "hf_downloads": 3643,
     "hf_likes": 357,
     "license": "LFM Open License v1.0",
     "commercial_use": "conditional",
@@ -4306,7 +4306,7 @@
     "arena_rank": null,
     "hf_repo": "bartowski/allenai_Olmo-3.1-32B-Instruct-GGUF",
     "hf_id": "allenai/Olmo-3.1-32B-Instruct",
-    "hf_downloads": 21287,
+    "hf_downloads": 21060,
     "hf_likes": 88,
     "license": "Apache-2.0",
     "commercial_use": "yes",
@@ -4338,8 +4338,8 @@
     "arena_rank": null,
     "hf_repo": "unsloth/GLM-4.7-Flash-GGUF",
     "hf_id": "zai-org/GLM-4.7-Flash",
-    "hf_downloads": 956392,
-    "hf_likes": 1892,
+    "hf_downloads": 1049764,
+    "hf_likes": 1897,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 17.71
@@ -4370,7 +4370,7 @@
     "arena_rank": null,
     "hf_repo": "poolside/Laguna-S-2.1-GGUF",
     "hf_id": "poolside/Laguna-S-2.1",
-    "hf_downloads": 621812,
+    "hf_downloads": 574986,
     "hf_likes": 1077,
     "license": "OpenMDW-1.1",
     "commercial_use": "yes",
@@ -4401,7 +4401,7 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "LiquidAI/LFM2.5-1.2B-Thinking",
-    "hf_downloads": 8102,
+    "hf_downloads": 8483,
     "hf_likes": 407,
     "license": "LFM Open License v1.0",
     "commercial_use": "conditional",
@@ -4434,8 +4434,8 @@
     "arena_rank": null,
     "hf_repo": "bartowski/Muse-Glimmer-30B-GGUF",
     "hf_id": "meta-models/Muse-Glimmer-30B",
-    "hf_downloads": 189693,
-    "hf_likes": 2112,
+    "hf_downloads": 179133,
+    "hf_likes": 2127,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 15.61
@@ -4466,8 +4466,8 @@
     "arena_rank": null,
     "hf_repo": "bartowski/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
     "hf_id": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16",
-    "hf_downloads": 1136444,
-    "hf_likes": 264,
+    "hf_downloads": 1082506,
+    "hf_likes": 271,
     "license": "OpenMDW-1.1",
     "commercial_use": "yes",
     "ollama_default_gb": 23.68
@@ -4498,8 +4498,8 @@
     "arena_rank": null,
     "hf_repo": "unsloth/Qwen3.8-27B-GGUF",
     "hf_id": "Qwen/Qwen3.8-27B",
-    "hf_downloads": 8014877,
-    "hf_likes": 19049,
+    "hf_downloads": 7508158,
+    "hf_likes": 19459,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 15.66
@@ -4528,8 +4528,8 @@
     "arena_elo": null,
     "arena_rank": null,
     "hf_id": "moonshotai/Kimi-K3",
-    "hf_downloads": 779427,
-    "hf_likes": 11925,
+    "hf_downloads": 742400,
+    "hf_likes": 11959,
     "license": "Modified MIT",
     "commercial_use": "conditional",
     "license_note": "Kimi K3 License (MIT-style); products over 100M MAU or 20M USD monthly revenue owe attribution, and Model-as-a-Service businesses over 20M USD yearly revenue have extra terms."
@@ -4560,8 +4560,8 @@
     "arena_rank": null,
     "hf_repo": "ornith-ai/Ornith-1.5-9B-GGUF",
     "hf_id": "ornith-ai/Ornith-1.5-9B",
-    "hf_downloads": 478112,
-    "hf_likes": 406,
+    "hf_downloads": 517918,
+    "hf_likes": 411,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 5.24
@@ -4592,8 +4592,8 @@
     "arena_rank": null,
     "hf_repo": "ornith-ai/Ornith-1.5-35B-A3B-GGUF",
     "hf_id": "ornith-ai/Ornith-1.5-35B-A3B",
-    "hf_downloads": 278093,
-    "hf_likes": 773,
+    "hf_downloads": 286024,
+    "hf_likes": 784,
     "license": "MIT",
     "commercial_use": "yes",
     "ollama_default_gb": 20.22
@@ -4624,7 +4624,7 @@
     "arena_rank": null,
     "hf_repo": "unsloth/Olmo-3-7B-Instruct-GGUF",
     "hf_id": "allenai/Olmo-3-7B-Instruct",
-    "hf_downloads": 199431,
+    "hf_downloads": 196306,
     "hf_likes": 159,
     "license": "Apache-2.0",
     "commercial_use": "yes",
@@ -4656,8 +4656,8 @@
     "arena_rank": null,
     "hf_repo": "unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF",
     "hf_id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
-    "hf_downloads": 131254,
-    "hf_likes": 713,
+    "hf_downloads": 59177,
+    "hf_likes": 714,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 14.14
@@ -4688,7 +4688,7 @@
     "arena_rank": null,
     "hf_repo": "unsloth/Devstral-2-123B-Instruct-2512-GGUF",
     "hf_id": "mistralai/Devstral-2-123B-Instruct-2512",
-    "hf_downloads": 6284,
+    "hf_downloads": 6609,
     "hf_likes": 360,
     "license": "Modified MIT",
     "commercial_use": "conditional",
@@ -4721,8 +4721,8 @@
     "arena_rank": null,
     "hf_repo": "mistralai/Ministral-3-3B-Instruct-2512-GGUF",
     "hf_id": "mistralai/Ministral-3-3B-Instruct-2512",
-    "hf_downloads": 73095,
-    "hf_likes": 316,
+    "hf_downloads": 66470,
+    "hf_likes": 317,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 2.75
@@ -4753,8 +4753,8 @@
     "arena_rank": null,
     "hf_repo": "mistralai/Ministral-3-8B-Instruct-2512-GGUF",
     "hf_id": "mistralai/Ministral-3-8B-Instruct-2512",
-    "hf_downloads": 99693,
-    "hf_likes": 236,
+    "hf_downloads": 93972,
+    "hf_likes": 238,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 5.61
@@ -4785,8 +4785,8 @@
     "arena_rank": null,
     "hf_repo": "mistralai/Ministral-3-14B-Instruct-2512-GGUF",
     "hf_id": "mistralai/Ministral-3-14B-Instruct-2512",
-    "hf_downloads": 155273,
-    "hf_likes": 351,
+    "hf_downloads": 177365,
+    "hf_likes": 352,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 8.46
@@ -4817,7 +4817,7 @@
     "arena_rank": null,
     "hf_repo": "unsloth/rnj-1-instruct-GGUF",
     "hf_id": "EssentialAI/rnj-1-instruct",
-    "hf_downloads": 2133,
+    "hf_downloads": 2865,
     "hf_likes": 325,
     "license": "Apache-2.0",
     "commercial_use": "yes",
@@ -4852,8 +4852,8 @@
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 2.09,
-    "hf_downloads": 33814,
-    "hf_likes": 127
+    "hf_downloads": 37414,
+    "hf_likes": 131
   },
   {
     "id": "granite-4.2-8b",
@@ -4884,8 +4884,8 @@
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 4.98,
-    "hf_downloads": 71150,
-    "hf_likes": 112
+    "hf_downloads": 59763,
+    "hf_likes": 117
   },
   {
     "id": "granite-4.2-30b",
@@ -4916,7 +4916,7 @@
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "ollama_default_gb": 16.5,
-    "hf_downloads": 31994,
+    "hf_downloads": 36840,
     "hf_likes": 140
   },
   {
@@ -4945,8 +4945,8 @@
     "arena_rank": null,
     "hf_repo": "unsloth/GLM-5.3-Flash-GGUF",
     "hf_id": "zai-org/GLM-5.3-Flash",
-    "hf_downloads": 6316631,
-    "hf_likes": 3034,
+    "hf_downloads": 6388408,
+    "hf_likes": 3099,
     "license": "MIT",
     "commercial_use": "yes"
   },
@@ -4976,8 +4976,8 @@
     "arena_rank": null,
     "hf_repo": "Qwen/Qwen3-Coder-Next-GGUF",
     "hf_id": "Qwen/Qwen3-Coder-Next",
-    "hf_downloads": 431382,
-    "hf_likes": 1730,
+    "hf_downloads": 426195,
+    "hf_likes": 1739,
     "license": "Apache-2.0",
     "commercial_use": "yes",
     "subtype": "coder",
@@ -5014,8 +5014,8 @@
       "https://ollama.com/library/flint:40b"
     ],
     "notes": "Recursive coding MoE: 39.8B total and approximately 2.5B active including the output head. Q4_K_M (25,346,651,360 bytes) and Q8_0 (42,350,359,776 bytes) are measured bartowski GGUFs, converted to GiB. The separately measured Ollama default model is NVFP4 (22,863,084,160 bytes), not this Q4_K_M artifact. The vendor documents 262,144 tokens.",
-    "hf_downloads": 32677,
-    "hf_likes": 1316
+    "hf_downloads": 45981,
+    "hf_likes": 1381
   },
   {
     "id": "nemotron-3.5-bolt-e4b",
@@ -5051,8 +5051,8 @@
       "https://registry.ollama.ai/v2/library/nemotron-3.5-bolt/manifests/e4b-bf16"
     ],
     "notes": "Dense Gemma 4 derivative with 8B total and 4B effective parameters, not a MoE. Measured Ollama GGUF totals include the model, combined vision/audio projector (991,551,808 bytes), and default DFlash draft (736,812,096 bytes): Q4_K_M 7,908,810,112 bytes, Q8_0 9,759,607,744 bytes, BF16 16,781,462,464 bytes, converted to GiB. The NVIDIA quant repository contains only the main model; projector and draft sizes come from the Ollama manifests. Vendor context is 65,536 tokens; the Ollama 128K label is not used. The bare Ollama slug selects a different 74B IQ2 model; use the explicit E4B tag.",
-    "hf_downloads": 12658,
-    "hf_likes": 64
+    "hf_downloads": 24719,
+    "hf_likes": 67
   },
   {
     "id": "nemotron-3.5-super-120b-a12b",
@@ -5085,8 +5085,8 @@
       "https://registry.ollama.ai/v2/library/nemotron-3.5-super/manifests/120b-a12b-q4_K_M"
     ],
     "notes": "Vision-language Mamba/Transformer MoE: 120B total and 12B active, vendor context 1,048,576 tokens. Q4_K_M uses the exact Ollama model layer (88,419,818,592 bytes) plus the vision projector (1,733,696,896 bytes), converted to GiB. This combined footprint matches the install command. Context memory remains the calculator estimate.",
-    "hf_downloads": 61647,
-    "hf_likes": 112
+    "hf_downloads": 72158,
+    "hf_likes": 119
   },
   {
     "id": "lfm3-1.7b",
@@ -5120,8 +5120,8 @@
     ],
     "hf_repo": "LiquidAI/LFM3-1.7B-GGUF",
     "notes": "Liquid hybrid convolution/attention text model with 1.73B parameters and a 262,144-token vendor context. Measured official GGUF files: Q4_K_M 1,099,627,808 bytes, Q8_0 1,846,238,496 bytes and BF16 3,466,626,336 bytes, converted to GiB. Ollama Q4 matches the vendor file. Context memory uses the existing conservative calculator estimate.",
-    "hf_downloads": 47817,
-    "hf_likes": 1347
+    "hf_downloads": 78750,
+    "hf_likes": 1568
   },
   {
     "id": "lfm3-vl-2b",
@@ -5156,8 +5156,8 @@
     "subtype": "vlm",
     "vision_encoder_gb": 0.35,
     "notes": "Liquid vision-language model. Measured official GGUF totals include the 378,996,032-byte BF16 vision projector: Q4_K_M 1,478,623,840 bytes, Q8_0 2,225,234,528 bytes, BF16 3,845,622,368 bytes, converted to GiB. The vendor text config specifies 128,000 tokens (125 Ki tokens), despite the prose 128K label. Text and image inputs; memory includes the complete encoder. Runtime memory and speed remain estimates.",
-    "hf_downloads": 11153,
-    "hf_likes": 223
+    "hf_downloads": 16686,
+    "hf_likes": 269
   },
   {
     "id": "lfm3-omni-2b",
@@ -5192,7 +5192,7 @@
       "https://ollama.com/library/lfm3-omni:2b"
     ],
     "notes": "Liquid omni model, 2.17B total parameters. Measured official GGUF totals include the full BF16 vision/audio projector (949,841,248 bytes): Q4_K_M 2,049,471,328 bytes, Q8_0 2,796,082,016 bytes, BF16 4,416,469,856 bytes, converted to GiB. The vendor text config specifies 128,000 tokens; the prose card states 32K. This fit estimates text/image use with the complete encoder weights, not measured speech-pipeline peak memory. llama.cpp v0.8.0 or newer supports the model; the vendor requires reasoning off.",
-    "hf_downloads": 11662,
-    "hf_likes": 328
+    "hf_downloads": 17262,
+    "hf_likes": 426
   }
 ]
