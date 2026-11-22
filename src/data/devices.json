@@ -958,5 +958,75 @@
       "https://forums.developer.nvidia.com/t/memory-creep-on-dgx-spark-where-your-128-gb-actually-goes-and-how-to-stop-it/364886"
     ],
     "notes": "GB10 Grace Blackwell: 128GB LPDDR5X unified memory on a 256-bit bus, 273 GB/s (256 x 8533 / 8). The OS sees about 121 GiB on NVIDIA's own unit and 119 GiB on some OEM boxes (firmware carveout plus a 2 GB default UEFI display reservation); DGX OS with the desktop uses about 6-7 GB at idle. Usable is set to 112GB (119 minus 7), which holds across GB10 boxes. NVIDIA publishes no fixed GPU cap; nvidia-smi shows N/A for memory, so check free -g. tdp_w is NVIDIA's stated GB10 SoC TDP (CPU and GPU combined); the box ships with a 240W power supply. $3,999 launch price (Oct 2025). Ships DGX OS (Linux). Bandwidth limits dense models; MoE models are the sweet spot."
+  },
+  {
+    "id": "apple-m5-ultra-256gb",
+    "name": "Apple M5 Ultra (256GB)",
+    "category": "mac",
+    "memory_gb": 256,
+    "memory_type": "unified",
+    "usable_memory_gb": 192,
+    "bandwidth_gbs": 1200,
+    "msrp_usd": 9499,
+    "tdp_w": 480,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://www.apple.com/mac-studio/specs/",
+      "https://www.apple.com/bw/newsroom/2026/08/apple-introduces-mac-studio-with-m5-max-and-m5-ultra/",
+      "https://daringfireball.net/2026/08/configurations_and_pricing_for_new_mac_minis_and_mac_studios"
+    ],
+    "notes": "Mac Studio M5 Ultra (30-core CPU, 64-core GPU), 256GB unified memory. Apple lists 1.2TB/s bandwidth (1200 GB/s used here) and 480W maximum continuous power for the whole machine. 75% rule at >=64GB = ~192GB usable. Price is the full configuration: $5,499 M5 Ultra start (96GB, 1TB; Apple press release, 2026-08-25) plus the $4,000 256GB upgrade (Daring Fireball's configurator table); the 256GB upgrade price is not on Apple's own pages. Shipped 2026-09-22. A 512GB config was announced for late October. Runs 405B-class dense models at Q4 and 235B-class MoE at Q8."
+  },
+  {
+    "id": "apple-m5-pro-mac-mini-64gb",
+    "name": "Apple M5 Pro Mac mini (64GB)",
+    "category": "mac",
+    "memory_gb": 64,
+    "memory_type": "unified",
+    "usable_memory_gb": 48,
+    "bandwidth_gbs": 307,
+    "msrp_usd": 2699,
+    "best_runtime": "MLX direct / Ollama (MLX backend)",
+    "sources": [
+      "https://www.apple.com/mac-mini/specs/",
+      "https://www.apple.com/newsroom/2026/08/apple-unveils-a-more-powerful-mac-mini-featuring-the-all-new-m6-and-m5-pro/",
+      "https://daringfireball.net/2026/08/configurations_and_pricing_for_new_mac_minis_and_mac_studios"
+    ],
+    "notes": "Mac mini with M5 Pro (24GB base, configurable to 48GB or 64GB), 307GB/s. 75% rule at 64GB = ~48GB usable. Price is the full configuration: $1,699 M5 Pro start (Apple press release, 2026-08-25) plus the $1,000 64GB upgrade (Daring Fireball's configurator table); the upgrade price is not on Apple's own pages. Apple lists 155W maximum continuous power for the Mac mini line. Shipped 2026-09-22. Cheapest way to hold a 70B at Q4 in Apple silicon memory; bandwidth keeps dense 70B slow, MoE models suit it better."
+  },
+  {
+    "id": "amd-radeon-ai-pro-r9700-32gb",
+    "name": "AMD Radeon AI PRO R9700 (32GB)",
+    "category": "amd",
+    "memory_gb": 32,
+    "memory_type": "vram",
+    "usable_memory_gb": 31,
+    "bandwidth_gbs": 640,
+    "msrp_usd": 1299,
+    "tdp_w": 300,
+    "best_runtime": "llama.cpp (ROCm/Vulkan) / Ollama (ROCm)",
+    "sources": [
+      "https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html",
+      "https://www.amd.com/en/newsroom/press-releases/2025-5-20-amd-introduces-new-radeon-graphics-cards-and-ryzen.html"
+    ],
+    "notes": "RDNA 4 workstation card: 32GB GDDR6 on a 256-bit bus, 640 GB/s, 300W total board power (AMD). $1,299 MSRP per AMD's launch footnote (Oct 2025); street price differs. Twice the VRAM of the RX 9070 XT on the same Navi 48 die. ~1GB reserved = ~31GB usable. Fits 32B Q4_K_M with long context, or 70B at low-bit quants."
+  },
+  {
+    "id": "intel-arc-pro-b70-32gb",
+    "name": "Intel Arc Pro B70 (32GB)",
+    "category": "intel",
+    "memory_gb": 32,
+    "memory_type": "vram",
+    "usable_memory_gb": 31,
+    "bandwidth_gbs": 608,
+    "msrp_usd": 949,
+    "tdp_w": 230,
+    "best_runtime": "llama.cpp (SYCL/Vulkan) / OpenVINO",
+    "sources": [
+      "https://www.intel.com/content/www/us/en/products/sku/245797/intel-arc-pro-b70-graphics/specifications.html",
+      "https://www.intel.com/content/dam/www/central-libraries/us/en/documents/2026-03/datasheet-b70-gpu.pdf",
+      "https://hothardware.com/news/intel-arc-pro-b70-b65-cards-debut"
+    ],
+    "notes": "Xe2 'Big Battlemage' workstation card, launched 2026-03-25: 32GB GDDR6 on a 256-bit bus, 608 GB/s (Intel spec page). 230W is Intel's reference-card TBP; partner cards range 160-290W. $949 is the launch price for Intel's reference card (HotHardware; not on Intel's spec page). ~1GB reserved = ~31GB usable. The cheapest 32GB GPU; Intel's SYCL/OpenVINO paths are less mature than CUDA."
   }
 ]

@@ -114,3 +114,10 @@ nimble   # decision scorer, not general generation
 mimo-v2.6-pro   # complete Q4_K_M plus projector is 620690860864 bytes, beyond tracked hardware
 mimo-v2.6-flash   # verified MXFP4/Q2 exports, but no complete comparable Q4_K_M in inspected GGUF repos
 lfm3-audio   # in audio catalog as lfm3-audio-2b; measured Q8_0 audio.cpp profile, not the default Ollama Q4 package
+
+# Triaged 2026-11-22 freshness check.
+inkling-2-small   # Ollama lists cloud only; open weights are 594B and the verified Q4_K_M is 369 GB (bartowski), beyond tracked hardware
+hy4   # Ollama lists cloud only; 774B, verified Q4_K_M is 470 GB (AngelSlim/Hy4-GGUF), beyond tracked hardware
+kimi-k3.1-pro   # Ollama lists cloud only; 2.81T parameters, smallest verified GGUFs are 593 GB+ (IQ1_S), no comparable Q4_K_M, beyond tracked hardware
+autotrust-jev   # decision scorer, not general generation
+pplx-decider-flash   # decision scorer, not general generation

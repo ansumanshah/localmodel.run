@@ -92,7 +92,7 @@ async function checkPage(browser, url) {
     r.status = resp ? resp.status() : 0;
     const d = await page.evaluate(() => {
       const el = document.documentElement, vw = el.clientWidth;
-      let worst = null, max = vw;
+      let worst = null, max = vw, clippedWorst = null, cmax = vw;
       for (const node of document.querySelectorAll("body *")) {
         const rc = node.getBoundingClientRect();
         if (rc.right > max + 1) {
@@ -101,11 +101,29 @@ async function checkPage(browser, url) {
             if (/(hidden|auto|scroll|clip)/.test(getComputedStyle(p).overflowX)) { clipped = true; break; }
             p = p.parentElement;
           }
-          if (!clipped) { max = rc.right; worst = { tag: node.tagName.toLowerCase(), cls: (node.className || "").toString().slice(0, 48), right: Math.round(rc.right) }; }
+          const info = { tag: node.tagName.toLowerCase(), cls: (node.className || "").toString().slice(0, 48), right: Math.round(rc.right), text: (node.textContent || "").trim().slice(0, 40) };
+          if (!clipped) { max = rc.right; worst = info; }
+          // Absolute children can escape a clipping ancestor that is not their containing block.
+          else if (rc.right > cmax) { cmax = rc.right; clippedWorst = { clipped: true, ...info }; }
+        }
+      }
+      // No box crosses the edge: look for text spilling out of its box (a long unbroken word).
+      let textWorst = null;
+      if (!worst && !clippedWorst && el.scrollWidth > vw + 1) {
+        const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const range = document.createRange();
+        let tmax = vw, n;
+        while ((n = walk.nextNode())) {
+          if (!n.textContent.trim()) continue;
+          range.selectNodeContents(n);
+          for (const rc of range.getClientRects()) if (rc.right > tmax) {
+            tmax = rc.right;
+            textWorst = { text: n.textContent.trim().slice(0, 60), parent: n.parentElement.tagName.toLowerCase() + "." + (n.parentElement.className || "").toString().slice(0, 48), right: Math.round(rc.right) };
+          }
         }
       }
       const nav = document.querySelector(".gh-nav");
-      return { sw: el.scrollWidth, cw: vw, navDisplay: nav ? getComputedStyle(nav).display : "none", bodyLen: document.body.innerText.length, worst };
+      return { sw: el.scrollWidth, cw: vw, navDisplay: nav ? getComputedStyle(nav).display : "none", bodyLen: document.body.innerText.length, worst: worst ?? clippedWorst ?? textWorst };
     });
     r.overflow = d.sw - d.cw;
     r.navHidden = d.navDisplay === "none";

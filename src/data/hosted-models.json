@@ -5,14 +5,32 @@
     "provider": "OpenAI",
     "providerModelId": "gpt-6-astra",
     "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
-    "verifiedAt": "2026-09-27",
+    "verifiedAt": "2026-11-22",
     "accessNote": "Available through the OpenAI API.",
     "pricing": {
       "inputPerMillion": 10,
       "outputPerMillion": 50,
       "cacheReadPerMillion": 1,
       "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
-      "verifiedAt": "2026-09-27",
+      "verifiedAt": "2026-11-22",
+      "validThrough": null,
+      "notes": "Standard text rates. Requests over 272K input tokens have higher rates; cache writes and tools are excluded."
+    }
+  },
+  {
+    "id": "gpt-6.2-astra",
+    "name": "GPT-6.2 Astra",
+    "provider": "OpenAI",
+    "providerModelId": "gpt-6.2-astra",
+    "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+    "verifiedAt": "2026-11-22",
+    "accessNote": "Available through the OpenAI API.",
+    "pricing": {
+      "inputPerMillion": 8,
+      "outputPerMillion": 40,
+      "cacheReadPerMillion": 0.4,
+      "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+      "verifiedAt": "2026-11-22",
       "validThrough": null,
       "notes": "Standard text rates. Requests over 272K input tokens have higher rates; cache writes and tools are excluded."
     }
@@ -23,14 +41,14 @@
     "provider": "Anthropic",
     "providerModelId": "claude-opus-5",
     "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
-    "verifiedAt": "2026-09-27",
+    "verifiedAt": "2026-11-22",
     "accessNote": "Active legacy model on the Claude API, with retirement no sooner than July 24, 2027.",
     "pricing": {
       "inputPerMillion": 5,
       "outputPerMillion": 25,
       "cacheReadPerMillion": 0.5,
       "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
-      "verifiedAt": "2026-09-27",
+      "verifiedAt": "2026-11-22",
       "validThrough": null,
       "notes": "Standard Claude API rates. Cache writes, batch discounts, fast mode, and US inference pricing are excluded."
     }
@@ -41,14 +59,14 @@
     "provider": "Anthropic",
     "providerModelId": "claude-opus-5-5",
     "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
-    "verifiedAt": "2026-09-27",
+    "verifiedAt": "2026-11-22",
     "accessNote": "Current Claude Opus model on the Claude API.",
     "pricing": {
       "inputPerMillion": 4,
       "outputPerMillion": 20,
       "cacheReadPerMillion": 0.2,
       "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
-      "verifiedAt": "2026-09-27",
+      "verifiedAt": "2026-11-22",
       "validThrough": null,
       "notes": "Standard Claude API rates. Cache writes, batch discounts, fast mode, and US inference pricing are excluded."
     }
@@ -59,14 +77,68 @@
     "provider": "Anthropic",
     "providerModelId": "claude-sonnet-5",
     "sourceUrl": "https://platform.claude.com/docs/en/models/overview",
-    "verifiedAt": "2026-09-27",
+    "verifiedAt": "2026-11-22",
     "accessNote": "Current Claude API model.",
     "pricing": {
       "inputPerMillion": 2,
       "outputPerMillion": 10,
       "cacheReadPerMillion": 0.2,
       "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "verifiedAt": "2026-09-27",
+      "verifiedAt": "2026-11-22",
+      "validThrough": null,
+      "notes": "Standard Claude API rates. Cache writes, batch discounts, fast mode, and US inference pricing are excluded."
+    }
+  },
+  {
+    "id": "claude-sonnet-5-5",
+    "name": "Claude Sonnet 5.5",
+    "provider": "Anthropic",
+    "providerModelId": "claude-sonnet-5-5",
+    "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "verifiedAt": "2026-11-22",
+    "accessNote": "Current Claude Sonnet model on the Claude API.",
+    "pricing": {
+      "inputPerMillion": 2,
+      "outputPerMillion": 10,
+      "cacheReadPerMillion": 0.1,
+      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "verifiedAt": "2026-11-22",
+      "validThrough": null,
+      "notes": "Standard Claude API rates. Cache writes, batch discounts, fast mode, and US inference pricing are excluded."
+    }
+  },
+  {
+    "id": "claude-haiku-5-5",
+    "name": "Claude Haiku 5.5",
+    "provider": "Anthropic",
+    "providerModelId": "claude-haiku-5-5",
+    "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "verifiedAt": "2026-11-22",
+    "accessNote": "Current Claude Haiku model on the Claude API.",
+    "pricing": {
+      "inputPerMillion": 0.1,
+      "outputPerMillion": 0.5,
+      "cacheReadPerMillion": 0.01,
+      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "verifiedAt": "2026-11-22",
+      "validThrough": null,
+      "notes": "Rates for prompts up to 100K tokens; prompts over 100K tokens cost $0.50 input and $2.50 output. Cache writes, batch discounts, and US inference pricing are excluded."
+    }
+  },
+  {
+    "id": "claude-fable-5-2",
+    "name": "Claude Fable 5.2",
+    "provider": "Anthropic",
+    "providerModelId": "claude-fable-5-2",
+    "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "verifiedAt": "2026-11-22",
+    "accessNote": "Current top Claude model on the Claude API.",
+    "pricing": {
+      "inputPerMillion": 8,
+      "outputPerMillion": 40,
+      "cacheReadPerMillion": 0.2,
+      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "verifiedAt": "2026-11-22",
       "validThrough": null,
       "notes": "Standard Claude API rates. Cache writes, batch discounts, fast mode, and US inference pricing are excluded."
     }
@@ -76,17 +148,35 @@
     "name": "Gemini 3.8 Flash",
     "provider": "Google",
     "providerModelId": "gemini-3.8-flash",
-    "sourceUrl": "https://ai.google.dev/gemini-api/docs/latest-model",
-    "verifiedAt": "2026-09-27",
-    "accessNote": "Generally available through the Gemini API and ready for production use.",
+    "sourceUrl": "https://aistudio.google.com/docs/latest-model",
+    "verifiedAt": "2026-11-22",
+    "accessNote": "Available through the Gemini API. The Gemini 4 family is now Google's latest.",
     "pricing": {
       "inputPerMillion": 0.75,
       "outputPerMillion": 3.75,
       "cacheReadPerMillion": 0.075,
-      "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing?hl=en",
-      "verifiedAt": "2026-09-27",
+      "sourceUrl": "https://aistudio.google.com/docs/pricing?hl=en",
+      "verifiedAt": "2026-11-22",
       "validThrough": "2026-12-31",
       "notes": "Standard paid Gemini Developer API rates through December 31, 2026. Output includes thinking tokens; cache storage, tools, and other service tiers are excluded."
+    }
+  },
+  {
+    "id": "gemini-4-hydrogen",
+    "name": "Gemini 4 Hydrogen",
+    "provider": "Google",
+    "providerModelId": "gemini-4-hydrogen",
+    "sourceUrl": "https://aistudio.google.com/docs/models/gemini-4-hydrogen",
+    "verifiedAt": "2026-11-22",
+    "accessNote": "Stable on the Gemini API.",
+    "pricing": {
+      "inputPerMillion": 1.5,
+      "outputPerMillion": 7.5,
+      "cacheReadPerMillion": 0.075,
+      "sourceUrl": "https://aistudio.google.com/docs/pricing?hl=en",
+      "verifiedAt": "2026-11-22",
+      "validThrough": null,
+      "notes": "Standard paid Gemini Developer API rates. Output includes thinking tokens; cache storage, tools, and other service tiers are excluded."
     }
   },
   {
@@ -95,14 +185,14 @@
     "provider": "xAI",
     "providerModelId": "grok-4.7",
     "sourceUrl": "https://docs.x.ai/developers/models/grok-4.7",
-    "verifiedAt": "2026-09-27",
+    "verifiedAt": "2026-11-22",
     "accessNote": "Available through the xAI API.",
     "pricing": {
       "inputPerMillion": 2,
       "outputPerMillion": 6,
       "cacheReadPerMillion": 0.5,
       "sourceUrl": "https://docs.x.ai/developers/models/grok-4.7",
-      "verifiedAt": "2026-09-27",
+      "verifiedAt": "2026-11-22",
       "validThrough": null,
       "notes": "Global short-context rates below 200K prompt tokens. Longer prompts, US regional inference, and tools cost more."
     }
