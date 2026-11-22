@@ -3,10 +3,14 @@ import { models, devices } from "@/lib/data";
 import { canRun } from "@/lib/compute";
 import { badgeSvg, badgeContent } from "@/lib/badge";
 
-// One badge per text model x device. Multi-modal models use a different verdict
-// engine (compute-mm) and are intentionally excluded from the badge for now.
+// One badge per text model x device that runs (verdict not "no"). Nobody embeds a
+// "won't run" badge, and building all pairs pushed dist past Cloudflare Pages'
+// 20,000-file limit (Nov 2026). Multi-modal models use a different verdict engine
+// (compute-mm) and are intentionally excluded from the badge for now.
 export function getStaticPaths() {
-  return models.flatMap((m) => devices.map((d) => ({ params: { model: m.id, device: d.id } })));
+  return models.flatMap((m) =>
+    devices.filter((d) => canRun(m, d).verdict !== "no").map((d) => ({ params: { model: m.id, device: d.id } })),
+  );
 }
 
 export const GET: APIRoute = ({ params }) => {
