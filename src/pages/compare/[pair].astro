@@ -8,6 +8,7 @@ import { models, devicesByMemory, meta, dedupeSources } from "@/lib/data";
 import { canRun, estimateMemory, quantLadderSizes } from "@/lib/compute";
 import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
 import type { ModelRow } from "@/data/types";
+import { RIVAL_PAIRS, MATCHUPS } from "@/lib/rivals";
 
 // Head-to-head pages for same-family model pairs ("Llama 3.1 8B vs 70B"): which
 // runs on which hardware, side by side. Genuinely unique per pair (the verdict
@@ -25,6 +26,11 @@ export function getStaticPaths() {
         out.push({ params: { pair: `${a.id}-vs-${b.id}` }, props: { a, b } });
       }
     }
+  }
+  // Curated cross-family rivals (deduped against the same-family set above).
+  const seen = new Set(out.map((o) => o.params.pair));
+  for (const r of RIVAL_PAIRS) {
+    if (!seen.has(r.slug)) out.push({ params: { pair: r.slug }, props: { a: r.a, b: r.b } });
   }
   return out;
 }
@@ -50,12 +56,13 @@ const lLadder = quantLadderSizes(l);
 // Sibling head-to-head pages in the same family: pairs that share one of the two
 // models on this page. Lets these pair pages mesh laterally with each other, not
 // just up to the model/rig pages. Canonical id-sorted URL, deterministic order.
-const famModels = models.filter((m) => m.family === s.family);
+// Only same-family partners of each anchor exist as pages (plus curated rivals below).
+const crossFamily = s.family !== l.family;
 const relatedPairs = (() => {
   const seen = new Set<string>([path]);
   const out: { url: string; sm: ModelRow; lg: ModelRow }[] = [];
   for (const anchor of [s, l]) {
-    for (const o of famModels) {
+    for (const o of models.filter((m) => m.family === anchor.family)) {
       if (o.id === anchor.id) continue;
       const url = `/compare/${[anchor.id, o.id].sort().join("-vs-")}`;
       if (seen.has(url)) continue;
@@ -64,10 +71,19 @@ const relatedPairs = (() => {
       out.push({ url, sm, lg });
     }
   }
+  for (const r of RIVAL_PAIRS) {
+    const url = `/compare/${r.slug}`;
+    if (seen.has(url) || ![r.a.id, r.b.id].some((id) => id === s.id || id === l.id)) continue;
+    seen.add(url);
+    const [sm, lg] = r.a.params_b <= r.b.params_b ? [r.a, r.b] : [r.b, r.a];
+    out.push({ url, sm, lg });
+  }
   return out
     .sort((p, q) => p.sm.params_b - q.sm.params_b || (p.url < q.url ? -1 : 1))
     .slice(0, 8);
 })();
+
+const matchup = MATCHUPS.find((mu) => mu.pairs.some((p) => p.slug === `${a.id}-vs-${b.id}`));
 
 const fmtElo = (m: ModelRow) => (m.arena_elo ? `Elo ${m.arena_elo}` : "not ranked");
 const eloLine =
@@ -144,7 +160,7 @@ const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 t
       ]}
     />
 
-    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Head-to-head &middot; {s.family}</p>
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Head-to-head &middot; {crossFamily ? `${s.family} vs ${l.family}` : s.family}</p>
     <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
       {s.name} vs {l.name}
     </h1>
@@ -236,7 +252,7 @@ const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 t
 
     {relatedPairs.length > 0 && (
       <section class="mt-10">
-        <h2 class="mb-3 text-lg font-semibold">More {s.family} comparisons</h2>
+        <h2 class="mb-3 text-lg font-semibold">{crossFamily ? "More comparisons" : `More ${s.family} comparisons`}</h2>
         <ul class="flex flex-wrap gap-2">
           {relatedPairs.map((p) => (
             <li>
@@ -246,6 +262,11 @@ const SpecRow = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 t
             </li>
           ))}
         </ul>
+        {matchup && (
+          <p class="mt-3 text-sm text-muted-foreground">
+            Full family view: <a href={`/compare/${matchup.slug}`} class="underline">{matchup.a.name} vs {matchup.b.name}</a>.
+          </p>
+        )}
       </section>
     )}
 
