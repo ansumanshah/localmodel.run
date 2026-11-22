@@ -1,3 +1,6 @@
+          const info = { tag: node.tagName.toLowerCase(), cls: (node.className || "").toString().slice(0, 48), right: Math.round(rc.right), text: (node.textContent || "").trim().slice(0, 40) };
+          if (!clipped) { max = rc.right; worst = info; }
+          else if (rc.right > cmax) { cmax = rc.right; clippedWorst = info; }
 // Mobile render audit. Loads the built site at a phone viewport (iPhone 13,
 // 390px) in headless Chromium and fails on any horizontal overflow, leaked
 // desktop nav, console/page error, non-200, or blank render. This is the gate
@@ -92,7 +95,7 @@ async function checkPage(browser, url) {
     r.status = resp ? resp.status() : 0;
     const d = await page.evaluate(() => {
       const el = document.documentElement, vw = el.clientWidth;
-      let worst = null, max = vw;
+      let worst = null, max = vw, clippedWorst = null, cmax = vw;
       for (const node of document.querySelectorAll("body *")) {
         const rc = node.getBoundingClientRect();
         if (rc.right > max + 1) {
@@ -101,11 +104,14 @@ async function checkPage(browser, url) {
             if (/(hidden|auto|scroll|clip)/.test(getComputedStyle(p).overflowX)) { clipped = true; break; }
             p = p.parentElement;
           }
-          if (!clipped) { max = rc.right; worst = { tag: node.tagName.toLowerCase(), cls: (node.className || "").toString().slice(0, 48), right: Math.round(rc.right) }; }
+          const info = { tag: node.tagName.toLowerCase(), cls: (node.className || "").toString().slice(0, 48), right: Math.round(rc.right), text: (node.textContent || "").trim().slice(0, 40) };
+          if (!clipped) { max = rc.right; worst = info; }
+          // Absolute children can escape a clipping ancestor that is not their containing block.
+          else if (rc.right > cmax) { cmax = rc.right; clippedWorst = { clipped: true, ...info }; }
         }
       }
       const nav = document.querySelector(".gh-nav");
-      return { sw: el.scrollWidth, cw: vw, navDisplay: nav ? getComputedStyle(nav).display : "none", bodyLen: document.body.innerText.length, worst };
+      return { sw: el.scrollWidth, cw: vw, navDisplay: nav ? getComputedStyle(nav).display : "none", bodyLen: document.body.innerText.length, worst: worst ?? (clippedWorst && { clipped: true, ...clippedWorst }) };
     });
     r.overflow = d.sw - d.cw;
     r.navHidden = d.navDisplay === "none";
