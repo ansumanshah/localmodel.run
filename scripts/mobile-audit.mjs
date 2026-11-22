@@ -1,6 +1,3 @@
-          const info = { tag: node.tagName.toLowerCase(), cls: (node.className || "").toString().slice(0, 48), right: Math.round(rc.right), text: (node.textContent || "").trim().slice(0, 40) };
-          if (!clipped) { max = rc.right; worst = info; }
-          else if (rc.right > cmax) { cmax = rc.right; clippedWorst = info; }
 // Mobile render audit. Loads the built site at a phone viewport (iPhone 13,
 // 390px) in headless Chromium and fails on any horizontal overflow, leaked
 // desktop nav, console/page error, non-200, or blank render. This is the gate
@@ -111,7 +108,7 @@ async function checkPage(browser, url) {
         }
       }
       const nav = document.querySelector(".gh-nav");
-      return { sw: el.scrollWidth, cw: vw, navDisplay: nav ? getComputedStyle(nav).display : "none", bodyLen: document.body.innerText.length, worst: worst ?? (clippedWorst && { clipped: true, ...clippedWorst }) };
+      return { sw: el.scrollWidth, cw: vw, navDisplay: nav ? getComputedStyle(nav).display : "none", bodyLen: document.body.innerText.length, worst: worst ?? clippedWorst };
     });
     r.overflow = d.sw - d.cw;
     r.navHidden = d.navDisplay === "none";
