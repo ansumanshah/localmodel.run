@@ -1,61 +1,25 @@
-import models from "../data/models.json";
-import meta from "../data/meta.json";
-import { FEATURED_MODEL_IDS } from "./featured";
-
-// Which model x device pair pages the sitemap advertises. Every pair page still
-// builds and stays linked; this only decides what we ASK Google to crawl.
+// Which pages we ask Google to index. Model x device pair pages
+// (/can-i-run/<model>/<device>) still build, stay linked and serve visitors, but
+// carry a Google-only noindex,follow (meta name="googlebot") and stay out of the
+// sitemap. Bing still indexes them through IndexNow (scripts/indexnow.mjs) and
+// sends ~20x Google's referrals (CF RUM, Nov 2026).
 //
-// Why: on 2026-10-02 Search Console showed 77 indexed vs 1,023 "crawled,
-// currently not indexed", with ~7,400 of ~8,500 sitemap URLs being pair pages.
-// Listing every pair dilutes crawl demand across near-identical URLs. Pair
-// traffic (Cloudflare RUM, Aug to Oct 2026) concentrates on recent releases and
-// widely downloaded models, so those are the pairs we keep in the sitemap, plus
-// the curated front-page models.
-//
-// Image, video and audio models are few and their pairs only exist where the
-// model actually runs, so all of their pairs stay listed.
+// Why: Search Console on 2026-11-22 showed 8 indexed pages, down from ~550 in
+// late August, with 4,231 "discovered, not indexed" and 1,093 "crawled, not
+// indexed". No manual action. The dropped URLs were almost all pair pages (e.g.
+// llama-3.3-70b on an 8 GB M1), ~8,900 near-template pages against ~1,200 hub
+// pages. Trimming the sitemap to recent models (Oct 2026) did not stop the slide,
+// so the pairs leave the index entirely and their numbers live on the indexable
+// /can-i-run/<model>, /model, /best-llm-for and /compare pages instead.
 
-/** A text model counts as recent if released within this many days of the
- *  catalog's last data update (meta.updated, not the build clock). */
-export const RECENT_DAYS = 180;
-/** Plus the most downloaded text models on Hugging Face. */
-export const TOP_DOWNLOADS = 25;
+const PAIR = /^\/can-i-run\/[^/]+\/[^/]+$/;
 
-interface Row {
-  id: string;
-  release?: string;
-  hf_downloads?: number | null;
+/** True for a model x device pair page pathname (no trailing slash). */
+export function isPairPage(pathname: string): boolean {
+  return PAIR.test(pathname);
 }
 
-function releaseTime(release: string | undefined): number | null {
-  if (!release) return null;
-  // Catalog dates are "YYYY-MM" or "YYYY-MM-DD". A bare month counts as its last
-  // day, so a model is not aged out before 180 days could have passed.
-  if (release.length === 7) {
-    const [y, m] = release.split("-").map(Number);
-    return Number.isNaN(y) || Number.isNaN(m) ? null : Date.UTC(y, m, 0);
-  }
-  const t = Date.parse(release);
-  return Number.isNaN(t) ? null : t;
-}
-
-export function featuredTextModelIds(rows: Row[], updated: string): Set<string> {
-  const cutoff = Date.parse(updated) - RECENT_DAYS * 86_400_000;
-  const recent = rows.filter((m) => (releaseTime(m.release) ?? -Infinity) >= cutoff);
-  const popular = [...rows]
-    .sort((a, b) => (b.hf_downloads ?? 0) - (a.hf_downloads ?? 0))
-    .slice(0, TOP_DOWNLOADS);
-  return new Set([...recent, ...popular].map((m) => m.id).concat(FEATURED_MODEL_IDS));
-}
-
-const textIds = new Set((models as Row[]).map((m) => m.id));
-const featured = featuredTextModelIds(models as Row[], meta.updated);
-
-/** Sitemap filter for a URL pathname. Only text-model pair pages are trimmed. */
+/** Sitemap filter for a URL pathname. */
 export function inSitemap(pathname: string): boolean {
-  if (pathname.startsWith("/start/result/")) return false;
-  const pair = /^\/can-i-run\/([^/]+)\/[^/]+$/.exec(pathname);
-  if (!pair) return true;
-  const model = pair[1];
-  return !textIds.has(model) || featured.has(model);
+  return !pathname.startsWith("/start/result/") && !isPairPage(pathname);
 }

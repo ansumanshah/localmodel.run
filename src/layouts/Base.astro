@@ -27,6 +27,8 @@ interface Props {
   path: string;
   jsonLd?: JsonLd[];
   noindex?: boolean;
+  /** Google-only noindex (Bing keeps the page): see src/lib/sitemap-policy.ts. */
+  googleNoindex?: boolean;
   ogTitle?: string;
   /** Path to a per-page OG PNG; defaults to the home card. */
   ogImage?: string;
@@ -52,6 +54,7 @@ const {
   path,
   jsonLd = [],
   noindex = false,
+  googleNoindex = false,
   ogTitle,
   ogImage: ogImagePath = "/og/home.png",
   ogImageAlt = "localmodel.run, check whether you can run an AI model locally",
@@ -93,7 +96,8 @@ const cfBeaconToken = import.meta.env.CF_BEACON_TOKEN;
     <link rel="canonical" href={canonical} />
     {hreflangs.map((h) => <link rel="alternate" hreflang={h.lang} href={h.href} />)}
     {hreflangs.length > 0 && <link rel="alternate" hreflang="x-default" href={abs(enPath)} />}
-    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    {googleNoindex && <meta name="googlebot" content="noindex,follow" />}
     {gscVerification && <meta name="google-site-verification" content={gscVerification} />}
     {/* theme-color drives the iOS Safari status-bar / toolbar tint so the safe areas
         blend with the page (env(safe-area-inset-top) is 0 in a Safari tab, so this is
