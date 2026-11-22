@@ -1,6 +1,8 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import NoodleCallout from "@/components/NoodleCallout.astro";
+import { NOODLE_LAUNCHED } from "@/lib/noodle";
 import Command from "@/components/Command.astro";
 import Sources from "@/components/Sources.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
@@ -133,6 +135,8 @@ const jsonLd = [
                 </tbody>
               </table>
             </div>
+
+            {NOODLE_LAUNCHED && t.platform === "mac" && <div class="px-4 pb-4"><NoodleCallout /></div>}
 
             <!-- Gotcha + ceiling -->
             <div class="border-t border-[color-mix(in_oklch,var(--color-brand)_15%,transparent)] bg-[color-mix(in_oklch,var(--color-verdict-tight)_6%,transparent)] px-4 py-3 text-sm">

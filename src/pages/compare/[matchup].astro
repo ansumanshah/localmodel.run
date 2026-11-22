@@ -1,0 +1,319 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import VerdictBadge from "@/components/VerdictBadge.astro";
+import EntityIcon from "@/components/EntityIcon.astro";
+import Sources from "@/components/Sources.astro";
+import NoodleCallout from "@/components/NoodleCallout.astro";
+import { devicesByMemory, meta, dedupeSources, formatRelease, getDevice } from "@/lib/data";
+import { canRun, estimateMemory, estTokPerSec, kvCacheGb, quantLadderSizes } from "@/lib/compute";
+import { breadcrumbLd, faqLd, techArticleLd, truncate, type FaqItem } from "@/lib/seo";
+import { MATCHUPS, matchupModels, type Matchup } from "@/lib/rivals";
+import type { ModelRow } from "@/data/types";
+
+// Family-level cross-lab matchups ("Gemma 4 vs Qwen 3.6"). Everything is computed
+// from the catalog; no benchmark scores (the catalog has none for these models).
+export function getStaticPaths() {
+  return MATCHUPS.map((mu) => ({ params: { matchup: mu.slug }, props: { mu } }));
+}
+
+const { mu } = Astro.props as { mu: Matchup };
+const path = `/compare/${mu.slug}`;
+const year = new Date(meta.updated).getFullYear();
+const A = matchupModels(mu, "a");
+const B = matchupModels(mu, "b");
+const q4 = (m: ModelRow) => estimateMemory(m, "q4_k_m").totalGb;
+const gb = (n: number) => Math.round(n * 10) / 10;
+
+const [dense, moe] = [mu.pairs.find((p) => !p.a.is_moe && !p.b.is_moe)!, mu.pairs.find((p) => p.a.is_moe && p.b.is_moe)!];
+const orient = (p: typeof dense) => (p.a.id.startsWith(mu.a.idPrefix) ? [p.a, p.b] : [p.b, p.a]);
+const [dA, dB] = orient(dense);
+const [mA, mB] = orient(moe);
+
+const step = Math.max(1, Math.round(devicesByMemory.length / 12));
+const keyDevices = devicesByMemory.filter((_, i) => i % step === 0);
+const fits = (m: ModelRow, d: (typeof devicesByMemory)[number]) => canRun(m, d).verdict !== "no";
+const biggest = (list: ModelRow[], d: (typeof devicesByMemory)[number]) =>
+  [...list].reverse().find((m) => fits(m, d)) ?? null;
+// Spread plus the 16/24/32/48/64 GB Macs people actually ask about.
+const MACS = ["apple-m4-16gb", "apple-m4-24gb", "apple-m5-32gb", "apple-m4-pro-48gb", "apple-m4-max-64gb"]
+  .map(getDevice)
+  .filter((d): d is NonNullable<typeof d> => !!d);
+const tableDevices = [...new Map([...keyDevices, ...MACS].map((d) => [d.id, d])).values()].sort(
+  (x, y) => x.memory_gb - y.memory_gb || (x.id < y.id ? -1 : 1),
+);
+const rows = tableDevices.map((d) => ({ device: d, a: biggest(A, d), b: biggest(B, d) }));
+
+// Est. tok/s for the dense pair only (estTokPerSec returns null for MoE).
+const speedRows = keyDevices
+  .map((d) => ({ device: d, a: estTokPerSec(dA, d), b: estTokPerSec(dB, d) }))
+  .filter((r) => r.a != null && r.b != null && fits(dA, r.device) && fits(dB, r.device));
+
+const big = [dA, dB, mA, mB];
+const ctxRows = big.map((m) => {
+  const w = estimateMemory(m, "q4_k_m", 0).weightsGb;
+  return { m, w, kv32: kvCacheGb(m, 32), kv128: kvCacheGb(m, 128), t32: estimateMemory(m, "q4_k_m", 32).totalGb, t128: estimateMemory(m, "q4_k_m", 128).totalGb };
+});
+const quantRows = big.map((m) => ({ m, q: quantLadderSizes(m).filter((q) => ["Q4_K_M", "Q5_K_M", "Q8_0"].includes(q.label)) }));
+
+const mac16 = getDevice("apple-m4-16gb")!;
+const best16 = (list: ModelRow[]) => biggest(list, mac16);
+const a16 = best16(A);
+const b16 = best16(B);
+const fmtB = (m: ModelRow | null) => (m ? `${m.name} (~${q4(m)} GB)` : "nothing in the lineup");
+const lic = new Set([...A, ...B].map((m) => m.license).filter(Boolean));
+const licLine = lic.size === 1 ? [...lic][0] : [...lic].join(" and ");
+
+const title = `${mu.a.name} vs ${mu.b.name}: memory, speed and which runs on your hardware (${year})`;
+const lede = `${dA.name} needs ~${q4(dA)} GB at Q4_K_M and ${dB.name} ~${q4(dB)} GB. In the MoE pair, ${mA.name} needs ~${q4(mA)} GB with ${mA.active_params_b}B active parameters, and ${mB.name} ~${q4(mB)} GB with ${mB.active_params_b}B active.`;
+const description = truncate(lede);
+
+const faqs: FaqItem[] = [
+  {
+    q: `Which uses less memory, ${mu.a.name} or ${mu.b.name}?`,
+    a: `Size-matched, ${dA.name} needs ~${q4(dA)} GB and ${dB.name} ~${q4(dB)} GB at Q4_K_M (${q4(dA) < q4(dB) ? mu.a.name : mu.b.name} is lighter by ~${gb(Math.abs(q4(dA) - q4(dB)))} GB). In the MoE pair, ${mA.name} needs ~${q4(mA)} GB and ${mB.name} ~${q4(mB)} GB (${q4(mA) < q4(mB) ? mu.a.name : mu.b.name} is lighter by ~${gb(Math.abs(q4(mA) - q4(mB)))} GB). All experts must sit in memory, so an MoE needs RAM for its total parameters, not just the active ones.`,
+  },
+  {
+    q: `Which should I run on a 16 GB Mac?`,
+    a: `On a 16 GB Apple M4 the largest ${mu.a.name} model that fits is ${fmtB(a16)}, and the largest ${mu.b.name} model is ${fmtB(b16)}. Open the device table below for other memory sizes.`,
+  },
+  {
+    q: `Which is faster locally?`,
+    a: `Decode speed on memory-bound hardware tracks active parameters. ${mA.name} activates ${mA.active_params_b}B per token and ${mB.name} activates ${mB.active_params_b}B, so ${(mA.active_params_b ?? 0) > (mB.active_params_b ?? 0) ? mB.name : mA.name} reads less weight per token. For the dense pair, the lighter model (${q4(dA) < q4(dB) ? dA.name : dB.name}) decodes faster on the same device. These are estimates, not benchmarks.`,
+  },
+  {
+    q: `What are the licenses?`,
+    a: `Both lineups in this catalog are listed as ${licLine}. Check each model card (linked under Sources) before commercial use.`,
+  },
+];
+
+const sources = dedupeSources(...[...A, ...B].map((m) => m.sources));
+const jsonLd = [
+  breadcrumbLd(
+    [
+      { name: "Home", url: "/" },
+      { name: "Compare", url: "/compare" },
+      { name: `${mu.a.name} vs ${mu.b.name}`, url: path },
+    ],
+    Astro.site!.href,
+  ),
+  techArticleLd({
+    headline: `${mu.a.name} vs ${mu.b.name}`,
+    description,
+    url: path,
+    origin: Astro.site!.href,
+    dateModified: meta.updated,
+    datePublished: meta.launched,
+    speakableSelector: [".verdict-text"],
+    sources,
+  }),
+  faqLd(faqs),
+];
+
+const Row = "grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-2.5 text-sm";
+const Lineup = "grid grid-cols-[1.4fr_repeat(5,auto)] items-center gap-3 px-4 py-2.5 text-sm";
+---
+
+<Base
+  title={`${title} · localmodel.run`}
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogImage={`/og/model/${dB.id}.png`}
+  ogTitle={`${mu.a.name} vs ${mu.b.name}`}
+  ogType="article"
+  articleModified={meta.updated}
+  ogImageAlt={`${mu.a.name} versus ${mu.b.name} memory and hardware comparison`}
+>
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs
+      items={[
+        { name: "Home", url: "/" },
+        { name: "Compare", url: "/compare" },
+        { name: `${mu.a.name} vs ${mu.b.name}`, url: path },
+      ]}
+    />
+
+    <p class="eyebrow mt-4"><span class="dot" aria-hidden="true"></span>Family matchup</p>
+    <h1 class="mt-3 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+      {mu.a.name} vs {mu.b.name}: memory, speed and which runs on your hardware
+    </h1>
+    <p class="verdict-text mt-4 text-pretty text-lg text-foreground">
+      <strong>{dA.name} needs ~{q4(dA)} GB</strong> at Q4_K_M and <strong>{dB.name} ~{q4(dB)} GB</strong>.
+      In the MoE pair, <strong>{mA.name} needs ~{q4(mA)} GB</strong> with {mA.active_params_b}B active parameters, and
+      <strong>{mB.name} ~{q4(mB)} GB</strong> with {mB.active_params_b}B active.
+    </p>
+
+    <div class="wire mt-5" aria-hidden="true"></div>
+
+    <section class="mt-6">
+      <h2 class="mb-3 text-lg font-semibold">Head-to-head pairs</h2>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {mu.pairs.map((p) => {
+          const [x, y] = orient(p);
+          return (
+            <a href={`/compare/${p.slug}`} class="panel block p-4 transition-colors hover:border-[color-mix(in_oklch,var(--color-brand)_45%,transparent)]">
+              <p class="font-medium">{x.name} vs {y.name}</p>
+              <p class="mt-1 text-sm text-muted-foreground">
+                ~{q4(x)} GB vs ~{q4(y)} GB at Q4_K_M · {x.is_moe ? `${x.active_params_b}B active` : "dense"} vs {y.is_moe ? `${y.active_params_b}B active` : "dense"}
+              </p>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">The lineups</h2>
+      <div class="panel overflow-x-auto">
+        <div class="min-w-[34rem]">
+          <div class={Lineup + " panel-head"}>
+            <span class="panel-label">Model</span>
+            <span class="panel-label text-right">Params</span>
+            <span class="panel-label text-right">Active</span>
+            <span class="panel-label text-right">Q4_K_M</span>
+            <span class="panel-label text-right">Context</span>
+            <span class="panel-label text-right">Release</span>
+          </div>
+          <div class="divide-y divide-border">
+            {[...A, ...B].map((m) => (
+              <div class={Lineup}>
+                <a href={`/model/${m.id}`} class="truncate hover:underline">{m.name}<span class="ml-1 text-xs text-muted-foreground">{m.license ?? ""}</span></a>
+                <span class="text-right">{m.params_b}B{m.is_moe ? " MoE" : ""}</span>
+                <span class="text-right">{m.is_moe ? `${m.active_params_b}B` : "all"}</span>
+                <span class="text-right font-medium">{m.q4_k_m_gb != null ? `${m.q4_k_m_gb} GB` : `~${q4(m)} GB`}</span>
+                <span class="text-right">{m.default_context_k}k</span>
+                <span class="text-right text-xs">{formatRelease(m.release)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Q4_K_M sizes are measured GGUF files where the catalog has one; "all" means a dense model reads every parameter per token.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Biggest model that runs on each device</h2>
+      <div class="panel overflow-hidden">
+        <div class={Row + " panel-head"}>
+          <span class="panel-label">Device</span>
+          <span class="panel-label min-w-24 text-right">{mu.a.name}</span>
+          <span class="panel-label min-w-24 text-right">{mu.b.name}</span>
+        </div>
+        <div class="divide-y divide-border">
+          {rows.map((r) => (
+            <div class={Row}>
+              <a href={`/best-llm-for/${r.device.id}`} class="flex min-w-0 items-center gap-2 hover:underline">
+                <EntityIcon device={r.device.category} size={16} class="text-muted-foreground shrink-0" />
+                <span class="truncate">{r.device.name}</span>
+              </a>
+              {[r.a, r.b].map((m) => m ? (
+                <a href={`/can-i-run/${m.id}/${r.device.id}`} class="flex flex-col items-end gap-0.5">
+                  <VerdictBadge verdict={canRun(m, r.device).verdict} />
+                  <span class="text-xs text-muted-foreground">{m.name.replace(/^(Gemma 4|Qwen3\.6) /, "")}</span>
+                </a>
+              ) : <span class="text-right text-xs text-muted-foreground">none fits</span>)}
+            </div>
+          ))}
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">A representative spread across the memory range. Tap a badge for the full breakdown.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Memory with a long context</h2>
+      <div class="panel overflow-x-auto">
+        <div class="min-w-[32rem]">
+          <div class="grid grid-cols-[1.4fr_repeat(3,auto)] items-center gap-3 px-4 py-2.5 text-sm panel-head">
+            <span class="panel-label">Model (Q4_K_M)</span>
+            <span class="panel-label text-right">Weights</span>
+            <span class="panel-label text-right">Total at 32k</span>
+            <span class="panel-label text-right">Total at 128k</span>
+          </div>
+          <div class="divide-y divide-border">
+            {ctxRows.map((r) => (
+              <div class="grid grid-cols-[1.4fr_repeat(3,auto)] items-center gap-3 px-4 py-2.5 text-sm">
+                <a href={`/model/${r.m.id}`} class="hover:underline">{r.m.name}</a>
+                <span class="text-right">{r.w} GB</span>
+                <span class="text-right font-medium">{r.t32} GB <span class="text-xs text-muted-foreground">(KV {r.kv32})</span></span>
+                <span class="text-right font-medium">{r.t128} GB <span class="text-xs text-muted-foreground">(KV {r.kv128})</span></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Total = weights + KV cache + runtime overhead. The KV cache grows with context, so a 128k window can matter more than the quant choice on a 16 or 24 GB Mac.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Size at each quantization</h2>
+      <div class="panel overflow-x-auto">
+        <div class="min-w-[28rem]">
+          <div class="grid grid-cols-[1.4fr_repeat(3,auto)] items-center gap-3 px-4 py-2.5 text-sm panel-head">
+            <span class="panel-label">Model</span>
+            {quantRows[0].q.map((q) => <span class="panel-label text-right">{q.label}</span>)}
+          </div>
+          <div class="divide-y divide-border">
+            {quantRows.map((r) => (
+              <div class="grid grid-cols-[1.4fr_repeat(3,auto)] items-center gap-3 px-4 py-2.5 text-sm">
+                <span>{r.m.name}</span>
+                {r.q.map((q) => <span class="text-right font-medium">{q.gb} GB{q.measured ? "" : "*"}</span>)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">* derived from bits-per-weight; unstarred sizes are measured GGUF files.</p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold">Speed: active parameters decide</h2>
+      <p class="text-pretty text-muted-foreground">
+        On memory-bound hardware, decode speed tracks how many weights are read per token. {mA.name} activates {mA.active_params_b}B parameters and {mB.name} activates {mB.active_params_b}B, so both MoE models read a small slice of their {mA.params_b}B and {mB.params_b}B totals each step, while still needing memory for all of it. The catalog does not estimate MoE tok/s.
+      </p>
+      {speedRows.length > 0 && (
+        <div class="panel mt-4 overflow-hidden">
+          <div class={Row + " panel-head"}>
+            <span class="panel-label">Device (dense pair, est.)</span>
+            <span class="panel-label min-w-24 text-right">{dA.name}</span>
+            <span class="panel-label min-w-24 text-right">{dB.name}</span>
+          </div>
+          <div class="divide-y divide-border">
+            {speedRows.map((r) => (
+              <div class={Row}>
+                <span class="truncate">{r.device.name}</span>
+                <span class="text-right">~{r.a} tok/s est.</span>
+                <span class="text-right">~{r.b} tok/s est.</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <p class="mt-2 text-xs text-muted-foreground">Bandwidth-bound estimates at Q4_K_M, empty context. See <a href="/methodology" class="underline">methodology</a>.</p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="mb-3 text-lg font-semibold">FAQ</h2>
+      <div class="panel divide-y divide-border">
+        {faqs.map((f) => (
+          <div class="p-4">
+            <p class="font-medium">{f.q}</p>
+            <p class="mt-2 text-sm text-muted-foreground">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="mt-8 text-sm text-muted-foreground">
+      No benchmark scores here: the catalog has none for these models, so see the model cards under Sources.
+      Browse <a href="/compare" class="underline">all models &times; devices</a>.
+    </p>
+    <NoodleCallout />
+
+    <Sources urls={sources} />
+
+    <p class="mt-6 text-xs text-muted-foreground">
+      Memory figures are estimates at Q4_K_M. Catalog updated {meta.updated}. See <a href="/methodology" class="underline">methodology</a>.
+    </p>
+  </div>
+</Base>

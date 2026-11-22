@@ -1,3 +1,4 @@
+import { NOODLE_LAUNCHED } from "@/lib/noodle";
 import modelsData from "@/data/models.json";
 import imageModelsData from "@/data/image-models.json";
 import videoModelsData from "@/data/video-models.json";
@@ -173,12 +174,19 @@ export interface InstallCmd {
 }
 
 /** Multi-tool install commands for a model on a desktop platform. */
-export function installCommands(model: ModelRow, platform: Platform): InstallCmd[] {
+export function installCommands(
+  model: ModelRow,
+  platform: Platform,
+  noodleLaunched: boolean = NOODLE_LAUNCHED,
+): InstallCmd[] {
   const out: InstallCmd[] = [];
   const desktop = platform === "mac" || platform === "windows" || platform === "linux";
   if (desktop && model.ollama_tag)
     out.push({ tool: "Ollama", cmd: `ollama run ${model.ollama_tag}` });
   const repo = hfRepo(model);
+  // Noodle rejects split GGUF shards; HF splits files above 50 GB, so 48 GB of weights is the safe single-file cutoff.
+  if (noodleLaunched && platform === "mac" && repo && model.q4_k_m_gb != null && model.q4_k_m_gb < 48)
+    out.unshift({ tool: "Noodle", cmd: `noodle model run hf.co/${repo}:Q4_K_M` });
   if (desktop && repo) {
     out.push({ tool: "llama.cpp", cmd: `llama-cli -hf ${repo}:Q4_K_M` });
     out.push({ tool: "LM Studio", cmd: `lms get ${repo}` });

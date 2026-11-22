@@ -17,11 +17,12 @@
   #     handled by .github/workflows/purge-on-deploy.yml: it fires on CF Pages'
   #     GitHub check run or the data-refresh workflow completing for main. It
   #     waits for the deployed commit before purging the zone.
-  # Because purge-on-deploy guarantees freshness, s-maxage is LONG (1 day) to
-  # maximise the cache-hit ratio between deploys. Browsers still revalidate
+  # Because purge-on-deploy guarantees freshness, s-maxage is LONG (7 days, deploys
+  # are roughly weekly; Nov 2026 HTML was 20% hit at 1 day across ~17k long-tail
+  # pages) to maximise the cache-hit ratio between deploys. Browsers still revalidate
   # (max-age=0). If you ever disable that purge workflow, drop s-maxage back to
   # ~600. Immutable /_astro/* keep their 1yr rule below.
-  Cache-Control: public, max-age=0, s-maxage=86400, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, s-maxage=604800, stale-while-revalidate=86400
   Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt", </.well-known/agent.json>; rel="alternate"; type="application/json"; title="agent-card", </.well-known/api-catalog>; rel="api-catalog", </sitemap-index.xml>; rel="sitemap"
 
 # This Pages hostname duplicates the canonical custom domain.

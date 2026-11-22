@@ -1,0 +1,23 @@
+---
+import Command from "@/components/Command.astro";
+import { NOODLE_INSTALL, NOODLE_LAUNCHED, NOODLE_REQUIREMENT, NOODLE_URL } from "@/lib/noodle";
+---
+
+{NOODLE_LAUNCHED && (
+  <div class="panel mt-4">
+    <div class="panel-head">
+      <span class="panel-label">Also on Mac: Noodle</span>
+      <span class="panel-label">Free, Apache-2.0</span>
+    </div>
+    <div class="space-y-3 p-5">
+      <p class="text-sm text-muted-foreground">
+        Noodle is a Mac app that runs Docker containers and local GGUF models, and serves them on an OpenAI-compatible endpoint at 127.0.0.1.
+      </p>
+      <Command code={NOODLE_INSTALL} label="Install" />
+      <p class="text-sm text-muted-foreground">{NOODLE_REQUIREMENT}</p>
+      <p class="text-xs text-muted-foreground">
+        Noodle is made by the developer of localmodel.run and is free. <a href={NOODLE_URL} rel="noopener" class="underline hover:text-foreground">getnoodle.dev</a>
+      </p>
+    </div>
+  </div>
+)}
