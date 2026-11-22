@@ -6,6 +6,7 @@ import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import VerdictBadge from "@/components/VerdictBadge.astro";
 import MemoryBar from "@/components/MemoryBar.astro";
 import Command from "@/components/Command.astro";
+import NoodleCallout from "@/components/NoodleCallout.astro";
 import Sources from "@/components/Sources.astro";
 import EntityIcon from "@/components/EntityIcon.astro";
 import {
@@ -292,7 +293,7 @@ if (fits && commands.length > 0) {
       description: `Commands to load ${model.name} at ${result.quant ? QUANT_LABEL[result.quant] : "Q4_K_M"} on ${device.name}.`,
       url: path,
       origin: Astro.site!.href,
-      steps: commands.map((c) => ({ name: `Run with ${c.tool}`, text: c.cmd })),
+      steps: commands.filter((c) => c.tool !== "Noodle").map((c) => ({ name: `Run with ${c.tool}`, text: c.cmd })),
     }),
   );
 }
@@ -506,6 +507,7 @@ if (fits && commands.length > 0) {
             {commands.map((c) => <Command code={c.cmd} label={c.tool} />)}
           </div>
         </div>
+        {platform === "mac" && commands.some((c) => c.tool === "Noodle") && <NoodleCallout />}
       </section>
     )}
 
