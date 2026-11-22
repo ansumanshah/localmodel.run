@@ -22,12 +22,12 @@ specs, statically rendered as one page per model, per device, and per
 
 ## Modalities
 
-179 local models across four modalities, each with its own sourced memory model:
+193 local models across four modalities, each with its own sourced memory model:
 
-- **Text LLMs** (151): Llama, Qwen, DeepSeek, Gemma, Mistral, Phi, GLM, Kimi, and more. Memory = weights at the chosen quant + KV cache + runtime overhead.
+- **Text LLMs** (164): Llama, Qwen, DeepSeek, Gemma, Mistral, Phi, GLM, Kimi, and more. Memory = weights at the chosen quant + KV cache + runtime overhead.
 - **Image generation** (6): FLUX.1 dev/schnell, SDXL, SD 3.5 Large, Stable Diffusion 1.5, Qwen-Image.
 - **Video generation** (11): Wan 2.1/2.2, LTX-Video, CogVideoX, HunyuanVideo, Mochi 1, Stable Video Diffusion.
-- **Audio and voice** (11): Whisper (STT), Kokoro / Bark / Dia / Orpheus (TTS), MusicGen / Stable Audio (music).
+- **Audio and voice** (12): Whisper (STT), Kokoro / Bark / Dia / Orpheus (TTS), MusicGen / Stable Audio (music).
 
 For diffusion (image/video) the verdict uses a **sourced peak-VRAM-consumed
 anchor** at the consumer-default quant, not a naive sum of file sizes: the large
@@ -39,8 +39,8 @@ whether they run on CPU.
 
 ## Open dataset
 
-The catalog is a standalone dataset, not just page content: 179 local models (151 text
-LLMs with measured GGUF quant sizes, 6 image, 11 video, 11 audio) across 43
+The catalog is a standalone dataset, not just page content: 193 local models (164 text
+LLMs with measured GGUF quant sizes, 6 image, 11 video, 12 audio) across 53
 devices, plus 54 in-browser WebGPU/WASM models with per-variant measured
 download bytes. Every row carries a `sources[]` array pointing at the primary
 source. Five separately listed hosted models have dated vendor API rates and no local-memory verdict.
@@ -77,7 +77,7 @@ a `sources[]` array that the pages render.
 
 - `src/data/models.json`, text LLMs: params, GGUF quant sizes (Q4_K_M, Q8_0), context, Ollama tag.
 - `src/data/image-models.json`, `video-models.json`, `audio-models.json`: backbone params, component sizes, and a sourced peak-VRAM/peak-memory anchor (with its own source URL) per model.
-- `src/data/devices.json`, 43 devices: Macs, NVIDIA/AMD GPUs, unified-memory APUs, RAM-only laptops, iPhones/iPads, Android, with sourced usable memory, bandwidth, MSRP and TDP.
+- `src/data/devices.json`, 53 devices: Macs, NVIDIA/AMD GPUs, unified-memory APUs, RAM-only laptops, iPhones/iPads, Android, with sourced usable memory, bandwidth, MSRP and TDP.
 - `src/data/hosted-models.json`: vendor model IDs, API access and dated standard text-token prices. Hosted rows never enter the local fit engine.
 - `src/data/tools.json`, per-platform runtime recommendations.
 - `src/lib/compute.ts`, the text memory estimator (bits-per-weight, KV cache, MoE-aware, Apple unified-memory handling).
